@@ -1,0 +1,26 @@
+# DON'T EDIT THIS!
+#
+# Codecrafters relies on this file being intact to run tests successfully. Any changes
+# here will not reflect when CodeCrafters tests your code, and might even cause build
+# failures.
+#
+# DON'T EDIT THIS!
+[package]
+name = "redis-starter-rust"
+version = "0.1.0"
+authors = ["Codecrafters <hello@codecrafters.io>"]
+edition = "2021"
+
+# DON'T EDIT THIS!
+#
+# Codecrafters relies on this file being intact to run tests successfully. Any changes
+# here will not reflect when CodeCrafters tests your code, and might even cause build
+# failures.
+#
+# DON'T EDIT THIS!
+[dependencies]
+anyhow = "1.0.59"                                   # error handling
+bytes = "1.3.0"                                     # helps manage buffers
+thiserror = "1.0.32"                                # error handling
+tokio = { version = "1.23.0", features = ["full"] } # async networking
+regex = "1"
