@@ -183,6 +183,12 @@ llen 命令
 (integer) 4
 ```
 
+### 更新计划
+
+- [ ] 持久存储，提供 aof 机制，存储每一条 update 命令到本地文件，并在启动时加载恢复停机前的状态；
+- [ ] 日志体系，完善系统中日志打印，制订规范，帮助使用者更快速的追溯问题；
+- [ ] 测试用例，针对项目中的每个命令，编写对应的单元测试，提高 Release 版本的稳定性；
+
 ### 开源共建
 
 Redis for rust 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/redis-for-rust/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/redis-for-rust/graphs/contributors)。
