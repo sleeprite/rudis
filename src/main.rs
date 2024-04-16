@@ -41,6 +41,17 @@ use crate::session::session::Session;
 
 // Bootstrap.rs
 fn main() {
+
+
+    /*
+     * 初始日志框架    
+     * 
+     * (1) 日志级别
+     * (2) 框架加载
+     */
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     /*
      * 创建默认配置
      */
@@ -77,8 +88,8 @@ fn main() {
         }
     }
 
-    println!("Bind {};", address);
-    println!("Redis for Rust Server Started;");
+    log::info!("Server initialized");
+    log::info!("Ready to accept connections");
 
     // 接收传入的链接
     for stream in listener.incoming() {
@@ -158,7 +169,6 @@ fn connection(
          *
          * @param session_id 会话编号
          */
-        println!("Create session:{}", session_id);
         let mut session_manager_ref = session_manager.lock().unwrap();
         session_manager_ref.insert(session_id.clone(), Session::new());
     }
@@ -181,8 +191,6 @@ fn connection(
                 let body = std::str::from_utf8(&buff[..size]).unwrap();
                 let fragments: Vec<&str> = body.split("\r\n").collect();
                 let command = fragments[2];
-
-                println!("action: {}", command);
 
                 {
                     /*
@@ -226,7 +234,6 @@ fn connection(
                  *
                  * @param session_id 会话编号
                  */
-                println!("Remove session:{}", session_id);
                 let mut session_manager_ref = session_manager.lock().unwrap();
                 session_manager_ref.remove(&session_id);
 

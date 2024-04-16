@@ -452,14 +452,11 @@ impl Redis {
                                 // Handle other operations if needed
                             }
                         }
-
-                        println!("完成 loading 命令;")
                     }
                 }
             }
         } else {
             // 处理 aof_file_path 是 None 的情况
-            println!("AOF file path is not set");
         }
     }
 
