@@ -26,12 +26,6 @@ cargo run -- --password 123456
 cargo build
 ```
 
-## 代码仓库
-
-Github：https://github.com/sleeprite/redis-for-rust
-
-Gitee：https://gitee.com/Jmysy/redis-for-rust
-
 ## 启动参数
 
 - databases 数据库数量, 默认：16
@@ -185,9 +179,15 @@ llen 命令
 
 ### 更新计划
 
-- [ ] 持久存储，提供 aof 机制，存储每一条 update 命令到本地文件，并在启动时加载恢复停机前的状态；
+- [ ] 持久存储，提供 aof 机制，存储每一条 update 命令到本地文件，实现持久化存储；
 - [ ] 日志体系，完善系统中日志打印，制订规范，帮助使用者更快速的追溯问题；
 - [ ] 测试用例，针对项目中的每个命令，编写对应的单元测试，提高 Release 版本的稳定性；
+
+## 代码仓库
+
+Github：https://github.com/sleeprite/redis-for-rust
+
+Gitee：https://gitee.com/Jmysy/redis-for-rust
 
 ### 开源共建
 
