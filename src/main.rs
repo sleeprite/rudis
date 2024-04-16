@@ -81,13 +81,14 @@ fn main() {
     match redis.lock() {
         Ok(mut redis_c) => {
             redis_c.load_aof();
+            
         }
         Err(err) => {
             eprintln!("Failed to acquire lock: {:?}", err);
             return;
         }
     }
-
+    
     log::info!("Server initialized");
     log::info!("Ready to accept connections");
 
