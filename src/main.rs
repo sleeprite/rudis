@@ -14,10 +14,6 @@ use command::arr::llen::LlenCommand;
 use command::arr::lpush::LpushCommand;
 use command::arr::rpush::RpushCommand;
 
-use crate::db::db::Redis;
-use crate::db::db_config::RedisConfig;
-use crate::session::session::Session;
-
 use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
@@ -38,6 +34,10 @@ use command::flushall::FlushAllCommand;
 use command::flushdb::FlushDbCommand;
 use command::select::SelectCommand;
 use command_strategy::CommandStrategy;
+
+use crate::db::db::Redis;
+use crate::db::db_config::RedisConfig;
+use crate::session::session::Session;
 
 // Bootstrap.rs
 fn main() {

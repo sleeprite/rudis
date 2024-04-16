@@ -31,6 +31,7 @@ cargo build
 - databases 数据库数量, 默认：16
 - port 端口, 默认: 6379
 - password 密码, 默认：None
+- aof_file_path 持久化日志路径，默认：None
 
 ## 项目结构
 
@@ -176,6 +177,10 @@ llen 命令
 (integer) 4
 ```
 
-## 问题反馈
+### 开源共建
 
-如果您有什么想聊的，请随时加入我们的 [社区](https://gitee.com/Jmysy/redis-for-rust/issues)！
+Redis for rust 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/redis-for-rust/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/redis-for-rust/graphs/contributors)。
+
+<a href="https://github.com/sleeprite/redis-for-rust/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sleeprite/redis-for-rust" />
+</a>
