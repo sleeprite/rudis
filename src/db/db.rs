@@ -5,7 +5,7 @@ use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
-use std::io::{ Seek };
+use std::io::Seek;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use super::db_config::RedisConfig;
