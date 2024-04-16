@@ -418,7 +418,7 @@ impl Redis {
                     
                     // {pos} {len} {percent}
                     let pb = ProgressBar::new(line_count);
-                    pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}% lines: {pos}/{len}").progress_chars("=>-"));
+                    pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}%").progress_chars("=>-"));
                     pb.set_prefix("Processing");
                     
                     let reader = BufReader::new(&mut file);
