@@ -177,7 +177,7 @@ llen 命令
 (integer) 4
 ```
 
-### 更新计划
+## 更新计划
 
 - [ ] 持久存储，存储每条修改命令到本地文件，启动时重新加载实现持久化存储；
 - [ ] 日志体系，完善系统中日志打印，制订规范，帮助使用者更快速的追溯问题；
@@ -189,7 +189,7 @@ Github：https://github.com/sleeprite/redis-for-rust
 
 Gitee：https://gitee.com/Jmysy/redis-for-rust
 
-### 开源共建
+## 开源共建
 
 Redis for rust 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/redis-for-rust/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/redis-for-rust/graphs/contributors)。
 
