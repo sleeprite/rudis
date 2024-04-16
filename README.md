@@ -26,6 +26,12 @@ cargo run -- --password 123456
 cargo build
 ```
 
+## 代码仓库
+
+Github：https://github.com/sleeprite/redis-for-rust
+
+Gitee：https://gitee.com/Jmysy/redis-for-rust
+
 ## 启动参数
 
 - databases 数据库数量, 默认：16
