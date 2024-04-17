@@ -6,18 +6,18 @@ use crate::tools::date::current_millis;
 
 use super::db_config::RedisConfig;
 
-pub enum RedisData {
+pub enum RedisValue {
     StringValue(String),
     StringArrayValue(Vec<String>),
 }
 
-pub struct RedisValue {
-    value: RedisData,
+pub struct RedisData {
+    value: RedisValue,
     expire_at: i64,
 }
 
-impl RedisValue {
-    pub fn new(value: RedisData, expire_at: i64) -> Self {
+impl RedisData {
+    pub fn new(value: RedisValue, expire_at: i64) -> Self {
         Self { value, expire_at }
     }
 
@@ -35,7 +35,7 @@ impl RedisValue {
 }
 
 pub struct Redis {
-    pub databases: Vec<HashMap<String, RedisValue>>,
+    pub databases: Vec<HashMap<String, RedisData>>,
     pub appendfile: Option<std::fs::File>,
     pub redis_config: Arc<RedisConfig>,
 }
@@ -98,7 +98,7 @@ impl Redis {
         if db_index < self.databases.len() {
             self.databases[db_index].insert(
                 key.clone(),
-                RedisValue::new(RedisData::StringValue(value.clone()), -1),
+                RedisData::new(RedisValue::StringValue(value.clone()), -1),
             );
             if !is_aof_recovery {
                 self.append_aof(&format!("{} SET {} {}", db_index, key, value));
@@ -118,7 +118,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(key) {
                 Some(redis_value) => match &redis_value.value {
-                    RedisData::StringValue(s) => Some(s),
+                    RedisValue::StringValue(s) => Some(s),
                     _ => None,
                 },
                 None => None,
@@ -171,7 +171,7 @@ impl Redis {
      */
     pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
-            let redis_value = RedisValue::new(RedisData::StringValue(value.clone()), ttl);
+            let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
             let expire_at = redis_value.get_expire_at();
             self.databases[db_index].insert(key.clone(), redis_value);
             if !is_aof_recovery {
@@ -335,9 +335,9 @@ impl Redis {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key)
-                .or_insert(RedisValue::new(RedisData::StringArrayValue(vec![]), -1));
+                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
 
-            if let RedisData::StringArrayValue(ref mut current_values) = list.value {
+            if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
                 current_values.splice(0..0, values);
             }
         } else {
@@ -356,9 +356,9 @@ impl Redis {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key)
-                .or_insert(RedisValue::new(RedisData::StringArrayValue(vec![]), -1));
+                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
 
-            if let RedisData::StringArrayValue(ref mut current_values) = list.value {
+            if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
                 current_values.extend(values);
             }
         } else {
@@ -376,7 +376,7 @@ impl Redis {
     pub fn llen(&self, db_index: usize, key: &String) -> usize {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
-                if let RedisData::StringArrayValue(ref array) = redis_value.value {
+                if let RedisValue::StringArrayValue(ref array) = redis_value.value {
                     return array.len();
                 }
             }
