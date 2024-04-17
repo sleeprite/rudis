@@ -30,15 +30,13 @@ impl CommandStrategy for RenameCommand {
         let old_key = fragments[4].to_string();
         let new_key = fragments[6].to_string();
 
-        let rename_result = redis_ref.rename(db_index, &old_key, &new_key);
+        let result = redis_ref.rename(db_index, &old_key, &new_key, false);
 
-        match rename_result {
-            Ok(_) => {
-                stream.write(b"+OK\r\n").unwrap(); // 成功返回 OK
-            }
-            Err(_) => {
-                stream.write(b"-ERR\r\n").unwrap(); // 失败返回 ERR
-            }
+
+        if result {
+            stream.write(b"+OK\r\n").unwrap(); // 成功返回 OK
+        } else {
+            stream.write(b"-ERR\r\n").unwrap(); // 失败返回 ERR
         }
     }
 }

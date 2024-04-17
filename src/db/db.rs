@@ -1,6 +1,8 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::Seek;
-use std::{ collections::HashMap, fs::{File, OpenOptions}, io::{SeekFrom, Write}, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+use std::{ collections::HashMap, fs::{File, OpenOptions}, io::{SeekFrom, Write}, sync::Arc};
+
+use crate::tools::date::current_millis;
 
 use super::db_config::RedisConfig;
 
@@ -15,37 +17,20 @@ pub struct RedisValue {
 }
 
 impl RedisValue {
-    pub fn new(value: RedisData, ttl: i64) -> Self {
-        let expire_at = if ttl < 0 {
-            -1
-        } else {
-            Self::current_time_millis() + ttl
-        };
-
+    pub fn new(value: RedisData, expire_at: i64) -> Self {
         Self { value, expire_at }
     }
 
     pub fn is_expired(&self) -> bool {
-        self.expire_at != -1 && self.expire_at <= Self::current_time_millis()
-    }
-
-    pub fn set_expire_at(&mut self, new_ttl: i64) {
-        self.expire_at = if new_ttl < 0 {
-            -1
-        } else {
-            Self::current_time_millis() + new_ttl
-        };
+        self.expire_at != -1 && self.expire_at <= current_millis()
     }
 
     pub fn get_expire_at(&self) -> i64 {
         return self.expire_at;
     }
 
-    fn current_time_millis() -> i64 {
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64
+    pub fn set_expire_at(&mut self, expire_at: i64) {
+        self.expire_at = expire_at;
     }
 }
 
@@ -109,14 +94,15 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 数据键
      */
-    pub fn set(&mut self, db_index: usize, key: String, value: String) {
+    pub fn set(&mut self, db_index: usize, key: String, value: String, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
             self.databases[db_index].insert(
                 key.clone(),
                 RedisValue::new(RedisData::StringValue(value.clone()), -1),
             );
-            // AOF 操作
-            self.append_aof(&format!("{} SET {} {}", db_index, key, value));
+            if !is_aof_recovery {
+                self.append_aof(&format!("{} SET {} {}", db_index, key, value));
+            }
         } else {
             panic!("Invalid database index");
         }
@@ -149,11 +135,12 @@ impl Redis {
      * @param key 数据键
      * @return 如果删除成功返回 true，如果不存在返回 false
      */
-    pub fn del(&mut self, db_index: usize, key: &String) -> bool {
+    pub fn del(&mut self, db_index: usize, key: &String, is_aof_recovery: bool) -> bool {
         if let Some(db) = self.databases.get_mut(db_index) {
             if db.remove(key).is_some() {
-                // AOF 操作
-                self.append_aof(&format!("{} DEL {}", db_index, key));
+                if !is_aof_recovery {
+                    self.append_aof(&format!("{} DEL {}", db_index, key));
+                }
                 return true;
             }
         }
@@ -182,12 +169,14 @@ impl Redis {
      * @param value 数据值
      * @param ttl 过期时间，单位：毫秒
      */
-    pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64) {
+    pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
             let redis_value = RedisValue::new(RedisData::StringValue(value.clone()), ttl);
             let expire_at = redis_value.get_expire_at();
             self.databases[db_index].insert(key.clone(), redis_value);
-            self.append_aof(&format!("{} SET {} {} {}", db_index, key, value, expire_at));
+            if !is_aof_recovery {
+                self.append_aof(&format!("{} SET {} {} {}", db_index, key, value, expire_at));
+            }
         } else {
             panic!("Invalid database index");
         }
@@ -247,16 +236,18 @@ impl Redis {
      * @param key 主键
      * @param ttl_millis 过期时间，单位: 毫秒
      */
-    pub fn expire(&mut self, db_index: usize, key: String, ttl_millis: i64) -> bool {
+    pub fn expire(&mut self, db_index: usize, key: String, ttl_millis: i64, is_aof_recovery: bool) -> bool {
+
         if db_index >= self.databases.len() {
             panic!("Invalid database index");
         }
 
         if let Some(redis_value) = self.databases[db_index].get_mut(&key) {
             redis_value.set_expire_at(ttl_millis);
-            let expire_at = redis_value.get_expire_at();
-            // AOF 机制
-            self.append_aof(&format!("{} EXPIRE {} {}", db_index, key, expire_at));
+            if !is_aof_recovery {
+                let expire_at = redis_value.get_expire_at();
+                self.append_aof(&format!("{} EXPIRE {} {}", db_index, key, expire_at));
+            }
             return true;
         }
 
@@ -291,17 +282,18 @@ impl Redis {
      * @param old_key 旧主键名称
      * @param new_key 新主键名称
      */
-    pub fn rename(&mut self, db_index: usize, old_key: &str, new_key: &str) -> Result<(), ()> {
+    pub fn rename(&mut self, db_index: usize, old_key: &str, new_key: &str, is_aof_recovery: bool) -> bool {
         let db = self.databases.get_mut(db_index).unwrap();
         // 检查是否存在旧键
         if let Some(value) = db.remove(old_key) {
             // 将值从旧键移到新键
             db.insert(new_key.to_string(), value);
-            self.append_aof(&format!("{} RENAME {} {}", db_index, old_key, new_key));
-            Ok(())
-        } else {
-            Err(())
+            if !is_aof_recovery {
+                self.append_aof(&format!("{} RENAME {} {}", db_index, old_key, new_key));
+            }
+            return true;
         }
+        false
     }
 
     /*
@@ -416,52 +408,36 @@ impl Redis {
                         for line in reader.lines() {
                             if let Ok(operation) = line {
                                 let parts: Vec<&str> = operation.trim().split_whitespace().collect();
+                                let db_index = parts[0].to_string();
+                                let db_index_usize = db_index.parse::<usize>().unwrap();
+
                                 if !parts.is_empty() {
                                     match parts[1] {
                                         "EXPIRE" => {
-                                            let db_index = parts[0].to_string();
-                                            let db_index_usize = db_index.parse::<usize>().unwrap();
                                             let key = parts[2].to_string();
                                             let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
-                                            if let Some(redis_value) = self.databases[db_index_usize].get_mut(&key) {
-                                                redis_value.expire_at = expire_at;
-                                            }
+                                            self.expire(db_index_usize, key, expire_at, true);
                                         }
                                         "SET" => {
-                                            let db_index = parts[0].to_string();
-                                            let db_index_usize = db_index.parse::<usize>().unwrap();
-                                            let expire_at = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(-1);
                                             let key = parts[2].to_string();
                                             let val = parts[3].to_string();
-                                            if expire_at == -1 {
-                                                // expire_at = -1 说明未设置过期时间
-                                                let redis_value = RedisValue::new(RedisData::StringValue(val),-1);
-                                                self.databases[db_index_usize].insert(key, redis_value);
+                                            let expire_at = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(-1);
+                                            if expire_at == -1 { 
+                                                self.set(db_index_usize, key, val, true);
                                             } else {
-                                                let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as i64;
-                                                let ttl = expire_at - current_time;
-                                                // ttl < 0，说明数据已过期，跳过加载
-                                                if ttl > 0 {
-                                                    let redis_value = RedisValue::new(RedisData::StringValue(val), ttl);
-                                                    self.databases[db_index_usize].insert(key, redis_value);
+                                                if expire_at > current_millis() {
+                                                    self.set_with_ttl(db_index_usize, key, val, expire_at, true);
                                                 }
                                             }
                                         }
                                         "DEL" => {
-                                            let db_index = parts[0].to_string();
-                                            let db_index_usize = db_index.parse::<usize>().unwrap();
                                             let key = parts[2].to_string();
-                                            self.databases[db_index_usize].remove(&key);
+                                            self.del(db_index_usize, &key, true);
                                         }
                                         "RENAME" => {
-                                            let db_index = parts[0].to_string();
-                                            let db_index_usize = db_index.parse::<usize>().unwrap();
-                                            let db = self.databases.get_mut(db_index_usize).unwrap();
                                             let old_key = parts[2].to_string();
                                             let new_key = parts[3].to_string();
-                                            if let Some(value) = db.remove(&old_key) {
-                                                db.insert(new_key.to_string(), value);
-                                            }
+                                            self.rename(db_index_usize, &old_key, &new_key, true);
                                         }
                                         _ => {
                                             // Handle other operations if needed

@@ -37,7 +37,7 @@ impl CommandStrategy for DelCommand {
 
         while start_index < end_index {
             let key = fragments[start_index].to_string();
-            let is_del = redis_ref.del(db_index, &key);
+            let is_del = redis_ref.del(db_index, &key, false);
             if is_del {
                 del_count += 1;
             }

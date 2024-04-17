@@ -1,3 +1,2 @@
 0 SET user admin
-0 SET user admin
-0 RENAME user user1
+0 EXPIRE user 1713344495658

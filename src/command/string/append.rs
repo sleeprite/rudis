@@ -34,10 +34,10 @@ impl CommandStrategy for AppendCommand {
 
         if let Some(existing_value) = redis_ref.get(db_index, &key.clone()) {
             let new_value = format!("{}{}", existing_value, value);
-            redis_ref.set(db_index, key, new_value.clone());
+            redis_ref.set(db_index, key, new_value.clone(), false);
             stream.write(format!(":{}\r\n", new_value.len()).as_bytes()).unwrap();
         } else {
-            redis_ref.set(db_index, key, value);
+            redis_ref.set(db_index, key, value, false);
             stream.write(b"+OK\r\n").unwrap();
         }
     }

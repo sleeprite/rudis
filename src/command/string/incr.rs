@@ -34,13 +34,13 @@ impl CommandStrategy for IncrCommand {
         if let Some(existing_value) = redis_ref.get(db_index, &key.clone()) {
             if let Ok(value) = existing_value.parse::<i64>() {
                 let new_value = value + 1;
-                redis_ref.set(db_index, key, new_value.to_string());
+                redis_ref.set(db_index, key, new_value.to_string(), false);
                 stream.write(format!(":{}\r\n", new_value.to_string().len()).as_bytes()).unwrap();
             } else {
                 stream.write(b"-ERR value is not an integer\r\n").unwrap();
             }
         } else {
-            redis_ref.set(db_index, key, "1".to_string());
+            redis_ref.set(db_index, key, "1".to_string(), false);
             stream.write(b":1\r\n").unwrap();
         }
     }
