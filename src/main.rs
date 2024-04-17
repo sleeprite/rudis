@@ -151,7 +151,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies
 }
 
-// 处理 Tcp 链接
+// 处理 Tcp 链接tr
 fn connection(
     mut stream: TcpStream,
     redis: Arc<Mutex<Redis>>,

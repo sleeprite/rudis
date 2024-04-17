@@ -10,14 +10,14 @@ use std::{
 
 use super::db_config::RedisConfig;
 
-pub struct RedisValue {
-    value: RedisData,
-    expire_at: i64,
-}
-
 pub enum RedisData {
     StringValue(String),
     StringArrayValue(Vec<String>),
+}
+
+pub struct RedisValue {
+    value: RedisData,
+    expire_at: i64,
 }
 
 impl RedisValue {
@@ -266,6 +266,9 @@ impl Redis {
 
         if let Some(redis_value) = self.databases[db_index].get_mut(&key) {
             redis_value.set_expire_at(ttl_millis);
+            let expire_at = redis_value.get_expire_at();
+            // AOF 机制
+            self.append_aof(&format!("{} EXPIRE {} {}", db_index, key, expire_at));
             return true;
         }
 
@@ -418,7 +421,7 @@ impl Redis {
 
                         // 创建 ProgressBar 进度条 {pos} {len} {percent}
                         let pb = ProgressBar::new(line_count);
-                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}% Lines: {pos}/{len}").progress_chars("=>-"));
+                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] percent: {percent}% lines: {pos}/{len}").progress_chars("=>-"));
 
                         let reader = BufReader::new(&mut file);
                         for line in reader.lines() {
@@ -451,6 +454,15 @@ impl Redis {
                                             let db_index_usize = db_index.parse::<usize>().unwrap();
                                             let key = parts[2].to_string();
                                             self.databases[db_index_usize].remove(&key);
+                                        }
+                                        "EXPIRE" => {
+                                            let db_index = parts[0].to_string();
+                                            let db_index_usize = db_index.parse::<usize>().unwrap();
+                                            let key = parts[2].to_string();
+                                            let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
+                                            if let Some(redis_value) = self.databases[db_index_usize].get_mut(&key) {
+                                                redis_value.expire_at = expire_at;
+                                            }
                                         }
                                         _ => {
                                             // Handle other operations if needed
