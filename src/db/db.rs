@@ -1,12 +1,6 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::Seek;
-use std::{
-    collections::HashMap,
-    fs::{File, OpenOptions},
-    io::{SeekFrom, Write},
-    sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{ collections::HashMap, fs::{File, OpenOptions}, io::{SeekFrom, Write}, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 
 use super::db_config::RedisConfig;
 
@@ -83,13 +77,7 @@ impl Redis {
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
                 appendfile = Some(
-                    OpenOptions::new()
-                        .create(true)
-                        .read(true)
-                        .write(true)
-                        .append(true)
-                        .open(filename)
-                        .expect("Failed to open AOF file"),
+                    OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"),
                 )
             }
         }
@@ -309,6 +297,7 @@ impl Redis {
         if let Some(value) = db.remove(old_key) {
             // 将值从旧键移到新键
             db.insert(new_key.to_string(), value);
+            self.append_aof(&format!("{} RENAME {} {}", db_index, old_key, new_key));
             Ok(())
         } else {
             Err(())
@@ -429,6 +418,15 @@ impl Redis {
                                 let parts: Vec<&str> = operation.trim().split_whitespace().collect();
                                 if !parts.is_empty() {
                                     match parts[1] {
+                                        "EXPIRE" => {
+                                            let db_index = parts[0].to_string();
+                                            let db_index_usize = db_index.parse::<usize>().unwrap();
+                                            let key = parts[2].to_string();
+                                            let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
+                                            if let Some(redis_value) = self.databases[db_index_usize].get_mut(&key) {
+                                                redis_value.expire_at = expire_at;
+                                            }
+                                        }
                                         "SET" => {
                                             let db_index = parts[0].to_string();
                                             let db_index_usize = db_index.parse::<usize>().unwrap();
@@ -455,13 +453,14 @@ impl Redis {
                                             let key = parts[2].to_string();
                                             self.databases[db_index_usize].remove(&key);
                                         }
-                                        "EXPIRE" => {
+                                        "RENAME" => {
                                             let db_index = parts[0].to_string();
                                             let db_index_usize = db_index.parse::<usize>().unwrap();
-                                            let key = parts[2].to_string();
-                                            let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
-                                            if let Some(redis_value) = self.databases[db_index_usize].get_mut(&key) {
-                                                redis_value.expire_at = expire_at;
+                                            let db = self.databases.get_mut(db_index_usize).unwrap();
+                                            let old_key = parts[2].to_string();
+                                            let new_key = parts[3].to_string();
+                                            if let Some(value) = db.remove(&old_key) {
+                                                db.insert(new_key.to_string(), value);
                                             }
                                         }
                                         _ => {
