@@ -2,15 +2,17 @@
 
 ```
      /\_____/\
-    /  o   o  \
+    /  o   o  \          redis-for-rust 0.0.2
    ( ==  ^  == )
-    )         (
+    )         (          Bind: 127.0.0.1:6379
    (           )
-  ( (  )   (  ) )
+  ( (  )   (  ) )        
  (__(__)___(__)__)
-
-Bind 127.0.0.1:6379;
-Redis for Rust Server Started;
+    
+[2024-04-17T03:41:52Z INFO  redis_for_rust] Start loading appendfile
+[=========================================] Percent: 100% Lines: 214110/214110
+[2024-04-17T03:41:58Z INFO  redis_for_rust] Server initialized
+[2024-04-17T03:41:58Z INFO  redis_for_rust] Ready to accept connections
 ```
 
 ## 快速启动
@@ -186,10 +188,10 @@ llen 命令
 
 ## 命令列表
 
-| Command | Supprt | Appendfile |
-| ------- | ------ | ---------- |
-| set     | [x]    | [x]        |
-| get     | [x]    | [x]        |
+| Command | Supprt | Appendfile | Test case | 
+| ------- | ------ | ---------- | --------- |
+| set     | ✅    | ✅         | ⛔       |
+| get     | ✅    | ⚪         | ⛔       |
 
 ## 代码仓库
 
