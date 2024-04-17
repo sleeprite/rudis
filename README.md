@@ -31,7 +31,8 @@ cargo build
 - databases 数据库数量, 默认：16
 - port 端口, 默认: 6379
 - password 密码, 默认：None
-- aof_file_path 持久化日志路径，默认：None
+- appendfilename 持久化日志路径，默认：None
+- appendonly 开启持久化，默认：false
 
 ## 项目结构
 

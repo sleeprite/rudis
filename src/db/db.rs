@@ -1,3 +1,5 @@
+use indicatif::{ProgressBar, ProgressStyle};
+use std::io::Seek;
 use std::{
     collections::HashMap,
     fs::{File, OpenOptions},
@@ -5,8 +7,6 @@ use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
-use std::io::Seek;
-use indicatif::{ProgressBar, ProgressStyle};
 
 use super::db_config::RedisConfig;
 
@@ -57,7 +57,7 @@ impl RedisValue {
 
 pub struct Redis {
     pub databases: Vec<HashMap<String, RedisValue>>,
-    pub aof_file: Option<std::fs::File>,
+    pub appendfile: Option<std::fs::File>,
     pub redis_config: Arc<RedisConfig>,
 }
 
@@ -74,25 +74,29 @@ impl Redis {
         }
 
         /*
-         * 判定 path 是否为 None, 如果为 None，则不创建 File 实例
+         * 判定 appendonly 是否开启，appendfilename 是否不为 None
+         *
+         * 成立则创建 File 实例，否则不创建
          */
-        let aof_file: Option<File> = if let Some(path) = &redis_config.aof_file_path {
-            Some(
-                OpenOptions::new()
-                    .create(true)
-                    .read(true)
-                    .write(true)
-                    .append(true)
-                    .open(path)
-                    .expect("Failed to open AOF file"),
-            )
-        } else {
-            None
-        };
+        let mut appendfile: Option<File> = None;
+
+        if redis_config.appendonly && redis_config.appendfilename.is_some() {
+            if let Some(filename) = &redis_config.appendfilename {
+                appendfile = Some(
+                    OpenOptions::new()
+                        .create(true)
+                        .read(true)
+                        .write(true)
+                        .append(true)
+                        .open(filename)
+                        .expect("Failed to open AOF file"),
+                )
+            }
+        }
 
         Redis {
             databases,
-            aof_file,
+            appendfile,
             redis_config,
         }
     }
@@ -399,85 +403,67 @@ impl Redis {
     }
 
     /*
-     * 从 aof 文件恢复到数据库
+     * 从 appendfile 文件恢复到数据库
      *
      * 调用时机：项目启动
      */
     pub fn load_aof(&mut self) {
+        if self.redis_config.appendonly {
+            if let Some(appendfilename) = &self.redis_config.appendfilename {
+                if let Ok(mut file) = File::open(appendfilename) {
 
-        // 判断是否设置了 aof_file_path
-        if let Some(aof_file_path) = &self.redis_config.aof_file_path {
+                    use std::io::{BufRead, BufReader};
+                    let line_count = BufReader::new(&file).lines().count() as u64;
+                    if let Ok(_) = file.seek(SeekFrom::Start(0)) {
 
-            // 尝试打开文件并获取行数
-            if let Ok(mut file) = File::open(aof_file_path) {
-                use std::io::{BufRead, BufReader};
-                let line_count = BufReader::new(&file).lines().count() as u64;
+                        // 创建 ProgressBar 进度条 {pos} {len} {percent}
+                        let pb = ProgressBar::new(line_count);
+                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}%").progress_chars("=>-"));
 
-                // 强制将文件指针移动到文件的顶部
-                if let Ok(_) = file.seek(SeekFrom::Start(0)) {
-                    
-                    // {pos} {len} {percent}
-                    let pb = ProgressBar::new(line_count);
-                    pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}%").progress_chars("=>-"));
-                    pb.set_prefix("Processing");
-                    
-                    let reader = BufReader::new(&mut file);
-                    for line in reader.lines() {
-                        if let Ok(operation) = line {
-                            let parts: Vec<&str> = operation.trim().split_whitespace().collect();
-                            if !parts.is_empty() {
-                                match parts[1] {
-                                    "SET" => {
-                                        let db_index = parts[0].to_string();
-                                        let db_index_usize = db_index.parse::<usize>().unwrap();
-                                        let expire_at = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(-1);
-                                        let key = parts[2].to_string();
-                                        let val = parts[3].to_string();
-                                        if expire_at == -1 {
-                                            // expire_at = -1 说明未设置过期时间
-                                            let redis_value =
-                                                RedisValue::new(RedisData::StringValue(val), -1);
-                                            self.databases[db_index_usize].insert(key, redis_value);
-                                        } else {
-                                            let current_time = SystemTime::now()
-                                                .duration_since(UNIX_EPOCH)
-                                                .unwrap()
-                                                .as_millis()
-                                                as i64;
-                                            let ttl = expire_at - current_time;
-                                            // ttl > 0 说明还未过期，继续加载数据
-                                            if ttl > 0 {
-                                                let redis_value =
-                                                    RedisValue::new(RedisData::StringValue(val), ttl);
+                        let reader = BufReader::new(&mut file);
+                        for line in reader.lines() {
+                            if let Ok(operation) = line {
+                                let parts: Vec<&str> = operation.trim().split_whitespace().collect();
+                                if !parts.is_empty() {
+                                    match parts[1] {
+                                        "SET" => {
+                                            let db_index = parts[0].to_string();
+                                            let db_index_usize = db_index.parse::<usize>().unwrap();
+                                            let expire_at = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(-1);
+                                            let key = parts[2].to_string();
+                                            let val = parts[3].to_string();
+                                            if expire_at == -1 {
+                                                // expire_at = -1 说明未设置过期时间
+                                                let redis_value = RedisValue::new(RedisData::StringValue(val),-1);
                                                 self.databases[db_index_usize].insert(key, redis_value);
+                                            } else {
+                                                let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as i64;
+                                                let ttl = expire_at - current_time;
+                                                // ttl > 0 说明还未过期，继续加载数据
+                                                if ttl > 0 {
+                                                    let redis_value = RedisValue::new(RedisData::StringValue(val), ttl);
+                                                    self.databases[db_index_usize].insert(key, redis_value);
+                                                }
                                             }
                                         }
-                                    }
-                                    "DEL" => {
-                                        let db_index = parts[0].to_string();
-                                        let db_index_usize = db_index.parse::<usize>().unwrap();
-                                        let key = parts[2].to_string();
-                                        self.databases[db_index_usize].remove(&key);
-                                    }
-                                    _ => {
-                                        // Handle other operations if needed
+                                        "DEL" => {
+                                            let db_index = parts[0].to_string();
+                                            let db_index_usize = db_index.parse::<usize>().unwrap();
+                                            let key = parts[2].to_string();
+                                            self.databases[db_index_usize].remove(&key);
+                                        }
+                                        _ => {
+                                            // Handle other operations if needed
+                                        }
                                     }
                                 }
                             }
+                            pb.inc(1);
                         }
-                        pb.inc(1);
+                        pb.finish();
                     }
-                    pb.finish();
-                } else {
-                    // 处理 aof_file 文件 seek 失败的情况
-                    println!("Failed to seek to the beginning of the file");
-                }
-            } else {
-                // 处理 aof_file 文件 open 失败的情况
-                println!("Failed to open AOF file for loading");
+                } 
             }
-        } else {
-            // 处理 aof_file_path 是 None 的情况
         }
     }
 
@@ -487,12 +473,10 @@ impl Redis {
      * @param command 操作字符串
      */
     fn append_aof(&mut self, command: &str) {
-        if let Some(file) = self.aof_file.as_mut() {
+        if let Some(file) = self.appendfile.as_mut() {
             if let Err(err) = writeln!(file, "{}", command) {
                 eprintln!("Failed to append to AOF file: {}", err);
             }
-        } else {
-            eprintln!("AOF file is not available");
         }
     }
 }
