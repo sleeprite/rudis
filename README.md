@@ -17,15 +17,27 @@
 
 ## 快速启动
 
+### Develop
+
 ```
 // 普通启动
 cargo run
 
 // 带参启动
-cargo run -- --password 123456
+cargo run -- --port 8848
 
 // 构建程序
 cargo build
+```
+
+### Windows
+
+```
+// 普通启动
+start redis-for-rust.exe
+
+// 带参启动
+start redis-for-rust.exe --port 8848
 ```
 
 ## 启动参数
