@@ -69,24 +69,30 @@ fn main() {
     let session_manager: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
+    
 
     /*
      * Banner 动画
      */
-    println_banner();
+    let project_name = env!("CARGO_PKG_NAME");
+    let version = env!("CARGO_PKG_VERSION");
+    println_banner(project_name, version, port);
 
     /*
      * 加载本地数据
      */
-    match redis.lock() {
-        Ok(mut redis_c) => {
-            redis_c.load_aof();
-            
-        }
-        Err(err) => {
-            eprintln!("Failed to acquire lock: {:?}", err);
-            return;
-        }
+    if redis_config.appendonly {
+        match redis.lock() {
+            Ok(mut redis_c) => {
+                log::info!("Start loading appendfile");
+                redis_c.load_aof();
+                
+            }
+            Err(err) => {
+                eprintln!("Failed to acquire lock: {:?}", err);
+                return;
+            }
+        }   
     }
     
     log::info!("Server initialized");
@@ -131,14 +137,14 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("set", Box::new(SetCommand {}));
     strategies.insert("get", Box::new(GetCommand {}));
     strategies.insert("del", Box::new(DelCommand {}));
-    strategies.insert("flushall", Box::new(FlushAllCommand {}));
-    strategies.insert("flushdb", Box::new(FlushDbCommand {}));
     strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("rename", Box::new(RenameCommand {}));
     strategies.insert("move", Box::new(MoveCommand {}));
     strategies.insert("llen", Box::new(LlenCommand {}));
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
+    strategies.insert("flushall", Box::new(FlushAllCommand {}));
+    strategies.insert("flushdb", Box::new(FlushDbCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
     strategies.insert("decr", Box::new(DecrCommand {}));
 
@@ -245,15 +251,15 @@ fn connection(
 }
 
 // 输入启动动画
-fn println_banner() {
-    let pattern = r#"
+fn println_banner(project_name: &str, version: &str, port: u16) {
+    let pattern = format!(r#"
      /\_____/\
-    /  o   o  \
-   ( ==  ^  == )
-    )         (
-   (           )
-  ( (  )   (  ) )
+    /  o   o  \          {} {}
+   ( ==  ^  == )          
+    )         (          Bind: 127.0.0.1:{}
+   (           )          
+  ( (  )   (  ) )        
  (__(__)___(__)__)
-    "#;
+    "#, project_name ,version, port);
     println!("{}", pattern);
 }

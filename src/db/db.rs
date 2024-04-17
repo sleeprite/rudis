@@ -343,7 +343,7 @@ impl Redis {
     /*
      * 将一个或多个值插入到列表的头部
      *
-     * @param db_index 数据库索引
+     * @param db_index  DB 索引
      * @param key 列表键
      * @param values 要插入的值
      */
@@ -364,7 +364,7 @@ impl Redis {
     /*
      * 将一个或多个值插入到列表的尾部
      *
-     * @param db_index 数据库索引
+     * @param db_index  DB 索引
      * @param key 列表键
      * @param values 要插入的值
      */
@@ -385,7 +385,7 @@ impl Redis {
     /*
      * 获取列表长度
      *
-     * @param db_index 数据库索引
+     * @param db_index DB 索引
      * @param key 列表键
      * @return 列表长度，如果键不存在或者不是列表则返回 0
      */
@@ -403,7 +403,7 @@ impl Redis {
     }
 
     /*
-     * 从 appendfile 文件恢复到数据库
+     * 将 appendfile 文件 load 内容到数据库
      *
      * 调用时机：项目启动
      */
@@ -418,7 +418,7 @@ impl Redis {
 
                         // 创建 ProgressBar 进度条 {pos} {len} {percent}
                         let pb = ProgressBar::new(line_count);
-                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}%").progress_chars("=>-"));
+                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] Percent: {percent}% Lines: {pos}/{len}").progress_chars("=>-"));
 
                         let reader = BufReader::new(&mut file);
                         for line in reader.lines() {
@@ -439,7 +439,7 @@ impl Redis {
                                             } else {
                                                 let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as i64;
                                                 let ttl = expire_at - current_time;
-                                                // ttl > 0 说明还未过期，继续加载数据
+                                                // ttl < 0，说明数据已过期，跳过加载
                                                 if ttl > 0 {
                                                     let redis_value = RedisValue::new(RedisData::StringValue(val), ttl);
                                                     self.databases[db_index_usize].insert(key, redis_value);
