@@ -1,8 +1,18 @@
-
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
+use std::{
+    collections::HashMap,
+    net::TcpStream,
+    sync::{Arc, Mutex},
+};
 
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, tools::date::current_millis, RedisConfig};
+use crate::tools::reponse::RespValue;
+use crate::{
+    command_strategy::CommandStrategy,
+    db::db::Redis,
+    session::session::Session,
+    tools::date::current_millis,
+    RedisConfig,
+};
 
 /*
  * Set 命令
@@ -45,6 +55,7 @@ impl CommandStrategy for SetCommand {
         } else {
             redis_ref.set(db_index, key, value, false);
         }
-        stream.write(b"+OK\r\n").unwrap();
+        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+        stream.write(response_bytes).unwrap();
     }
 }
