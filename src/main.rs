@@ -132,6 +132,8 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("get", Box::new(GetCommand {}));
     strategies.insert("del", Box::new(DelCommand {}));
     strategies.insert("echo", Box::new(EchoCommand {}));
+    strategies.insert("flushall", Box::new(FlushAllCommand {}));
+    strategies.insert("flushdb", Box::new(FlushDbCommand {}));
     // TODO 待改善
     strategies.insert("keys", Box::new(KeysCommand {}));
     strategies.insert("auth", Box::new(AuthCommand {}));
@@ -145,8 +147,6 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("llen", Box::new(LlenCommand {}));
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
-    strategies.insert("flushall", Box::new(FlushAllCommand {}));
-    strategies.insert("flushdb", Box::new(FlushDbCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
     strategies.insert("decr", Box::new(DecrCommand {}));
 

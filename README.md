@@ -205,8 +205,9 @@ llen 命令
 | set     | ✅    | ✅         | ⛔       |
 | get     | ✅    | ⚪         | ⛔       |
 | del     | ✅    | ✅         | ⛔       |
-| expire  | ✅    | ✅         | ⛔       |
-| rename  | ✅    | ✅         | ⛔       |
+| echo    | ✅    | ⚪         | ⛔       |
+| flushdb | ✅    | ✅         | ⛔       |
+| flushall| ✅    | ✅         | ⛔       |
 
 ## 代码仓库
 

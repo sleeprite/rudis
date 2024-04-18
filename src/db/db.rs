@@ -258,20 +258,24 @@ impl Redis {
      *
      * @param db_index 数据库索引
      */
-    pub fn flush_db(&mut self, db_index: usize) {
+    pub fn flush_db(&mut self, db_index: usize, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
             self.databases[db_index].clear();
-        } else {
-            panic!("Invalid database index");
-        }
+            if !is_aof_recovery {
+                self.append_aof(&format!("{} FLUSHDB", db_index));
+            }
+        } 
     }
 
     /*
      * 清空所有数据库
      */
-    pub fn flush_all(&mut self) {
+    pub fn flush_all(&mut self, is_aof_recovery: bool) {
         for db in &mut self.databases {
             db.clear();
+        }
+        if !is_aof_recovery {
+            self.append_aof(&format!("-1 FLUSHALL"));
         }
     }
 
@@ -412,11 +416,6 @@ impl Redis {
 
                                 if !parts.is_empty() {
                                     match parts[1] {
-                                        "EXPIRE" => {
-                                            let key = parts[2].to_string();
-                                            let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
-                                            self.expire(db_index_usize, key, expire_at, true);
-                                        }
                                         "SET" => {
                                             let key = parts[2].to_string();
                                             let val = parts[3].to_string();
@@ -432,6 +431,17 @@ impl Redis {
                                         "DEL" => {
                                             let key = parts[2].to_string();
                                             self.del(db_index_usize, &key, true);
+                                        }
+                                        "FLUSHALL" => {
+                                            self.flush_all(true)
+                                        }
+                                        "FLUSHDB" => {
+                                            self.flush_db(db_index_usize, true)
+                                        }
+                                        "EXPIRE" => {
+                                            let key = parts[2].to_string();
+                                            let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
+                                            self.expire(db_index_usize, key, expire_at, true);
                                         }
                                         "RENAME" => {
                                             let old_key = parts[2].to_string();
