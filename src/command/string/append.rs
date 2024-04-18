@@ -32,13 +32,21 @@ impl CommandStrategy for AppendCommand {
         let key = fragments[4].to_string();
         let value = fragments[6].to_string();
 
-        if let Some(existing_value) = redis_ref.get(db_index, &key.clone()) {
-            let new_value = format!("{}{}", existing_value, value);
-            redis_ref.set(db_index, key, new_value.clone(), false);
-            stream.write(format!(":{}\r\n", new_value.len()).as_bytes()).unwrap();
-        } else {
-            redis_ref.set(db_index, key, value, false);
-            stream.write(b"+OK\r\n").unwrap();
+        match redis_ref.get(db_index, &key) {
+            Ok(Some(old_value)) => {
+                let new_value = format!("{}{}", old_value, value);
+                redis_ref.set(db_index, key, new_value.clone(), false);
+                stream.write(format!(":{}\r\n", new_value.len()).as_bytes()).unwrap();
+            },
+            Ok(None) => {
+                redis_ref.set(db_index, key, value, false);
+                stream.write(b"+OK\r\n").unwrap();
+            },
+            Err(err_msg) => {
+                stream.write(format!("-${}\r\n", err_msg.len()).as_bytes()).unwrap();
+                stream.write(err_msg.as_bytes()).unwrap();
+                stream.write(b"\r\n").unwrap();
+            }
         }
     }
 }

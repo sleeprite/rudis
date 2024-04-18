@@ -34,6 +34,7 @@ use command::flushall::FlushAllCommand;
 use command::flushdb::FlushDbCommand;
 use command::select::SelectCommand;
 use command_strategy::CommandStrategy;
+use tools::reponse::RespValue;
 
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
@@ -127,16 +128,17 @@ fn main() {
 fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
     let mut strategies: HashMap<&'static str, Box<dyn CommandStrategy>> = HashMap::new();
 
+    strategies.insert("set", Box::new(SetCommand {}));
+    strategies.insert("get", Box::new(GetCommand {}));
+    strategies.insert("del", Box::new(DelCommand {}));
     strategies.insert("echo", Box::new(EchoCommand {}));
+    // TODO 待改善
     strategies.insert("keys", Box::new(KeysCommand {}));
     strategies.insert("auth", Box::new(AuthCommand {}));
     strategies.insert("select", Box::new(SelectCommand {}));
     strategies.insert("exists", Box::new(ExistsCommand {}));
     strategies.insert("expire", Box::new(ExpireCommand {}));
     strategies.insert("dbsize", Box::new(DBSizeCommand {}));
-    strategies.insert("set", Box::new(SetCommand {}));
-    strategies.insert("get", Box::new(GetCommand {}));
-    strategies.insert("del", Box::new(DelCommand {}));
     strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("rename", Box::new(RenameCommand {}));
     strategies.insert("move", Box::new(MoveCommand {}));
@@ -208,8 +210,9 @@ fn connection(
 
                     if redis_config.password != None && command != "auth" {
                         if !session.get_authenticated() {
-                            let response = "-ERR Authentication required\r\n";
-                            stream.write(response.as_bytes()).unwrap();
+                            let response_value = "ERR Authentication required".to_string();
+                            let response_bytes = &RespValue::Error(response_value).to_bytes();
+                            stream.write(response_bytes).unwrap();
                             continue 'main; // 跳过当前循环
                         }
                     }
@@ -232,7 +235,10 @@ fn connection(
                         &session_manager,
                     );
                 } else {
-                    stream.write(b"+PONG\r\n").unwrap();
+                    let response_value = "PONG".to_string();
+                    let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
+                    stream.write(response_bytes).unwrap();
+                    
                 }
             }
             Err(_e) => {

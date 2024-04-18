@@ -114,17 +114,17 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 数据键
      */
-    pub fn get(&self, db_index: usize, key: &String) -> Option<&String> {
+    pub fn get(&self, db_index: usize, key: &String) -> Result<Option<&String>, &str> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(key) {
                 Some(redis_value) => match &redis_value.value {
-                    RedisValue::StringValue(s) => Some(s),
-                    _ => None,
+                    RedisValue::StringValue(s) => Ok(Some(s)),
+                    _ => Err("ERR Operation against a key holding the wrong kind of value"),
                 },
-                None => None,
+                None => Ok(None),
             }
         } else {
-            panic!("Invalid database index");
+            Err("Invalid database index")
         }
     }
 
@@ -198,7 +198,6 @@ impl Redis {
                 }
                 None => {
                     // Handle the case when redis_value is None
-                    println!("Redis value is not found for key: {}", key);
                 }
             }
         } else {
