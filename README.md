@@ -222,14 +222,6 @@ Github：https://github.com/sleeprite/redis-for-rust
 
 Gitee：https://gitee.com/Jmysy/redis-for-rust
 
-## 性能测试
-
-| Function | Volume | Execution time | Success rate   | 
-| ------- | ------ | ---------- | ---------|
-| aof     |100000  |  00:00:03  | 100%     |
-| aof     |200000  |  00:00:08  | 100%     |
-| aof     |400000  |  00:00:15  | 100%     |
-
 ## 开源共建
 
 Redis for rust 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/redis-for-rust/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/redis-for-rust/graphs/contributors)。
