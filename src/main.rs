@@ -128,19 +128,20 @@ fn main() {
 fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
     let mut strategies: HashMap<&'static str, Box<dyn CommandStrategy>> = HashMap::new();
 
+    strategies.insert("echo", Box::new(EchoCommand {}));
     strategies.insert("set", Box::new(SetCommand {}));
     strategies.insert("get", Box::new(GetCommand {}));
     strategies.insert("del", Box::new(DelCommand {}));
-    strategies.insert("echo", Box::new(EchoCommand {}));
     strategies.insert("flushall", Box::new(FlushAllCommand {}));
     strategies.insert("flushdb", Box::new(FlushDbCommand {}));
-    // TODO 待改善
-    strategies.insert("keys", Box::new(KeysCommand {}));
+    strategies.insert("dbsize", Box::new(DBSizeCommand {}));
     strategies.insert("auth", Box::new(AuthCommand {}));
     strategies.insert("select", Box::new(SelectCommand {}));
+    
+    // TODO 
+    strategies.insert("keys", Box::new(KeysCommand {}));
     strategies.insert("exists", Box::new(ExistsCommand {}));
     strategies.insert("expire", Box::new(ExpireCommand {}));
-    strategies.insert("dbsize", Box::new(DBSizeCommand {}));
     strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("rename", Box::new(RenameCommand {}));
     strategies.insert("move", Box::new(MoveCommand {}));

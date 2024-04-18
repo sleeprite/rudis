@@ -208,7 +208,9 @@ llen 命令
 | echo    | ✅    | ⚪         | ⛔       |
 | flushdb | ✅    | ✅         | ⛔       |
 | flushall| ✅    | ✅         | ⛔       |
-
+| dbsize  | ✅    | ⚪         | ⛔       |
+| auth    | ✅    | ⚪         | ⛔       |
+| select  | ✅    | ⚪         | ⛔       |
 ## 代码仓库
 
 Github：https://github.com/sleeprite/redis-for-rust

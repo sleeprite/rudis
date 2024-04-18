@@ -9,3 +9,6 @@
 0 DEL user
 0 DEL user1
 0 DEL user2
+0 SET user root
+0 SET user1 root
+0 SET user2 root

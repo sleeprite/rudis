@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig};
+use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, tools::reponse::RespValue, RedisConfig};
 
 /*
  * Auth 命令
@@ -19,9 +19,8 @@ impl CommandStrategy for AuthCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
     ) {
         if fragments.len() < 3 {
-            stream
-                .write(b"-ERR wrong number of arguments for 'auth' command\r\n")
-                .unwrap();
+            let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'auth' command".to_string()).to_bytes();
+            stream.write(response_bytes).unwrap();
             return;
         }
 
@@ -35,7 +34,8 @@ impl CommandStrategy for AuthCommand {
                     if let Some(session) = session_ref.get_mut(&session_id) {
                         session.set_authenticated(false);
                     }
-                    stream.write(b"-ERR invalid password\r\n").unwrap();
+                    let response_bytes = &RespValue::Error("ERR invalid password".to_string()).to_bytes();
+                    stream.write(response_bytes).unwrap();
                     return;
                 }
             }
@@ -49,7 +49,7 @@ impl CommandStrategy for AuthCommand {
         if let Some(session) = session_ref.get_mut(&session_id) {
             session.set_authenticated(true);
         }
-
-        stream.write(b"+OK\r\n").unwrap();
+        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+        stream.write(response_bytes).unwrap();
     }
 }

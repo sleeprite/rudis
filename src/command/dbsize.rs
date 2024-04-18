@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig};
+use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, tools::reponse::RespValue, RedisConfig};
 
 /*
  * DBSize 命令
@@ -31,8 +31,8 @@ impl CommandStrategy for DBSizeCommand {
 
         redis_ref.check_all_ttl(db_index);
         let db_size = redis_ref.size(db_index);
-        stream
-            .write(format!(":{}\r\n", db_size).as_bytes())
-            .unwrap();
+        
+        let response_bytes = &RespValue::Integer(db_size as i64).to_bytes();
+        stream.write(response_bytes).unwrap();
     }
 }

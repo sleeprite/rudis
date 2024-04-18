@@ -1,7 +1,14 @@
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
+use std::{
+    collections::HashMap,
+    net::TcpStream,
+    sync::{Arc, Mutex},
+};
 
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig};
+use crate::tools::reponse::RespValue;
+use crate::{
+    command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig,
+};
 
 /*
  * Select 命令
@@ -17,14 +24,12 @@ impl CommandStrategy for SelectCommand {
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
     ) {
-
         /*
          * 验证语法
          */
         if fragments.len() < 4 {
-            stream
-                .write(b"-ERR wrong number of arguments for 'select' command\r\n")
-                .unwrap();
+            let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'select' command".to_string()).to_bytes();
+            stream.write(response_bytes).unwrap();
             return;
         }
 
@@ -36,7 +41,8 @@ impl CommandStrategy for SelectCommand {
         let db_index = match fragments[4].parse::<usize>() {
             Ok(index) => index,
             Err(_) => {
-                stream.write(b"-ERR invalid DB index\r\n").unwrap();
+                let response_bytes = &RespValue::Error("ERR invalid DB index".to_string()).to_bytes();
+                stream.write(response_bytes).unwrap();
                 return;
             }
         };
@@ -49,6 +55,7 @@ impl CommandStrategy for SelectCommand {
             }
         }
 
-        stream.write(b"+OK\r\n").unwrap();
+        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+        stream.write(response_bytes).unwrap();
     }
 }
