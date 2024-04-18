@@ -216,6 +216,12 @@ llen 命令
 | expire  | ✅    | ✅         | ⛔       |
 | rename  | ✅    | ✅         | ⛔       |
 
+## 代码仓库
+
+Github：https://github.com/sleeprite/redis-for-rust
+
+Gitee：https://gitee.com/Jmysy/redis-for-rust
+
 ## 性能测试
 
 | Function name | Data volume | Execution takes time | mission success rate   | 
@@ -223,12 +229,6 @@ llen 命令
 | aof     |100000  |  00:00:03  | 100%     |
 | aof     |200000  |  00:00:08  | 100%     |
 | aof     |400000  |  00:00:15  | 100%     |
-
-## 代码仓库
-
-Github：https://github.com/sleeprite/redis-for-rust
-
-Gitee：https://gitee.com/Jmysy/redis-for-rust
 
 ## 开源共建
 
