@@ -17,9 +17,9 @@ use command::arr::rpush::RpushCommand;
 use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
-use command::key::keys::KeysCommand;
 use command::key::r#move::MoveCommand;
 use command::key::rename::RenameCommand;
+use command::key::keys::KeysCommand;
 
 use command::string::decr::DecrCommand;
 use command::string::incr::IncrCommand;
@@ -132,20 +132,20 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("set", Box::new(SetCommand {}));
     strategies.insert("get", Box::new(GetCommand {}));
     strategies.insert("del", Box::new(DelCommand {}));
+    strategies.insert("exists", Box::new(ExistsCommand {}));
+    strategies.insert("expire", Box::new(ExpireCommand {}));
+    strategies.insert("rename", Box::new(RenameCommand {}));
     strategies.insert("flushall", Box::new(FlushAllCommand {}));
     strategies.insert("flushdb", Box::new(FlushDbCommand {}));
     strategies.insert("dbsize", Box::new(DBSizeCommand {}));
     strategies.insert("auth", Box::new(AuthCommand {}));
     strategies.insert("select", Box::new(SelectCommand {}));
     strategies.insert("llen", Box::new(LlenCommand {}));
-    strategies.insert("exists", Box::new(ExistsCommand {}));
-    strategies.insert("expire", Box::new(ExpireCommand {}));
-    strategies.insert("rename", Box::new(RenameCommand {}));
+    strategies.insert("move", Box::new(MoveCommand {}));
     
     // TODO 待改善的命令
     strategies.insert("keys", Box::new(KeysCommand {}));
     strategies.insert("append", Box::new(AppendCommand {}));
-    strategies.insert("move", Box::new(MoveCommand {}));
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
@@ -239,7 +239,6 @@ fn connection(
                     let response_value = "PONG".to_string();
                     let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
                     stream.write(response_bytes).unwrap();
-                    
                 }
             }
             Err(_e) => {

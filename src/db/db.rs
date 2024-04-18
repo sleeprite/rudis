@@ -315,20 +315,22 @@ impl Redis {
         src_db_index: usize,
         key: &str,
         target_db_index: usize,
-    ) -> Result<(), ()> {
-        let src_db = match self.databases.get_mut(src_db_index) {
-            Some(db) => db,
-            None => return Err(()), // 如果源数据库不存在，则返回错误
-        };
-
-        if let Some(value) = src_db.remove(key) {
-            // 如果源数据库中存在键，则将其移动到目标数据库中
-            let dest_db = self.databases.get_mut(target_db_index).unwrap();
-            dest_db.insert(key.to_string(), value);
-            Ok(())
-        } else {
-            Err(()) // 如果源数据库中不存在键，则返回错误
+        is_aof_recovery: bool
+    ) -> bool {
+        if let Some(src_db) = self.databases.get_mut(src_db_index) {
+            if let Some(value) = src_db.remove(key) {
+                if let Some(dest_db) = self.databases.get_mut(target_db_index) {
+                    if !dest_db.contains_key(key) {
+                        dest_db.insert(key.to_string(), value);
+                        if !is_aof_recovery {
+                            self.append_aof(&format!("{} MOVE {} {}", src_db_index, key, target_db_index));
+                        }
+                        return true;
+                    }
+                }
+            }
         }
+        false
     }
 
     /*
@@ -453,6 +455,12 @@ impl Redis {
                                             match self.rename(db_index_usize, &old_key, &new_key, true) {
                                                 Ok(_) => {} Err(_) => {}
                                             }
+                                        }
+                                        "MOVE" => {
+                                            let key = parts[2].to_string();
+                                            let target_db_index = parts[3].to_string();
+                                            let target_db_index_usize = target_db_index.parse::<usize>().unwrap();
+                                            self.move_key(db_index_usize, &key, target_db_index_usize, true);
                                         }
                                         _ => {
                                             // Handle other operations if needed

@@ -1,7 +1,7 @@
 pub enum RespValue {
     SimpleString(String),
-    Error(String),
     Integer(i64),
+    Error(String),
     BulkString(Option<String>),
     Array(Vec<RespValue>),
 }
