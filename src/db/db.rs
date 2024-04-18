@@ -409,7 +409,7 @@ impl Redis {
 
                         // 创建 ProgressBar 进度条 {pos} {len} {percent}
                         let pb = ProgressBar::new(line_count);
-                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41}] percent: {percent}% lines: {pos}/{len}").progress_chars("=>-"));
+                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41.green/cyan}] percent: {percent}% lines: {pos}/{len} time: {elapsed_precise}").progress_chars("=>-"));
 
                         let reader = BufReader::new(&mut file);
                         for line in reader.lines() {
