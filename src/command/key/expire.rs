@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, tools::date::current_millis, RedisConfig};
+use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, tools::{date::current_millis, reponse::RespValue}, RedisConfig};
 
 pub struct ExpireCommand {}
 
@@ -30,9 +30,11 @@ impl CommandStrategy for ExpireCommand {
         let result = redis_ref.expire(db_index, key, expire_at, false);
 
         if result {
-            stream.write(b":1\r\n").unwrap(); // 成功
+            let response_bytes = &RespValue::Integer(1).to_bytes();
+            stream.write(response_bytes).unwrap();
         } else {
-            stream.write(b":0\r\n").unwrap(); // 失败
+            let response_bytes = &RespValue::Integer(0).to_bytes();
+            stream.write(response_bytes).unwrap();
         }
     }
 }

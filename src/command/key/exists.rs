@@ -1,6 +1,13 @@
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
+use crate::tools::reponse::RespValue;
+use crate::{
+    command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig,
+};
 use std::io::Write;
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig};
+use std::{
+    collections::HashMap,
+    net::TcpStream,
+    sync::{Arc, Mutex},
+};
 
 /*
  * Exists 命令
@@ -30,9 +37,11 @@ impl CommandStrategy for ExistsCommand {
         redis_ref.check_ttl(db_index, &fragments[4].to_string());
         let is_exists = redis_ref.exists(db_index, &fragments[4].to_string());
         if is_exists {
-            stream.write(b":1\r\n").unwrap();
+            let response_bytes = &RespValue::Integer(1).to_bytes();
+            stream.write(response_bytes).unwrap();
         } else {
-            stream.write(b":0\r\n").unwrap();
+            let response_bytes = &RespValue::Integer(0).to_bytes();
+            stream.write(response_bytes).unwrap();
         }
     }
 }

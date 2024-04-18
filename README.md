@@ -211,6 +211,10 @@ llen 命令
 | dbsize  | ✅    | ⚪         | ⛔       |
 | auth    | ✅    | ⚪         | ⛔       |
 | select  | ✅    | ⚪         | ⛔       |
+| llen    | ✅    | ⚪         | ⛔       |
+| exists  | ✅    | ⚪         | ⛔       |
+| expire  | ✅    | ✅         | ⛔       |
+
 ## 代码仓库
 
 Github：https://github.com/sleeprite/redis-for-rust

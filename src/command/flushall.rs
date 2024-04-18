@@ -19,8 +19,7 @@ impl CommandStrategy for FlushAllCommand {
         let mut redis_ref = redis.lock().unwrap();
         redis_ref.flush_all(false);
 
-        let response_value = "OK".to_string();
-        let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
+        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
         stream.write(response_bytes).unwrap();
     }
 }
