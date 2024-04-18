@@ -214,6 +214,7 @@ llen 命令
 | llen    | ✅    | ⚪         | ⛔       |
 | exists  | ✅    | ⚪         | ⛔       |
 | expire  | ✅    | ✅         | ⛔       |
+| rename  | ✅    | ✅         | ⛔       |
 
 ## 代码仓库
 

@@ -14,3 +14,9 @@
 0 SET user2 root
 0 SET user root
 0 SET user root
+0 SET user admin
+0 RENAME user user1
+0 RENAME user2 user1
+0 SET username root
+0 RENAME username new_username
+0 FLUSHDB

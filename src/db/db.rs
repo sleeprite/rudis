@@ -285,18 +285,22 @@ impl Redis {
      * @param old_key 旧主键名称
      * @param new_key 新主键名称
      */
-    pub fn rename(&mut self, db_index: usize, old_key: &str, new_key: &str, is_aof_recovery: bool) -> bool {
-        let db = self.databases.get_mut(db_index).unwrap();
-        // 检查是否存在旧键
+    pub fn rename(&mut self, db_index: usize, old_key: &str, new_key: &str, is_aof_recovery: bool) -> Result<bool, &str> {
+        
+        let db = match self.databases.get_mut(db_index) {
+            Some(db) => db,
+            None => return Err("Database index out of bounds"),
+        };
+    
         if let Some(value) = db.remove(old_key) {
-            // 将值从旧键移到新键
             db.insert(new_key.to_string(), value);
             if !is_aof_recovery {
                 self.append_aof(&format!("{} RENAME {} {}", db_index, old_key, new_key));
             }
-            return true;
+            return Ok(true);
         }
-        false
+    
+        Err("ERR no such key")
     }
 
     /*
@@ -446,7 +450,9 @@ impl Redis {
                                         "RENAME" => {
                                             let old_key = parts[2].to_string();
                                             let new_key = parts[3].to_string();
-                                            self.rename(db_index_usize, &old_key, &new_key, true);
+                                            match self.rename(db_index_usize, &old_key, &new_key, true) {
+                                                Ok(_) => {} Err(_) => {}
+                                            }
                                         }
                                         _ => {
                                             // Handle other operations if needed
