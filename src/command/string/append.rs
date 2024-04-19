@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, RedisConfig};
+use crate::{command_strategy::CommandStrategy, db::db::Redis, session::session::Session, tools::reponse::RespValue, RedisConfig};
 
 /*
  * Append 命令
@@ -31,22 +31,16 @@ impl CommandStrategy for AppendCommand {
 
         let key = fragments[4].to_string();
         let value = fragments[6].to_string();
-
-        match redis_ref.get(db_index, &key) {
-            Ok(Some(old_value)) => {
-                let new_value = format!("{}{}", old_value, value);
-                redis_ref.set(db_index, key, new_value.clone(), false);
-                stream.write(format!(":{}\r\n", new_value.len()).as_bytes()).unwrap();
-            },
-            Ok(None) => {
-                redis_ref.set(db_index, key, value, false);
-                stream.write(b"+OK\r\n").unwrap();
-            },
-            Err(err_msg) => {
-                stream.write(format!("-${}\r\n", err_msg.len()).as_bytes()).unwrap();
-                stream.write(err_msg.as_bytes()).unwrap();
-                stream.write(b"\r\n").unwrap();
+        let len = match redis_ref.append(db_index, key, value, false) {
+            Ok(len) => len as i64,
+            Err(err) => {
+                let response_value = RespValue::Error(err).to_bytes();
+                stream.write(&response_value).unwrap();
+                return;
             }
-        }
+        };
+
+        let response_value = RespValue::Integer(len).to_bytes();
+        stream.write(&response_value).unwrap();
     }
 }

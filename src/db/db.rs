@@ -398,6 +398,43 @@ impl Redis {
     }
 
     /*
+     * 获取列表长度
+     *
+     * @param db_index DB 索引
+     * @param key 列表键
+     * @return 列表长度，如果键不存在或者不是列表则返回 0
+     */
+    pub fn append(&mut self, db_index: usize, key: String, value: String, is_aof_recovery: bool) -> Result<usize, String> {
+        let db = match self.databases.get_mut(db_index) {
+            Some(db) => db,
+            None => return Err("ERR invalid database index".to_string()),
+        };
+    
+        let len = match db.get_mut(&key) {
+            Some(redis_data) => {
+                if let RedisValue::StringValue(s) = &mut redis_data.value {
+                    s.push_str(&value);
+                    s.len()
+                } else {
+                    return Err("ERR Operation against a key holding the wrong kind of value".to_string());
+                }
+            },
+            None => {
+                let redis_data = RedisData::new(RedisValue::StringValue(value.clone()), -1);
+                db.insert(key.clone(), redis_data);
+    
+                value.len()
+            }
+        };
+    
+        if !is_aof_recovery {
+            self.append_aof(&format!("{} APPEND {} {}", db_index, key, value));
+        }
+    
+        Ok(len)
+    }
+
+    /*
      * 将 appendfile 文件 load 内容到数据库
      *
      * 调用时机：项目启动
@@ -473,6 +510,13 @@ impl Redis {
                                             let key = parts[2].to_string();
                                             let values: Vec<String> = parts[3..].iter().enumerate().map(|(_, &x)| x.to_string()).collect();
                                             self.rpush(db_index_usize, key, values, true);
+                                        }
+                                        "APPEND" => {
+                                            let key = parts[2].to_string();
+                                            let value= parts[3].to_string();
+                                            match self.append(db_index_usize, key, value, true) {
+                                                Ok(_) => {} Err(_) => {}
+                                            };
                                         }
                                         _ => {
                                             // Handle other operations if needed
