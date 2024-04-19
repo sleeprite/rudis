@@ -226,6 +226,15 @@ llen 命令
 | append  | ✅    | ✅         | ⛔       |
 | incr    | ✅    | ✅         | ⛔       |
 | decr    | ✅    | ✅         | ⛔       |
+
+## 性能测试【append only file】
+
+ - percent: 100% lines: 100000/100000 time: 00:00:04
+
+ - percent: 100% lines: 200000/200000 time: 00:00:09
+
+ - percent: 100% lines: 400000/400000 time: 00:00:19
+
 ## 代码仓库
 
 Github：https://github.com/sleeprite/redis-for-rust
