@@ -2,7 +2,7 @@
 
 ```
      /\_____/\
-    /  o   o  \          redis-for-rust 0.0.2
+    /  o   o  \          redis-for-rust 0.0.1
    ( ==  ^  == )
     )         (          Bind: 127.0.0.1:6379
    (           )
