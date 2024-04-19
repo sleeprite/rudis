@@ -227,7 +227,7 @@ llen 命令
 | incr    | ✅    | ✅         | ⛔       |
 | decr    | ✅    | ✅         | ⛔       |
 
-## 性能测试【append only file】
+## 性能测试
 
  - percent: 100% lines: 100000/100000 time: 00:00:04
 
