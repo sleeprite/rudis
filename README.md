@@ -9,8 +9,6 @@
   ( (  )   (  ) )        
  (__(__)___(__)__)
     
-[2024-04-17T03:41:52Z INFO  redis_for_rust] Start loading appendfile
-[=========================================] Percent: 100% Lines: 214110/214110
 [2024-04-17T03:41:58Z INFO  redis_for_rust] Server initialized
 [2024-04-17T03:41:58Z INFO  redis_for_rust] Ready to accept connections
 ```

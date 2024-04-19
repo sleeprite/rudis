@@ -145,8 +145,6 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("keys", Box::new(KeysCommand {}));
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
-
-
     // TODO 待改善的命令
     strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
