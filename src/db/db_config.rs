@@ -48,7 +48,6 @@ fn get_appendonly_or(default: bool) -> bool {
     }
 }
 
-
 /*
  * 获取 port 参数
  *

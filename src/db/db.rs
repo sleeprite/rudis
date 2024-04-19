@@ -434,6 +434,84 @@ impl Redis {
         Ok(len)
     }
 
+    pub fn incr(
+        &mut self,
+        db_index: usize,
+        key: String,
+        increment: i64,
+        is_aof_recovery: bool
+    ) -> Result<i64, String> {
+        let database = match self.databases.get_mut(db_index) {
+            Some(db) => db,
+            None => return Err("ERR invalid DB index".to_string()),
+        };
+
+        let redis_data = database.entry(key.clone()).or_insert_with(|| {
+            RedisData::new(RedisValue::StringValue("0".to_string()), -1)
+        });
+
+        let result = match &mut redis_data.value {
+            RedisValue::StringValue(val) => {
+                match val.parse::<i64>() {
+                    Ok(current_val) => current_val + increment,
+                    Err(_) => return Err("ERR value is not an integer".to_string()),
+                }
+            }
+            RedisValue::StringArrayValue(_) => {
+                return Err("ERR Operation against a key holding the wrong kind of value".to_string())
+            }
+        };
+
+        if let RedisValue::StringValue(val) = &mut redis_data.value {
+            *val = result.to_string();
+        }
+
+        if !is_aof_recovery {
+            self.append_aof(&format!("{} INCR {} {}", db_index, key, increment));
+        }
+
+        Ok(result)
+    }
+
+    pub fn decr(
+        &mut self,
+        db_index: usize,
+        key: String,
+        increment: i64,
+        is_aof_recovery: bool
+    ) -> Result<i64, String> {
+        let database = match self.databases.get_mut(db_index) {
+            Some(db) => db,
+            None => return Err("ERR invalid DB index".to_string()),
+        };
+
+        let redis_data = database.entry(key.clone()).or_insert_with(|| {
+            RedisData::new(RedisValue::StringValue("0".to_string()), -1)
+        });
+
+        let result = match &mut redis_data.value {
+            RedisValue::StringValue(val) => {
+                match val.parse::<i64>() {
+                    Ok(current_val) => current_val - increment,
+                    Err(_) => return Err("ERR value is not an integer".to_string()),
+                }
+            }
+            RedisValue::StringArrayValue(_) => {
+                return Err("ERR Operation against a key holding the wrong kind of value".to_string())
+            }
+        };
+
+        if let RedisValue::StringValue(val) = &mut redis_data.value {
+            *val = result.to_string();
+        }
+
+        if !is_aof_recovery {
+            self.append_aof(&format!("{} DECR {} {}", db_index, key, increment));
+        }
+
+        Ok(result)
+    }
+
     /*
      * 将 appendfile 文件 load 内容到数据库
      *
@@ -515,6 +593,22 @@ impl Redis {
                                             let key = parts[2].to_string();
                                             let value= parts[3].to_string();
                                             match self.append(db_index_usize, key, value, true) {
+                                                Ok(_) => {} Err(_) => {}
+                                            };
+                                        }
+                                        "INCR" => {
+                                            let key = parts[2].to_string();
+                                            let increment_str= parts[3].to_string();
+                                            let increment = increment_str.parse::<i64>().unwrap();
+                                            match self.incr(db_index_usize, key, increment, true) {
+                                                Ok(_) => {} Err(_) => {}
+                                            };
+                                        }
+                                        "DECR" => {
+                                            let key = parts[2].to_string();
+                                            let increment_str= parts[3].to_string();
+                                            let increment = increment_str.parse::<i64>().unwrap();
+                                            match self.decr(db_index_usize, key, increment, true) {
                                                 Ok(_) => {} Err(_) => {}
                                             };
                                         }

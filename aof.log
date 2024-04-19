@@ -3,3 +3,12 @@
 0 DEL username
 0 APPEND username 1111
 0 APPEND username 22
+0 SET number 12
+0 INCR number 1
+0 DECR number 1
+0 INCR number 1
+0 INCR number 1
+0 DECR numbeer 1
+0 DECR number 1
+0 DECR number 1
+0 SET username root

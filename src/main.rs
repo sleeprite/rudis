@@ -135,18 +135,19 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("exists", Box::new(ExistsCommand {}));
     strategies.insert("expire", Box::new(ExpireCommand {}));
     strategies.insert("rename", Box::new(RenameCommand {}));
+    strategies.insert("dbsize", Box::new(DBSizeCommand {}));
     strategies.insert("flushall", Box::new(FlushAllCommand {}));
     strategies.insert("flushdb", Box::new(FlushDbCommand {}));
-    strategies.insert("dbsize", Box::new(DBSizeCommand {}));
     strategies.insert("auth", Box::new(AuthCommand {}));
     strategies.insert("select", Box::new(SelectCommand {}));
     strategies.insert("llen", Box::new(LlenCommand {}));
     strategies.insert("move", Box::new(MoveCommand {}));
     strategies.insert("keys", Box::new(KeysCommand {}));
+    strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
+    
     // TODO 待改善的命令
-    strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
     strategies.insert("decr", Box::new(DecrCommand {}));
 

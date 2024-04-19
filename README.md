@@ -224,7 +224,8 @@ llen 命令
 | lpush   | ✅    | ✅         | ⛔       |
 | rpush   | ✅    | ✅         | ⛔       |
 | append  | ✅    | ✅         | ⛔       |
-
+| incr    | ✅    | ✅         | ⛔       |
+| decr    | ✅    | ✅         | ⛔       |
 ## 代码仓库
 
 Github：https://github.com/sleeprite/redis-for-rust
