@@ -216,6 +216,8 @@ llen 命令
 | expire  | ✅    | ✅         | ⛔       |
 | rename  | ✅    | ✅         | ⛔       |
 | move    | ✅    | ✅         | ⛔       |
+| lpush   | ✅    | ✅         | ⛔       |
+| rpush   | ✅    | ✅         | ⛔       |
 
 ## 代码仓库
 

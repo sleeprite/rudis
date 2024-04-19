@@ -340,14 +340,15 @@ impl Redis {
      * @param key 列表键
      * @param values 要插入的值
      */
-    pub fn lpush(&mut self, db_index: usize, key: String, values: Vec<String>) {
+    pub fn lpush(&mut self, db_index: usize, key: String, values: Vec<String>, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
-            let list = self.databases[db_index]
-                .entry(key)
-                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
-
+            let list = self.databases[db_index].entry(key.clone()).or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
             if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
-                current_values.splice(0..0, values);
+                current_values.splice(0..0, values.clone());
+                if !is_aof_recovery {
+                    let values_str = values.join(" ");
+                    self.append_aof(&format!("{} LPUSH {} {}", db_index, key, values_str));
+                }
             }
         } else {
             panic!("Invalid database index");
@@ -361,14 +362,15 @@ impl Redis {
      * @param key 列表键
      * @param values 要插入的值
      */
-    pub fn rpush(&mut self, db_index: usize, key: String, values: Vec<String>) {
+    pub fn rpush(&mut self, db_index: usize, key: String, values: Vec<String>, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
-            let list = self.databases[db_index]
-                .entry(key)
-                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
-
+            let list = self.databases[db_index].entry(key.clone()).or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
             if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
-                current_values.extend(values);
+                current_values.extend(values.clone());
+                if !is_aof_recovery {
+                    let values_str = values.join(" ");
+                    self.append_aof(&format!("{} RPUSH {} {}", db_index, key, values_str));
+                }
             }
         } else {
             panic!("Invalid database index");
@@ -461,6 +463,16 @@ impl Redis {
                                             let target_db_index = parts[3].to_string();
                                             let target_db_index_usize = target_db_index.parse::<usize>().unwrap();
                                             self.move_key(db_index_usize, &key, target_db_index_usize, true);
+                                        }
+                                        "LPUSH" => {
+                                            let key = parts[2].to_string();
+                                            let values: Vec<String> = parts[3..].iter().enumerate().map(|(_, &x)| x.to_string()).collect();
+                                            self.lpush(db_index_usize, key, values, true);
+                                        }
+                                        "RPUSH" => {
+                                            let key = parts[2].to_string();
+                                            let values: Vec<String> = parts[3..].iter().enumerate().map(|(_, &x)| x.to_string()).collect();
+                                            self.rpush(db_index_usize, key, values, true);
                                         }
                                         _ => {
                                             // Handle other operations if needed

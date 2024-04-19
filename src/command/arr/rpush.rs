@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::session::session::Session;
+use crate::tools::reponse::RespValue;
 use crate::{command_strategy::CommandStrategy, db::db::Redis, RedisConfig};
 
 pub struct RpushCommand {}
@@ -30,15 +31,11 @@ impl CommandStrategy for RpushCommand {
             }
         };
 
-        let key = fragments[4].to_string(); // 获取列表的键
-        let values: Vec<String> = fragments[6..]
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| *i % 2 == 0)
-            .map(|(_, &x)| x.to_string())
-            .collect();
-        
-        redis_ref.rpush(db_index, key.clone(), values); 
-        stream.write(b"+OK\r\n").unwrap();
+        let key = fragments[4].to_string();
+        let values: Vec<String> = fragments[6..].iter().enumerate().filter(|(i, _)| *i % 2 == 0).map(|(_, &x)| x.to_string()).collect();
+        redis_ref.rpush(db_index, key.clone(), values, false); 
+
+        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+        stream.write(response_bytes).unwrap();
     }
 }
