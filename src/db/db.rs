@@ -377,7 +377,7 @@ impl Redis {
         }
     }
 
-    pub fn lpop(&mut self, db_index: usize, key: String) -> Option<String> {
+    pub fn lpop(&mut self, db_index: usize, key: String, is_aof_recovery: bool) -> Option<String> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
                 Some(list) => {
@@ -390,8 +390,9 @@ impl Redis {
                                 self.databases[db_index].remove(&key);
                             }
     
-                            // Append to AOF log if not during AOF recovery
-                            self.append_aof(&format!("{} LPOP {}", db_index, key));
+                            if !is_aof_recovery {
+                                self.append_aof(&format!("{} LPOP {}", db_index, key));
+                            }
     
                             return Some(popped_value);
                         }
@@ -406,7 +407,7 @@ impl Redis {
         None
     }
 
-    pub fn rpop(&mut self, db_index: usize, key: String) -> Option<String> {
+    pub fn rpop(&mut self, db_index: usize, key: String, is_aof_recovery: bool) -> Option<String> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
                 Some(list) => {
@@ -419,9 +420,10 @@ impl Redis {
                                 self.databases[db_index].remove(&key);
                             }
     
-                            // Append to AOF log if not during AOF recovery
-                            self.append_aof(&format!("{} RPOP {}", db_index, key));
-    
+                            if !is_aof_recovery {
+                                self.append_aof(&format!("{} RPOP {}", db_index, key));
+                            }
+
                             return popped_value;
                         }
                     }
@@ -694,6 +696,14 @@ impl Redis {
                                             match self.decr(db_index_usize, key, increment, true) {
                                                 Ok(_) => {} Err(_) => {}
                                             };
+                                        }
+                                        "LPOP" => {
+                                            let key = parts[2].to_string();
+                                            self.lpop(db_index_usize, key, true);
+                                        }
+                                        "RPOP" => {
+                                            let key = parts[2].to_string();
+                                            self.rpop(db_index_usize, key, true);
                                         }
                                         _ => {
                                             // Handle other operations if needed
