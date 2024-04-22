@@ -12,7 +12,9 @@ mod tools;
 
 use command::arr::lindex::LindexCommand;
 use command::arr::llen::LlenCommand;
+use command::arr::lpop::LpopCommand;
 use command::arr::lpush::LpushCommand;
+use command::arr::rpop::RpopCommand;
 use command::arr::rpush::RpushCommand;
 
 use command::key::del::DelCommand;
@@ -148,8 +150,8 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
     strategies.insert("lindex", Box::new(LindexCommand {}));
-    
-    // TODO 待改善的命令
+    strategies.insert("lpop", Box::new(LpopCommand {}));
+    strategies.insert("rpop", Box::new(RpopCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
     strategies.insert("decr", Box::new(DecrCommand {}));
 

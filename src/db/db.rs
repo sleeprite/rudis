@@ -377,6 +377,64 @@ impl Redis {
         }
     }
 
+    pub fn lpop(&mut self, db_index: usize, key: String) -> Option<String> {
+        if db_index < self.databases.len() {
+            match self.databases[db_index].get_mut(&key) {
+                Some(list) => {
+                    if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
+                        if !current_values.is_empty() {
+                            let popped_value = current_values.remove(0);
+    
+                            // Check if the list is empty after removal
+                            if current_values.is_empty() {
+                                self.databases[db_index].remove(&key);
+                            }
+    
+                            // Append to AOF log if not during AOF recovery
+                            self.append_aof(&format!("{} LPOP {}", db_index, key));
+    
+                            return Some(popped_value);
+                        }
+                    }
+                }
+                None => return None, // Key does not exist
+            }
+        } else {
+            panic!("Invalid database index");
+        }
+    
+        None
+    }
+
+    pub fn rpop(&mut self, db_index: usize, key: String) -> Option<String> {
+        if db_index < self.databases.len() {
+            match self.databases[db_index].get_mut(&key) {
+                Some(list) => {
+                    if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
+                        if !current_values.is_empty() {
+                            let popped_value = current_values.pop();
+    
+                            // Check if the list is empty after removal
+                            if current_values.is_empty() {
+                                self.databases[db_index].remove(&key);
+                            }
+    
+                            // Append to AOF log if not during AOF recovery
+                            self.append_aof(&format!("{} RPOP {}", db_index, key));
+    
+                            return popped_value;
+                        }
+                    }
+                }
+                None => return None, // Key does not exist
+            }
+        } else {
+            panic!("Invalid database index");
+        }
+    
+        None
+    }
+
     /*
      * 获取列表长度
      *
