@@ -18,7 +18,7 @@ impl CommandStrategy for EchoCommand {
         _sessions: &Arc<Mutex<HashMap<String, Session>>>,
     ) {
         let keyword = fragments[4].to_string();
-        let response_bytes = &RespValue::SimpleString(keyword).to_bytes();
+        let response_bytes = &RespValue::BulkString(keyword).to_bytes();
         stream.write(response_bytes).unwrap();
     }
 }
