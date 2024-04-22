@@ -398,6 +398,31 @@ impl Redis {
     }
 
     /*
+     * @param db_index DB 索引
+     * @param key 列表键 
+     */
+    pub fn lindex(&self, db_index: usize, key: &String, index: i64) -> Option<String> {
+        if db_index < self.databases.len() {
+            if let Some(redis_value) = self.databases[db_index].get(key) {
+                if let RedisValue::StringArrayValue(ref array) = redis_value.value {
+                    let index = if index < 0 {
+                        (array.len() as i64 + index) as usize
+                    } else {
+                        index as usize
+                    };
+    
+                    if index < array.len() {
+                        return Some(array[index].clone());
+                    }
+                }
+            }
+        } else {
+            panic!("Invalid database index");
+        }
+        None // Return None if the key doesn't exist, is not a list, or the index is out of bounds
+    }
+
+    /*
      * 获取列表长度
      *
      * @param db_index DB 索引

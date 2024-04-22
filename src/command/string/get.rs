@@ -34,7 +34,7 @@ impl CommandStrategy for GetCommand {
 
         match redis_ref.get(db_index, &key) {
             Ok(Some(value)) => {
-                let response_bytes = &RespValue::SimpleString(value.to_string()).to_bytes();
+                let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
                 stream.write(response_bytes).unwrap();
             },
             Ok(None) => {

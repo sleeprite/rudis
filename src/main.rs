@@ -10,6 +10,7 @@ mod db;
 mod session;
 mod tools;
 
+use command::arr::lindex::LindexCommand;
 use command::arr::llen::LlenCommand;
 use command::arr::lpush::LpushCommand;
 use command::arr::rpush::RpushCommand;
@@ -146,6 +147,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("append", Box::new(AppendCommand {}));
     strategies.insert("lpush", Box::new(LpushCommand {}));
     strategies.insert("rpush", Box::new(RpushCommand {}));
+    strategies.insert("lindex", Box::new(LindexCommand {}));
     
     // TODO 待改善的命令
     strategies.insert("incr", Box::new(IncrCommand {}));
