@@ -437,6 +437,35 @@ impl Redis {
         None
     }
 
+    pub fn lrange(&mut self, db_index: usize, key: String, start: i64, end: i64) -> Vec<String> {
+        if db_index < self.databases.len() {
+            match self.databases[db_index].get(&key) {
+                Some(list) => {
+                    if let RedisValue::StringArrayValue(ref current_values) = list.value {
+                        let list_length = current_values.len() as i64;
+                        let mut adjusted_start = if start < 0 { list_length + start } else { start };
+                        let mut adjusted_end = if end < 0 { list_length + end } else { end };
+
+                        // Adjust start/end to be within list bounds
+                        adjusted_start = adjusted_start.max(0).min(list_length - 1);
+                        adjusted_end = adjusted_end.max(0).min(list_length - 1);
+
+                        if adjusted_start > adjusted_end {
+                            return Vec::new(); // Empty range
+                        }
+
+                        return current_values[adjusted_start as usize..=adjusted_end as usize].to_vec();
+                    }
+                }
+                None => return Vec::new(), // Key does not exist
+            }
+        } else {
+            panic!("Invalid database index");
+        }
+
+        Vec::new()
+    }
+
     /*
      * 获取列表长度
      *

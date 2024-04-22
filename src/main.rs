@@ -14,6 +14,7 @@ use command::arr::lindex::LindexCommand;
 use command::arr::llen::LlenCommand;
 use command::arr::lpop::LpopCommand;
 use command::arr::lpush::LpushCommand;
+use command::arr::lrange::LrangeCommand;
 use command::arr::rpop::RpopCommand;
 use command::arr::rpush::RpushCommand;
 
@@ -154,6 +155,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("rpop", Box::new(RpopCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
     strategies.insert("decr", Box::new(DecrCommand {}));
+    strategies.insert("lrange", Box::new(LrangeCommand {}));
 
     strategies
 }
