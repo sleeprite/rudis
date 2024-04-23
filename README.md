@@ -203,6 +203,13 @@ llen 命令
 - [ ] 日志体系，完善系统中日志打印，制订规范，帮助使用者更快速的追溯问题；
 - [ ] 测试用例，针对项目中的每个命令，编写对应的单元测试，提高项目稳定性；
 
+## 数据结构
+
+- [x] String
+- [x] Set
+- [ ] HashMap
+- [x] List
+
 ## 命令列表
 
 | Command | Supprt | Appendfile | Test case | 

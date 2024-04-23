@@ -219,6 +219,8 @@ fn connection(
                 let fragments: Vec<&str> = body.split("\r\n").collect();
                 let command = fragments[2];
 
+                log::info!("Received {} command from client {}", command.to_uppercase(), session_id);
+
                 {
                     /*
                      * 安全认证【前置拦截】
@@ -245,13 +247,7 @@ fn connection(
                  * TODO 将 所有会话 调整为 当前会话
                  */
                 if let Some(strategy) = command_strategies.get(command) {
-                    strategy.execute(
-                        &mut stream,
-                        &fragments,
-                        &redis,
-                        &redis_config,
-                        &session_manager,
-                    );
+                    strategy.execute(&mut stream, &fragments, &redis, &redis_config, &session_manager);
                 } else {
                     let response_value = "PONG".to_string();
                     let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
