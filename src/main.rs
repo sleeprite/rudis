@@ -29,6 +29,7 @@ use command::key::keys::KeysCommand;
 use command::key::ttl::TtlCommand;
 use command::key::r#type::TypeCommand;
 use command::set::sadd::SaddCommand;
+use command::set::scard::ScardCommand;
 use command::set::smembers::SmembersCommand;
 use command::string::decr::DecrCommand;
 use command::string::incr::IncrCommand;
@@ -166,7 +167,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("type", Box::new(TypeCommand {}));
     strategies.insert("sadd", Box::new(SaddCommand {}));
     strategies.insert("smembers", Box::new(SmembersCommand {}));
-
+    strategies.insert("scard", Box::new(ScardCommand {}));
     strategies
 }
 

@@ -235,6 +235,7 @@ llen 命令
 | type    | ✅    | ⚪         | ⛔       |
 | sadd    | ✅    | ✅         | ⛔       |
 | smembers| ✅    | ⚪         | ⛔       |
+| scard   | ✅    | ⚪         | ⛔       |
 
 ## 性能测试
 

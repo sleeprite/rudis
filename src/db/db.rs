@@ -680,6 +680,15 @@ impl Redis {
         None
     }
 
+    pub fn scard(&self, db_index: usize, key: &String) -> Option<usize> {
+        if let Some(set) = self.databases.get(db_index)?.get(key) {
+            if let RedisValue::SetValue(members) = &set.value {
+                return Some(members.len());
+            }
+        }
+        None
+    }
+
     /*
      * 获取列表长度
      *
