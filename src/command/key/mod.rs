@@ -6,3 +6,4 @@ pub mod r#move;
 pub mod rename;
 pub mod ttl;
 pub mod pttl;
+pub mod r#type;

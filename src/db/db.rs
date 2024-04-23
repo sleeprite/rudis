@@ -179,6 +179,20 @@ impl Redis {
         -2 // Key不存在或无过期时间返回-2
     }
 
+    pub fn key_type(&self, db_index: usize, key: String) -> String {
+        if db_index < self.databases.len() {
+            match self.databases[db_index].get(&key) {
+                Some(redis_value) => match &redis_value.value {
+                    RedisValue::StringArrayValue(_) => "list".to_string(),
+                    RedisValue::StringValue(_) => "string".to_string(),
+                },
+                None => "none".to_string(),
+            }
+        } else {
+            "Invalid database index".to_string()
+        }
+    }
+
     /*
      * 删除 Key
      *

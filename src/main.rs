@@ -27,6 +27,7 @@ use command::key::rename::RenameCommand;
 use command::key::keys::KeysCommand;
 
 use command::key::ttl::TtlCommand;
+use command::key::r#type::TypeCommand;
 use command::string::decr::DecrCommand;
 use command::string::incr::IncrCommand;
 use command::string::append::AppendCommand;
@@ -160,6 +161,8 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("lrange", Box::new(LrangeCommand {}));
     strategies.insert("ttl", Box::new(TtlCommand {}));
     strategies.insert("pttl", Box::new(PttlCommand {}));
+    strategies.insert("type", Box::new(TypeCommand {}));
+
 
     strategies
 }
