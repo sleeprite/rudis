@@ -1,4 +1,5 @@
 use indicatif::{ProgressBar, ProgressStyle};
+use std::collections::HashSet;
 use std::io::Seek;
 use std::{
     collections::HashMap,
@@ -13,7 +14,8 @@ use super::db_config::RedisConfig;
 
 pub enum RedisValue {
     StringValue(String),
-    StringArrayValue(Vec<String>),
+    ListValue(Vec<String>),
+    SetValue(HashSet<String>),
 }
 
 pub struct RedisData {
@@ -155,7 +157,7 @@ impl Redis {
                 }
             }
         }
-    
+
         -2 // Key不存在或无过期时间返回-2
     }
 
@@ -175,7 +177,7 @@ impl Redis {
                 }
             }
         }
-    
+
         -2 // Key不存在或无过期时间返回-2
     }
 
@@ -183,8 +185,9 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(&key) {
                 Some(redis_value) => match &redis_value.value {
-                    RedisValue::StringArrayValue(_) => "list".to_string(),
+                    RedisValue::ListValue(_) => "list".to_string(),
                     RedisValue::StringValue(_) => "string".to_string(),
+                    RedisValue::SetValue(_) => "set".to_string(),
                 },
                 None => "none".to_string(),
             }
@@ -437,8 +440,8 @@ impl Redis {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key.clone())
-                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
-            if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
+                .or_insert(RedisData::new(RedisValue::ListValue(vec![]), -1));
+            if let RedisValue::ListValue(ref mut current_values) = list.value {
                 current_values.splice(0..0, values.clone());
                 if !is_aof_recovery {
                     let values_str = values.join(" ");
@@ -468,8 +471,8 @@ impl Redis {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key.clone())
-                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
-            if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
+                .or_insert(RedisData::new(RedisValue::ListValue(vec![]), -1));
+            if let RedisValue::ListValue(ref mut current_values) = list.value {
                 current_values.extend(values.clone());
                 if !is_aof_recovery {
                     let values_str = values.join(" ");
@@ -485,7 +488,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
                 Some(list) => {
-                    if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
+                    if let RedisValue::ListValue(ref mut current_values) = list.value {
                         if !current_values.is_empty() {
                             let popped_value = current_values.remove(0);
 
@@ -515,7 +518,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
                 Some(list) => {
-                    if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
+                    if let RedisValue::ListValue(ref mut current_values) = list.value {
                         if !current_values.is_empty() {
                             let popped_value = current_values.pop();
 
@@ -553,7 +556,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(&key) {
                 Some(list) => {
-                    if let RedisValue::StringArrayValue(ref current_values) = list.value {
+                    if let RedisValue::ListValue(ref current_values) = list.value {
                         let list_length = current_values.len() as i64;
                         let mut adjusted_start = if start < 0 {
                             list_length + start
@@ -593,7 +596,7 @@ impl Redis {
     pub fn llen(&self, db_index: usize, key: &String) -> usize {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
-                if let RedisValue::StringArrayValue(ref array) = redis_value.value {
+                if let RedisValue::ListValue(ref array) = redis_value.value {
                     return array.len();
                 }
             }
@@ -613,7 +616,7 @@ impl Redis {
     pub fn lindex(&self, db_index: usize, key: &String, index: i64) -> Option<String> {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
-                if let RedisValue::StringArrayValue(ref array) = redis_value.value {
+                if let RedisValue::ListValue(ref array) = redis_value.value {
                     let index = if index < 0 {
                         (array.len() as i64 + index) as usize
                     } else {
@@ -629,6 +632,52 @@ impl Redis {
             panic!("Invalid database index");
         }
         None // Return None if the key doesn't exist, is not a list, or the index is out of bounds
+    }
+
+    /*
+     * 将一个或多个成员添加到集合中
+     *
+     * @param db_index  DB 索引
+     * @param key 集合键
+     * @param members 要添加的成员
+     */
+    pub fn sadd(
+        &mut self,
+        db_index: usize,
+        key: String,
+        members: Vec<String>,
+        is_aof_recovery: bool,
+    ) -> Result<i64, String> {
+        if db_index < self.databases.len() {
+            let set = self.databases[db_index]
+                .entry(key.clone())
+                .or_insert(RedisData::new(RedisValue::SetValue(HashSet::new()), -1));
+            if let RedisValue::SetValue(ref mut current_members) = set.value {
+                let mut count = 0;
+                for member in &members {
+                    if current_members.insert(member.clone()) {
+                        count += 1;
+                    }
+                }
+                if !is_aof_recovery {
+                    self.append_aof(&format!("{} SADD {} {}", db_index, key, members.join(" ")));
+                }
+                Ok(count)
+            } else {
+                Err("Key exists and is not a set".to_string())
+            }
+        } else {
+            Err("Invalid database index".to_string())
+        }
+    }
+
+    pub fn smembers(&self, db_index: usize, key: &String) -> Option<&HashSet<String>> {
+        if let Some(set) = self.databases.get(db_index)?.get(key) {
+            if let RedisValue::SetValue(members) = &set.value {
+                return Some(members);
+            }
+        }
+        None
     }
 
     /*
@@ -697,7 +746,7 @@ impl Redis {
                 Ok(current_val) => current_val + increment,
                 Err(_) => return Err("ERR value is not an integer".to_string()),
             },
-            RedisValue::StringArrayValue(_) => {
+            _ => {
                 return Err(
                     "ERR Operation against a key holding the wrong kind of value".to_string(),
                 )
@@ -736,7 +785,7 @@ impl Redis {
                 Ok(current_val) => current_val - increment,
                 Err(_) => return Err("ERR value is not an integer".to_string()),
             },
-            RedisValue::StringArrayValue(_) => {
+            _ => {
                 return Err(
                     "ERR Operation against a key holding the wrong kind of value".to_string(),
                 )
@@ -848,6 +897,18 @@ impl Redis {
                                                 .map(|(_, &x)| x.to_string())
                                                 .collect();
                                             self.lpush(db_index_usize, key, values, true);
+                                        }
+                                        "SADD" => {
+                                            let key = parts[2].to_string();
+                                            let values: Vec<String> = parts[3..]
+                                                .iter()
+                                                .enumerate()
+                                                .map(|(_, &x)| x.to_string())
+                                                .collect();
+                                            match self.sadd(db_index_usize, key, values, true) {
+                                                Ok(_) => {}
+                                                Err(_) => {}
+                                            };
                                         }
                                         "RPUSH" => {
                                             let key = parts[2].to_string();

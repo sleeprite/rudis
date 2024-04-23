@@ -1,3 +1,2 @@
-0 LPUSH user admin1 admin2 admin3
-0 LPOP user
-0 RPOP user
+0 SADD user admin1 admin2 admin3
+0 SADD user admin1 admin2 admin3
