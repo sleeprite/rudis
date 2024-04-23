@@ -309,6 +309,7 @@ impl Redis {
      * @param key 主键
      * @param src_db_index 源数据库
      * @param target_db_index 目标数据库
+     * @param is_aof_recovery 是否记录 aof 日志
      */
     pub fn move_key(
         &mut self,
@@ -339,6 +340,7 @@ impl Redis {
      * @param db_index  DB 索引
      * @param key 列表键
      * @param values 要插入的值
+     * @param is_aof_recovery 是否记录 aof 日志
      */
     pub fn lpush(&mut self, db_index: usize, key: String, values: Vec<String>, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
@@ -361,6 +363,7 @@ impl Redis {
      * @param db_index  DB 索引
      * @param key 列表键
      * @param values 要插入的值
+     * @param is_aof_recovery 是否记录 aof 日志
      */
     pub fn rpush(&mut self, db_index: usize, key: String, values: Vec<String>, is_aof_recovery: bool) {
         if db_index < self.databases.len() {
@@ -437,6 +440,14 @@ impl Redis {
         None
     }
 
+    /*
+     * 返回列表中指定区间内的元素
+     * 
+     * @param db_index DB 索引
+     * @param key 列表键
+     * @param start 开始索引
+     * @param end 结束索引
+     */
     pub fn lrange(&mut self, db_index: usize, key: String, start: i64, end: i64) -> Vec<String> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(&key) {
@@ -487,8 +498,11 @@ impl Redis {
     }
 
     /*
+     * 通过索引获取列表中的元素
+     * 
      * @param db_index DB 索引
      * @param key 列表键 
+     * @param index 值索引
      */
     pub fn lindex(&self, db_index: usize, key: &String, index: i64) -> Option<String> {
         if db_index < self.databases.len() {
