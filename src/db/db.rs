@@ -1,6 +1,11 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::Seek;
-use std::{ collections::HashMap, fs::{File, OpenOptions}, io::{SeekFrom, Write}, sync::Arc};
+use std::{
+    collections::HashMap,
+    fs::{File, OpenOptions},
+    io::{SeekFrom, Write},
+    sync::Arc,
+};
 
 use crate::tools::date::current_millis;
 
@@ -62,7 +67,13 @@ impl Redis {
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
                 appendfile = Some(
-                    OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"),
+                    OpenOptions::new()
+                        .create(true)
+                        .read(true)
+                        .write(true)
+                        .append(true)
+                        .open(filename)
+                        .expect("Failed to open AOF file"),
                 )
             }
         }
@@ -129,6 +140,26 @@ impl Redis {
     }
 
     /*
+     * 获取剩余过期时间
+     *
+     * @param db_index 数据库索引
+     * @param key 数据键
+     */
+    pub fn ttl(&self, db_index: usize, key: String) -> i64 {
+        if db_index < self.databases.len() {
+            if let Some(redis_value) = self.databases[db_index].get(&key) {
+                if redis_value.get_expire_at() == -1 {
+                    return -1;
+                } else {
+                    return redis_value.get_expire_at() - current_millis();
+                }
+            }
+        }
+    
+        -2 // Key不存在或无过期时间返回-2
+    }
+
+    /*
      * 删除 Key
      *
      * @param db_index 数据库索引
@@ -169,7 +200,14 @@ impl Redis {
      * @param value 数据值
      * @param ttl 过期时间，单位：毫秒
      */
-    pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64, is_aof_recovery: bool) {
+    pub fn set_with_ttl(
+        &mut self,
+        db_index: usize,
+        key: String,
+        value: String,
+        ttl: i64,
+        is_aof_recovery: bool,
+    ) {
         if db_index < self.databases.len() {
             let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
             let expire_at = redis_value.get_expire_at();
@@ -235,8 +273,13 @@ impl Redis {
      * @param key 主键
      * @param ttl_millis 过期时间，单位: 毫秒
      */
-    pub fn expire(&mut self, db_index: usize, key: String, ttl_millis: i64, is_aof_recovery: bool) -> bool {
-
+    pub fn expire(
+        &mut self,
+        db_index: usize,
+        key: String,
+        ttl_millis: i64,
+        is_aof_recovery: bool,
+    ) -> bool {
         if db_index >= self.databases.len() {
             panic!("Invalid database index");
         }
@@ -264,7 +307,7 @@ impl Redis {
             if !is_aof_recovery {
                 self.append_aof(&format!("{} FLUSHDB", db_index));
             }
-        } 
+        }
     }
 
     /*
@@ -285,13 +328,18 @@ impl Redis {
      * @param old_key 旧主键名称
      * @param new_key 新主键名称
      */
-    pub fn rename(&mut self, db_index: usize, old_key: &str, new_key: &str, is_aof_recovery: bool) -> Result<bool, &str> {
-        
+    pub fn rename(
+        &mut self,
+        db_index: usize,
+        old_key: &str,
+        new_key: &str,
+        is_aof_recovery: bool,
+    ) -> Result<bool, &str> {
         let db = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("Database index out of bounds"),
         };
-    
+
         if let Some(value) = db.remove(old_key) {
             db.insert(new_key.to_string(), value);
             if !is_aof_recovery {
@@ -299,7 +347,7 @@ impl Redis {
             }
             return Ok(true);
         }
-    
+
         Err("ERR no such key")
     }
 
@@ -316,7 +364,7 @@ impl Redis {
         src_db_index: usize,
         key: &str,
         target_db_index: usize,
-        is_aof_recovery: bool
+        is_aof_recovery: bool,
     ) -> bool {
         if let Some(src_db) = self.databases.get_mut(src_db_index) {
             if let Some(value) = src_db.remove(key) {
@@ -324,7 +372,10 @@ impl Redis {
                     if !dest_db.contains_key(key) {
                         dest_db.insert(key.to_string(), value);
                         if !is_aof_recovery {
-                            self.append_aof(&format!("{} MOVE {} {}", src_db_index, key, target_db_index));
+                            self.append_aof(&format!(
+                                "{} MOVE {} {}",
+                                src_db_index, key, target_db_index
+                            ));
                         }
                         return true;
                     }
@@ -342,9 +393,17 @@ impl Redis {
      * @param values 要插入的值
      * @param is_aof_recovery 是否记录 aof 日志
      */
-    pub fn lpush(&mut self, db_index: usize, key: String, values: Vec<String>, is_aof_recovery: bool) {
+    pub fn lpush(
+        &mut self,
+        db_index: usize,
+        key: String,
+        values: Vec<String>,
+        is_aof_recovery: bool,
+    ) {
         if db_index < self.databases.len() {
-            let list = self.databases[db_index].entry(key.clone()).or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
+            let list = self.databases[db_index]
+                .entry(key.clone())
+                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
             if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
                 current_values.splice(0..0, values.clone());
                 if !is_aof_recovery {
@@ -365,9 +424,17 @@ impl Redis {
      * @param values 要插入的值
      * @param is_aof_recovery 是否记录 aof 日志
      */
-    pub fn rpush(&mut self, db_index: usize, key: String, values: Vec<String>, is_aof_recovery: bool) {
+    pub fn rpush(
+        &mut self,
+        db_index: usize,
+        key: String,
+        values: Vec<String>,
+        is_aof_recovery: bool,
+    ) {
         if db_index < self.databases.len() {
-            let list = self.databases[db_index].entry(key.clone()).or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
+            let list = self.databases[db_index]
+                .entry(key.clone())
+                .or_insert(RedisData::new(RedisValue::StringArrayValue(vec![]), -1));
             if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
                 current_values.extend(values.clone());
                 if !is_aof_recovery {
@@ -387,16 +454,16 @@ impl Redis {
                     if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
                         if !current_values.is_empty() {
                             let popped_value = current_values.remove(0);
-    
+
                             // Check if the list is empty after removal
                             if current_values.is_empty() {
                                 self.databases[db_index].remove(&key);
                             }
-    
+
                             if !is_aof_recovery {
                                 self.append_aof(&format!("{} LPOP {}", db_index, key));
                             }
-    
+
                             return Some(popped_value);
                         }
                     }
@@ -406,7 +473,7 @@ impl Redis {
         } else {
             panic!("Invalid database index");
         }
-    
+
         None
     }
 
@@ -417,12 +484,12 @@ impl Redis {
                     if let RedisValue::StringArrayValue(ref mut current_values) = list.value {
                         if !current_values.is_empty() {
                             let popped_value = current_values.pop();
-    
+
                             // Check if the list is empty after removal
                             if current_values.is_empty() {
                                 self.databases[db_index].remove(&key);
                             }
-    
+
                             if !is_aof_recovery {
                                 self.append_aof(&format!("{} RPOP {}", db_index, key));
                             }
@@ -436,13 +503,13 @@ impl Redis {
         } else {
             panic!("Invalid database index");
         }
-    
+
         None
     }
 
     /*
      * 返回列表中指定区间内的元素
-     * 
+     *
      * @param db_index DB 索引
      * @param key 列表键
      * @param start 开始索引
@@ -454,7 +521,11 @@ impl Redis {
                 Some(list) => {
                     if let RedisValue::StringArrayValue(ref current_values) = list.value {
                         let list_length = current_values.len() as i64;
-                        let mut adjusted_start = if start < 0 { list_length + start } else { start };
+                        let mut adjusted_start = if start < 0 {
+                            list_length + start
+                        } else {
+                            start
+                        };
                         let mut adjusted_end = if end < 0 { list_length + end } else { end };
 
                         // Adjust start/end to be within list bounds
@@ -465,7 +536,8 @@ impl Redis {
                             return Vec::new(); // Empty range
                         }
 
-                        return current_values[adjusted_start as usize..=adjusted_end as usize].to_vec();
+                        return current_values[adjusted_start as usize..=adjusted_end as usize]
+                            .to_vec();
                     }
                 }
                 None => return Vec::new(), // Key does not exist
@@ -499,9 +571,9 @@ impl Redis {
 
     /*
      * 通过索引获取列表中的元素
-     * 
+     *
      * @param db_index DB 索引
-     * @param key 列表键 
+     * @param key 列表键
      * @param index 值索引
      */
     pub fn lindex(&self, db_index: usize, key: &String, index: i64) -> Option<String> {
@@ -513,7 +585,7 @@ impl Redis {
                     } else {
                         index as usize
                     };
-    
+
                     if index < array.len() {
                         return Some(array[index].clone());
                     }
@@ -532,33 +604,41 @@ impl Redis {
      * @param key 列表键
      * @return 列表长度，如果键不存在或者不是列表则返回 0
      */
-    pub fn append(&mut self, db_index: usize, key: String, value: String, is_aof_recovery: bool) -> Result<usize, String> {
+    pub fn append(
+        &mut self,
+        db_index: usize,
+        key: String,
+        value: String,
+        is_aof_recovery: bool,
+    ) -> Result<usize, String> {
         let db = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("ERR invalid database index".to_string()),
         };
-    
+
         let len = match db.get_mut(&key) {
             Some(redis_data) => {
                 if let RedisValue::StringValue(s) = &mut redis_data.value {
                     s.push_str(&value);
                     s.len()
                 } else {
-                    return Err("ERR Operation against a key holding the wrong kind of value".to_string());
+                    return Err(
+                        "ERR Operation against a key holding the wrong kind of value".to_string(),
+                    );
                 }
-            },
+            }
             None => {
                 let redis_data = RedisData::new(RedisValue::StringValue(value.clone()), -1);
                 db.insert(key.clone(), redis_data);
-    
+
                 value.len()
             }
         };
-    
+
         if !is_aof_recovery {
             self.append_aof(&format!("{} APPEND {} {}", db_index, key, value));
         }
-    
+
         Ok(len)
     }
 
@@ -567,26 +647,26 @@ impl Redis {
         db_index: usize,
         key: String,
         increment: i64,
-        is_aof_recovery: bool
+        is_aof_recovery: bool,
     ) -> Result<i64, String> {
         let database = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("ERR invalid DB index".to_string()),
         };
 
-        let redis_data = database.entry(key.clone()).or_insert_with(|| {
-            RedisData::new(RedisValue::StringValue("0".to_string()), -1)
-        });
+        let redis_data = database
+            .entry(key.clone())
+            .or_insert_with(|| RedisData::new(RedisValue::StringValue("0".to_string()), -1));
 
         let result = match &mut redis_data.value {
-            RedisValue::StringValue(val) => {
-                match val.parse::<i64>() {
-                    Ok(current_val) => current_val + increment,
-                    Err(_) => return Err("ERR value is not an integer".to_string()),
-                }
-            }
+            RedisValue::StringValue(val) => match val.parse::<i64>() {
+                Ok(current_val) => current_val + increment,
+                Err(_) => return Err("ERR value is not an integer".to_string()),
+            },
             RedisValue::StringArrayValue(_) => {
-                return Err("ERR Operation against a key holding the wrong kind of value".to_string())
+                return Err(
+                    "ERR Operation against a key holding the wrong kind of value".to_string(),
+                )
             }
         };
 
@@ -606,26 +686,26 @@ impl Redis {
         db_index: usize,
         key: String,
         increment: i64,
-        is_aof_recovery: bool
+        is_aof_recovery: bool,
     ) -> Result<i64, String> {
         let database = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("ERR invalid DB index".to_string()),
         };
 
-        let redis_data = database.entry(key.clone()).or_insert_with(|| {
-            RedisData::new(RedisValue::StringValue("0".to_string()), -1)
-        });
+        let redis_data = database
+            .entry(key.clone())
+            .or_insert_with(|| RedisData::new(RedisValue::StringValue("0".to_string()), -1));
 
         let result = match &mut redis_data.value {
-            RedisValue::StringValue(val) => {
-                match val.parse::<i64>() {
-                    Ok(current_val) => current_val - increment,
-                    Err(_) => return Err("ERR value is not an integer".to_string()),
-                }
-            }
+            RedisValue::StringValue(val) => match val.parse::<i64>() {
+                Ok(current_val) => current_val - increment,
+                Err(_) => return Err("ERR value is not an integer".to_string()),
+            },
             RedisValue::StringArrayValue(_) => {
-                return Err("ERR Operation against a key holding the wrong kind of value".to_string())
+                return Err(
+                    "ERR Operation against a key holding the wrong kind of value".to_string(),
+                )
             }
         };
 
@@ -649,11 +729,9 @@ impl Redis {
         if self.redis_config.appendonly {
             if let Some(appendfilename) = &self.redis_config.appendfilename {
                 if let Ok(mut file) = File::open(appendfilename) {
-
                     use std::io::{BufRead, BufReader};
                     let line_count = BufReader::new(&file).lines().count() as u64;
                     if let Ok(_) = file.seek(SeekFrom::Start(0)) {
-
                         // 创建 ProgressBar 进度条 {pos} {len} {percent}
                         let pb = ProgressBar::new(line_count);
                         pb.set_style(ProgressStyle::default_bar().template("[{bar:41.green/cyan}] percent: {percent}% lines: {pos}/{len} time: {elapsed_precise}").progress_chars("=>-"));
@@ -661,7 +739,8 @@ impl Redis {
                         let reader = BufReader::new(&mut file);
                         for line in reader.lines() {
                             if let Ok(operation) = line {
-                                let parts: Vec<&str> = operation.trim().split_whitespace().collect();
+                                let parts: Vec<&str> =
+                                    operation.trim().split_whitespace().collect();
                                 let db_index = parts[0].to_string();
                                 let db_index_usize = db_index.parse::<usize>().unwrap();
 
@@ -670,12 +749,21 @@ impl Redis {
                                         "SET" => {
                                             let key = parts[2].to_string();
                                             let val = parts[3].to_string();
-                                            let expire_at = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(-1);
-                                            if expire_at == -1 { 
+                                            let expire_at = parts
+                                                .get(4)
+                                                .and_then(|v| v.parse().ok())
+                                                .unwrap_or(-1);
+                                            if expire_at == -1 {
                                                 self.set(db_index_usize, key, val, true);
                                             } else {
                                                 if expire_at > current_millis() {
-                                                    self.set_with_ttl(db_index_usize, key, val, expire_at, true);
+                                                    self.set_with_ttl(
+                                                        db_index_usize,
+                                                        key,
+                                                        val,
+                                                        expire_at,
+                                                        true,
+                                                    );
                                                 }
                                             }
                                         }
@@ -683,61 +771,83 @@ impl Redis {
                                             let key = parts[2].to_string();
                                             self.del(db_index_usize, &key, true);
                                         }
-                                        "FLUSHALL" => {
-                                            self.flush_all(true)
-                                        }
-                                        "FLUSHDB" => {
-                                            self.flush_db(db_index_usize, true)
-                                        }
+                                        "FLUSHALL" => self.flush_all(true),
+                                        "FLUSHDB" => self.flush_db(db_index_usize, true),
                                         "EXPIRE" => {
                                             let key = parts[2].to_string();
-                                            let expire_at = parts.get(3).and_then(|v| v.parse().ok()).unwrap_or(-1);
+                                            let expire_at = parts
+                                                .get(3)
+                                                .and_then(|v| v.parse().ok())
+                                                .unwrap_or(-1);
                                             self.expire(db_index_usize, key, expire_at, true);
                                         }
                                         "RENAME" => {
                                             let old_key = parts[2].to_string();
                                             let new_key = parts[3].to_string();
-                                            match self.rename(db_index_usize, &old_key, &new_key, true) {
-                                                Ok(_) => {} Err(_) => {}
+                                            match self.rename(
+                                                db_index_usize,
+                                                &old_key,
+                                                &new_key,
+                                                true,
+                                            ) {
+                                                Ok(_) => {}
+                                                Err(_) => {}
                                             }
                                         }
                                         "MOVE" => {
                                             let key = parts[2].to_string();
                                             let target_db_index = parts[3].to_string();
-                                            let target_db_index_usize = target_db_index.parse::<usize>().unwrap();
-                                            self.move_key(db_index_usize, &key, target_db_index_usize, true);
+                                            let target_db_index_usize =
+                                                target_db_index.parse::<usize>().unwrap();
+                                            self.move_key(
+                                                db_index_usize,
+                                                &key,
+                                                target_db_index_usize,
+                                                true,
+                                            );
                                         }
                                         "LPUSH" => {
                                             let key = parts[2].to_string();
-                                            let values: Vec<String> = parts[3..].iter().enumerate().map(|(_, &x)| x.to_string()).collect();
+                                            let values: Vec<String> = parts[3..]
+                                                .iter()
+                                                .enumerate()
+                                                .map(|(_, &x)| x.to_string())
+                                                .collect();
                                             self.lpush(db_index_usize, key, values, true);
                                         }
                                         "RPUSH" => {
                                             let key = parts[2].to_string();
-                                            let values: Vec<String> = parts[3..].iter().enumerate().map(|(_, &x)| x.to_string()).collect();
+                                            let values: Vec<String> = parts[3..]
+                                                .iter()
+                                                .enumerate()
+                                                .map(|(_, &x)| x.to_string())
+                                                .collect();
                                             self.rpush(db_index_usize, key, values, true);
                                         }
                                         "APPEND" => {
                                             let key = parts[2].to_string();
-                                            let value= parts[3].to_string();
+                                            let value = parts[3].to_string();
                                             match self.append(db_index_usize, key, value, true) {
-                                                Ok(_) => {} Err(_) => {}
+                                                Ok(_) => {}
+                                                Err(_) => {}
                                             };
                                         }
                                         "INCR" => {
                                             let key = parts[2].to_string();
-                                            let increment_str= parts[3].to_string();
+                                            let increment_str = parts[3].to_string();
                                             let increment = increment_str.parse::<i64>().unwrap();
                                             match self.incr(db_index_usize, key, increment, true) {
-                                                Ok(_) => {} Err(_) => {}
+                                                Ok(_) => {}
+                                                Err(_) => {}
                                             };
                                         }
                                         "DECR" => {
                                             let key = parts[2].to_string();
-                                            let increment_str= parts[3].to_string();
+                                            let increment_str = parts[3].to_string();
                                             let increment = increment_str.parse::<i64>().unwrap();
                                             match self.decr(db_index_usize, key, increment, true) {
-                                                Ok(_) => {} Err(_) => {}
+                                                Ok(_) => {}
+                                                Err(_) => {}
                                             };
                                         }
                                         "LPOP" => {
@@ -758,7 +868,7 @@ impl Redis {
                         }
                         pb.finish();
                     }
-                } 
+                }
             }
         }
     }
