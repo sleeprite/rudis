@@ -22,6 +22,7 @@ use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
 use command::key::r#move::MoveCommand;
+use command::key::pttl::PttlCommand;
 use command::key::rename::RenameCommand;
 use command::key::keys::KeysCommand;
 
@@ -158,6 +159,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("decr", Box::new(DecrCommand {}));
     strategies.insert("lrange", Box::new(LrangeCommand {}));
     strategies.insert("ttl", Box::new(TtlCommand {}));
+    strategies.insert("pttl", Box::new(PttlCommand {}));
 
     strategies
 }

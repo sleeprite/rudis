@@ -140,12 +140,32 @@ impl Redis {
     }
 
     /*
-     * 获取剩余过期时间
+     * 获取剩余过期时间（秒）
      *
      * @param db_index 数据库索引
      * @param key 数据键
      */
     pub fn ttl(&self, db_index: usize, key: String) -> i64 {
+        if db_index < self.databases.len() {
+            if let Some(redis_value) = self.databases[db_index].get(&key) {
+                if redis_value.get_expire_at() == -1 {
+                    return -1;
+                } else {
+                    return (redis_value.get_expire_at() - current_millis()) / 1000;
+                }
+            }
+        }
+    
+        -2 // Key不存在或无过期时间返回-2
+    }
+
+    /*
+     * 获取剩余过期时间（毫秒）
+     *
+     * @param db_index 数据库索引
+     * @param key 数据键
+     */
+    pub fn pttl(&self, db_index: usize, key: String) -> i64 {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(&key) {
                 if redis_value.get_expire_at() == -1 {
