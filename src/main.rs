@@ -193,11 +193,19 @@ fn connection(
     {
         /*
          * 创建会话
-         *
-         * @param session_id 会话编号
+         * 
+         * （1）判定 session 数量是否超出阈值 {maxclients}
+         * （2）满足：响应 ERR max number of clients reached 错误
+         * （3）否则：创建 session 会话
          */
         let mut session_manager_ref = session_manager.lock().unwrap();
-        session_manager_ref.insert(session_id.clone(), Session::new());
+        if session_manager_ref.len() < redis_config.maxclients {
+            session_manager_ref.insert(session_id.clone(), Session::new());
+        } else {
+            let resp_value = RespValue::Error("ERR max number of clients reached".to_string()).to_bytes();
+            stream.write(&resp_value).unwrap();
+            return;
+        }
     }
 
     'main: loop {

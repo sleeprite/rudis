@@ -863,8 +863,6 @@ impl Redis {
                                             let key = parts[2].to_string();
                                             self.del(db_index_usize, &key, true);
                                         }
-                                        "FLUSHALL" => self.flush_all(true),
-                                        "FLUSHDB" => self.flush_db(db_index_usize, true),
                                         "EXPIRE" => {
                                             let key = parts[2].to_string();
                                             let expire_at = parts
@@ -962,6 +960,8 @@ impl Redis {
                                             let key = parts[2].to_string();
                                             self.rpop(db_index_usize, key, true);
                                         }
+                                        "FLUSHALL" => self.flush_all(true),
+                                        "FLUSHDB" => self.flush_db(db_index_usize, true),
                                         _ => {
                                             // Handle other operations if needed
                                         }
