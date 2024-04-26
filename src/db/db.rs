@@ -513,6 +513,40 @@ impl Redis {
         }
     }
 
+    pub fn hdel(
+        &mut self,
+        db_index: usize,
+        key: &str,
+        fields: &[&str],
+    ) -> Result<usize, &'static str> {
+        // 获取数据库索引对应的数据库
+        if let Some(db) = self.databases.get_mut(db_index) {
+            // 从数据库中获取指定键
+            if let Some(redis_data) = db.get_mut(key) {
+                // 判断 Redis 数据类型是否为 HashValue
+                if let RedisValue::HashValue(hash_map) = &mut redis_data.value {
+                    let mut deleted_count = 0;
+                    for field in fields {
+                        // 从哈希映射中删除指定字段
+                        if hash_map.remove((*field).to_string().as_str()).is_some() {
+                            deleted_count += 1;
+                        }
+                    }
+                    return Ok(deleted_count);
+                } else {
+                    // 键存在，但不是 HashValue 类型
+                    return Err("WRONGTYPE Operation against a key holding the wrong kind of value");
+                }
+            } else {
+                // 键不存在
+                return Ok(0);
+            }
+        } else {
+            // 数据库索引不存在
+            return Err("数据库索引不存在");
+        }
+    }
+
     /*
      * 将一个或多个值插入到列表的尾部
      *
