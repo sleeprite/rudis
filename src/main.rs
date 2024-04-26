@@ -19,6 +19,7 @@ use command::arr::rpop::RpopCommand;
 use command::arr::rpush::RpushCommand;
 
 use command::hash::hdel::HdelCommand;
+use command::hash::hexists::HexistsCommand;
 use command::hash::hget::HgetCommand;
 use command::hash::hmset::HmsetCommand;
 
@@ -176,6 +177,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("hmset", Box::new(HmsetCommand {}));
     strategies.insert("hget", Box::new(HgetCommand {}));
     strategies.insert("hdel", Box::new(HdelCommand {}));
+    strategies.insert("hexists", Box::new(HexistsCommand {}));
     
     strategies
 }

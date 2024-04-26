@@ -513,6 +513,42 @@ impl Redis {
         }
     }
 
+    pub fn hexists(
+        &self,
+        db_index: usize,
+        key: &str,
+        field: &str,
+    ) -> Result<bool, &'static str> {
+        // 获取数据库索引对应的数据库
+        if let Some(db) = self.databases.get(db_index) {
+            // 从数据库中获取指定键
+            if let Some(redis_data) = db.get(key) {
+                // 判断 Redis 数据类型是否为 HashValue
+                if let RedisValue::HashValue(hash_map) = &redis_data.value {
+                    // 检查哈希映射中是否存在指定字段
+                    if hash_map.contains_key(field) {
+                        // 字段存在
+                        return Ok(true);
+                    } else {
+                        // 字段不存在
+                        return Ok(false);
+                    }
+                } else {
+                    // 键存在，但不是 HashValue 类型
+                    return Err(
+                        "WRONGTYPE Operation against a key holding the wrong kind of value",
+                    );
+                }
+            } else {
+                // 键不存在
+                return Ok(false);
+            }
+        } else {
+            // 数据库索引不存在
+            return Err("数据库索引不存在");
+        }
+    }
+
     pub fn hdel(
         &mut self,
         db_index: usize,
