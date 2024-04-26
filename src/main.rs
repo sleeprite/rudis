@@ -44,7 +44,7 @@ use command::flushall::FlushAllCommand;
 use command::flushdb::FlushDbCommand;
 use command::select::SelectCommand;
 use command_strategy::CommandStrategy;
-use tools::reponse::RespValue;
+use tools::resp::RespValue;
 
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
@@ -148,8 +148,8 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("dbsize", Box::new(DBSizeCommand {}));
     strategies.insert("flushall", Box::new(FlushAllCommand {}));
     strategies.insert("flushdb", Box::new(FlushDbCommand {}));
-    strategies.insert("auth", Box::new(AuthCommand {}));
     strategies.insert("select", Box::new(SelectCommand {}));
+    strategies.insert("auth", Box::new(AuthCommand {}));
     strategies.insert("llen", Box::new(LlenCommand {}));
     strategies.insert("move", Box::new(MoveCommand {}));
     strategies.insert("keys", Box::new(KeysCommand {}));
@@ -161,13 +161,14 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("rpop", Box::new(RpopCommand {}));
     strategies.insert("incr", Box::new(IncrCommand {}));
     strategies.insert("decr", Box::new(DecrCommand {}));
-    strategies.insert("lrange", Box::new(LrangeCommand {}));
-    strategies.insert("ttl", Box::new(TtlCommand {}));
     strategies.insert("pttl", Box::new(PttlCommand {}));
     strategies.insert("type", Box::new(TypeCommand {}));
     strategies.insert("sadd", Box::new(SaddCommand {}));
     strategies.insert("smembers", Box::new(SmembersCommand {}));
+    strategies.insert("lrange", Box::new(LrangeCommand {}));
     strategies.insert("scard", Box::new(ScardCommand {}));
+    strategies.insert("ttl", Box::new(TtlCommand {}));
+    
     strategies
 }
 

@@ -35,7 +35,7 @@ impl Default for RedisConfig {
 /*
  * 获取 port 参数
  *
- * @param default 默认端口（6379）
+ * @param default 默认值 false
  */
 fn get_appendonly_or(default: bool) -> bool {
     let mut args = env::args().skip_while(|arg| arg != "--appendonly").take(2);
@@ -71,7 +71,7 @@ fn get_port_or(default: u16) -> u16 {
 /*
  * 获取 maxclients 参数
  *
- * @param default 默认端口（6379）
+ * @param default 默认值 1000
  */
 fn get_maxclients_or(default: usize) -> usize {
     let mut args = env::args().skip_while(|arg| arg != "--maxclients").take(2);
