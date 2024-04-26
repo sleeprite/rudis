@@ -16,6 +16,7 @@ pub enum RedisValue {
     StringValue(String),
     ListValue(Vec<String>),
     SetValue(HashSet<String>),
+    HashValue(HashMap<String, String>)
 }
 
 pub struct RedisData {
@@ -69,13 +70,7 @@ impl Redis {
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
                 appendfile = Some(
-                    OpenOptions::new()
-                        .create(true)
-                        .read(true)
-                        .write(true)
-                        .append(true)
-                        .open(filename)
-                        .expect("Failed to open AOF file"),
+                    OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"),
                 )
             }
         }
@@ -188,6 +183,7 @@ impl Redis {
                     RedisValue::ListValue(_) => "list".to_string(),
                     RedisValue::StringValue(_) => "string".to_string(),
                     RedisValue::SetValue(_) => "set".to_string(),
+                    RedisValue::HashValue(_) => "hash".to_string(),
                 },
                 None => "none".to_string(),
             }

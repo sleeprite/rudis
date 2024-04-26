@@ -19,7 +19,6 @@ impl CommandStrategy for DBSizeCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
     ) {
         let mut redis_ref = redis.lock().unwrap();
-
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
             if let Some(session) = sessions_ref.get(&stream.peer_addr().unwrap().to_string()) {
@@ -28,10 +27,8 @@ impl CommandStrategy for DBSizeCommand {
                 return;
             }
         };
-
         redis_ref.check_all_ttl(db_index);
         let db_size = redis_ref.size(db_index);
-        
         let response_bytes = &RespValue::Integer(db_size as i64).to_bytes();
         stream.write(response_bytes).unwrap();
     }

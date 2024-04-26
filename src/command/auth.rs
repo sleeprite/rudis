@@ -23,9 +23,7 @@ impl CommandStrategy for AuthCommand {
             stream.write(response_bytes).unwrap();
             return;
         }
-
         let password = fragments[4];
-
         match &(*_redis_config).password {
             Some(p) => {
                 if password != p {
@@ -43,7 +41,6 @@ impl CommandStrategy for AuthCommand {
                 println!("No password set.");
             }
         }
-
         let session_id = stream.peer_addr().unwrap().to_string();
         let mut session_ref = sessions.lock().unwrap();
         if let Some(session) = session_ref.get_mut(&session_id) {
