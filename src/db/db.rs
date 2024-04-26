@@ -484,6 +484,13 @@ impl Redis {
         }
     }
 
+    /*
+     * 移除并返回列表的第一个元素
+     * 
+     * @param db_index 数据库索引
+     * @param key 列表键
+     * @param is_aof_recovery 是否为数据恢复
+     */
     pub fn lpop(&mut self, db_index: usize, key: String, is_aof_recovery: bool) -> Option<String> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
@@ -514,6 +521,13 @@ impl Redis {
         None
     }
 
+    /*
+     * 移除并返回列表的最后一个元素。
+     * 
+     * @param db_index 数据库索引
+     * @param key 列表键
+     * @param is_aof_recovery 是否为数据恢复
+     */
     pub fn rpop(&mut self, db_index: usize, key: String, is_aof_recovery: bool) -> Option<String> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
@@ -671,6 +685,12 @@ impl Redis {
         }
     }
 
+    /*
+     * 返回集合中的所有的成员。 不存在的集合 key 被视为空集合。
+     * 
+     * @param db_index 数据库索引
+     * @param key 列表键
+     */
     pub fn smembers(&self, db_index: usize, key: &String) -> Option<&HashSet<String>> {
         if let Some(set) = self.databases.get(db_index)?.get(key) {
             if let RedisValue::SetValue(members) = &set.value {
@@ -679,7 +699,13 @@ impl Redis {
         }
         None
     }
-
+    
+    /*
+     * 返回集合中元素的数量。
+     * 
+     * @param db_index 数据库索引
+     * @param key 列表键
+     */
     pub fn scard(&self, db_index: usize, key: &String) -> Option<usize> {
         if let Some(set) = self.databases.get(db_index)?.get(key) {
             if let RedisValue::SetValue(members) = &set.value {
@@ -734,6 +760,13 @@ impl Redis {
         Ok(len)
     }
 
+    /*
+     * 将 key 中储存的数字值增一。
+     * 
+     * @param db_index 数据库索引
+     * @param key 列表键
+     * @param increment 步长
+     */
     pub fn incr(
         &mut self,
         db_index: usize,
@@ -773,6 +806,13 @@ impl Redis {
         Ok(result)
     }
 
+    /*
+     * 将 key 中储存的数字值减一。
+     * 
+     * @param db_index 数据库索引
+     * @param key 列表键
+     * @param increment 步长
+     */
     pub fn decr(
         &mut self,
         db_index: usize,
