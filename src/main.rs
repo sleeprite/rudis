@@ -18,6 +18,9 @@ use command::arr::lrange::LrangeCommand;
 use command::arr::rpop::RpopCommand;
 use command::arr::rpush::RpushCommand;
 
+use command::hash::hget::HgetCommand;
+use command::hash::hmset::HmsetCommand;
+
 use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
@@ -25,12 +28,13 @@ use command::key::r#move::MoveCommand;
 use command::key::pttl::PttlCommand;
 use command::key::rename::RenameCommand;
 use command::key::keys::KeysCommand;
-
 use command::key::ttl::TtlCommand;
 use command::key::r#type::TypeCommand;
+
 use command::set::sadd::SaddCommand;
 use command::set::scard::ScardCommand;
 use command::set::smembers::SmembersCommand;
+
 use command::string::decr::DecrCommand;
 use command::string::incr::IncrCommand;
 use command::string::append::AppendCommand;
@@ -168,6 +172,8 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("lrange", Box::new(LrangeCommand {}));
     strategies.insert("scard", Box::new(ScardCommand {}));
     strategies.insert("ttl", Box::new(TtlCommand {}));
+    strategies.insert("hmset", Box::new(HmsetCommand {}));
+    strategies.insert("hget", Box::new(HgetCommand {}));
     
     strategies
 }

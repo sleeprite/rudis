@@ -16,7 +16,7 @@ pub enum RedisValue {
     StringValue(String),
     ListValue(Vec<String>),
     SetValue(HashSet<String>),
-    HashValue(HashMap<String, String>)
+    HashValue(HashMap<String, String>),
 }
 
 pub struct RedisData {
@@ -70,7 +70,13 @@ impl Redis {
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
                 appendfile = Some(
-                    OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"),
+                    OpenOptions::new()
+                        .create(true)
+                        .read(true)
+                        .write(true)
+                        .append(true)
+                        .open(filename)
+                        .expect("Failed to open AOF file"),
                 )
             }
         }
@@ -449,6 +455,64 @@ impl Redis {
         }
     }
 
+    pub fn hmset(
+        &mut self,
+        db_index: usize,
+        key: String,
+        values: HashMap<String, String>,
+    ) -> Result<(), &'static str> {
+        if let Some(db) = self.databases.get_mut(db_index) {
+            if let Some(redis_data) = db.get_mut(&key) {
+                if let RedisValue::HashValue(hash_map) = &mut redis_data.value {
+                    *hash_map = values;
+                    return Ok(());
+                } else {
+                    return Err("不能用 hashmap 覆盖非 HashValue 类型的值");
+                }
+            } else {
+                db.insert(key, RedisData::new(RedisValue::HashValue(values), -1));
+                return Ok(());
+            }
+        }
+        Err("数据库索引不存在")
+    }
+
+    pub fn hget(
+        &self,
+        db_index: usize,
+        key: &str,
+        field: &str,
+    ) -> Result<Option<String>, &'static str> {
+        // 获取数据库索引对应的数据库
+        if let Some(db) = self.databases.get(db_index) {
+            // 从数据库中获取指定键
+            if let Some(redis_data) = db.get(key) {
+                // 判断 Redis 数据类型是否为 HashValue
+                if let RedisValue::HashValue(hash_map) = &redis_data.value {
+                    // 从哈希映射中获取指定字段的值
+                    if let Some(value) = hash_map.get(field) {
+                        // 返回值
+                        return Ok(Some(value.clone()));
+                    } else {
+                        // 字段不存在
+                        return Ok(None);
+                    }
+                } else {
+                    // 键存在，但不是 HashValue 类型
+                    return Err(
+                        "WRONGTYPE Operation against a key holding the wrong kind of value",
+                    );
+                }
+            } else {
+                // 键不存在
+                return Ok(None);
+            }
+        } else {
+            // 数据库索引不存在
+            return Err("数据库索引不存在");
+        }
+    }
+
     /*
      * 将一个或多个值插入到列表的尾部
      *
@@ -482,7 +546,7 @@ impl Redis {
 
     /*
      * 移除并返回列表的第一个元素
-     * 
+     *
      * @param db_index 数据库索引
      * @param key 列表键
      * @param is_aof_recovery 是否为数据恢复
@@ -519,7 +583,7 @@ impl Redis {
 
     /*
      * 移除并返回列表的最后一个元素。
-     * 
+     *
      * @param db_index 数据库索引
      * @param key 列表键
      * @param is_aof_recovery 是否为数据恢复
@@ -683,7 +747,7 @@ impl Redis {
 
     /*
      * 返回集合中的所有的成员。 不存在的集合 key 被视为空集合。
-     * 
+     *
      * @param db_index 数据库索引
      * @param key 列表键
      */
@@ -695,10 +759,10 @@ impl Redis {
         }
         None
     }
-    
+
     /*
      * 返回集合中元素的数量。
-     * 
+     *
      * @param db_index 数据库索引
      * @param key 列表键
      */
@@ -758,7 +822,7 @@ impl Redis {
 
     /*
      * 将 key 中储存的数字值增一。
-     * 
+     *
      * @param db_index 数据库索引
      * @param key 列表键
      * @param increment 步长
@@ -804,7 +868,7 @@ impl Redis {
 
     /*
      * 将 key 中储存的数字值减一。
-     * 
+     *
      * @param db_index 数据库索引
      * @param key 列表键
      * @param increment 步长

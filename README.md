@@ -208,10 +208,10 @@ llen 命令
 
 ## 数据结构
 
+- [x] List
+- [x] Hash
 - [x] String
 - [x] Set
-- [ ] HashMap
-- [x] List
 
 ## 命令列表
 
@@ -246,6 +246,8 @@ llen 命令
 | sadd    | ✅    | ✅         | ⛔       |
 | smembers| ✅    | ⚪         | ⛔       |
 | scard   | ✅    | ⚪         | ⛔       |
+| hmset   | ✅    | ⛔         | ⛔       |
+| hget    | ✅    | ⚪         | ⛔       |
 
 ## 性能测试
 
