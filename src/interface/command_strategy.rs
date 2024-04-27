@@ -6,11 +6,11 @@ use crate::db::db::Redis;
 /*
  * 命令策略接口
  *
- * @param stream 流
- * @param fragments 消息片段
+ * @param stream 通讯流
+ * @param fragments 消息内容
  * @param redis 数据库实例
  * @param redis_config 数据库配置
- * @param sessions 会话管理
+ * @param sessions 会话列表
  */
 pub trait CommandStrategy {
     fn execute(

@@ -74,23 +74,14 @@ fn main() {
      */
     let redis_config = Arc::new(RedisConfig::default());
 
-    let port: u16;
-    {
-        port = redis_config.port;
-    }
-
     /*
      * 创建通讯服务
      */
+    let port: u16 = redis_config.port;
     let address = SocketAddr::from(([127, 0, 0, 1], port));
     let session_manager: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
-    
-
-    /*
-     * Banner 动画
-     */
     let project_name = env!("CARGO_PKG_NAME");
     let version = env!("CARGO_PKG_VERSION");
     println_banner(project_name, version, port);
@@ -252,7 +243,7 @@ fn connection(
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
                             stream.write(response_bytes).unwrap();
-                            continue 'main; // 跳过当前循环
+                            continue 'main;
                         }
                     }
                 }
@@ -262,8 +253,6 @@ fn connection(
                  *
                  * 利用策略模式，根据 command 获取具体实现，
                  * 否则响应 PONG 内容。
-                 *
-                 * TODO 将 所有会话 调整为 当前会话
                  */
                 if let Some(strategy) = command_strategies.get(command) {
                     strategy.execute(&mut stream, &fragments, &redis, &redis_config, &session_manager);
