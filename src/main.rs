@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 mod command;
-mod command_strategy;
+mod interface;
 mod db;
 mod session;
 mod tools;
@@ -49,7 +49,7 @@ use command::echo::EchoCommand;
 use command::flushall::FlushAllCommand;
 use command::flushdb::FlushDbCommand;
 use command::select::SelectCommand;
-use command_strategy::CommandStrategy;
+use interface::command_strategy::CommandStrategy;
 use tools::resp::RespValue;
 
 use crate::db::db::Redis;
