@@ -53,7 +53,7 @@ use command::select::SelectCommand;
 use interface::command_strategy::CommandStrategy;
 use tools::resp::RespValue;
 
-use crate::aof::append_only::AppendOnlyFile;
+use crate::aof::aof::AppendOnlyFile;
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
@@ -91,14 +91,16 @@ fn main() {
     /*
      * 加载本地数据
      */
-    match append_only_file.lock() {
-        Ok(mut file) => {
-            log::info!("Start loading appendfile");
-            file.load();
-        }
-        Err(err) => {
-            eprintln!("Failed to acquire lock: {:?}", err);
-            return;
+    if redis_config.appendonly {
+        match append_only_file.lock() {
+            Ok(mut file) => {
+                log::info!("Start loading appendfile");
+                file.load();
+            }
+            Err(err) => {
+                eprintln!("Failed to acquire lock: {:?}", err);
+                return;
+            }
         }
     }
 
