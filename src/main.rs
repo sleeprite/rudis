@@ -4,9 +4,10 @@ use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+mod aof;
 mod command;
-mod interface;
 mod db;
+mod interface;
 mod session;
 mod tools;
 
@@ -26,21 +27,21 @@ use command::hash::hmset::HmsetCommand;
 use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
-use command::key::r#move::MoveCommand;
-use command::key::pttl::PttlCommand;
-use command::key::rename::RenameCommand;
 use command::key::keys::KeysCommand;
-use command::key::ttl::TtlCommand;
+use command::key::pttl::PttlCommand;
+use command::key::r#move::MoveCommand;
 use command::key::r#type::TypeCommand;
+use command::key::rename::RenameCommand;
+use command::key::ttl::TtlCommand;
 
 use command::set::sadd::SaddCommand;
 use command::set::scard::ScardCommand;
 use command::set::smembers::SmembersCommand;
 
-use command::string::decr::DecrCommand;
-use command::string::incr::IncrCommand;
 use command::string::append::AppendCommand;
+use command::string::decr::DecrCommand;
 use command::string::get::GetCommand;
+use command::string::incr::IncrCommand;
 use command::string::set::SetCommand;
 
 use command::auth::AuthCommand;
@@ -52,17 +53,17 @@ use command::select::SelectCommand;
 use interface::command_strategy::CommandStrategy;
 use tools::resp::RespValue;
 
+use crate::aof::append_only::AppendOnlyFile;
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
+use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 
 // Bootstrap.rs
 fn main() {
-
-
     /*
-     * 初始日志框架    
-     * 
+     * 初始日志框架
+     *
      * (1) 日志级别
      * (2) 框架加载
      */
@@ -81,6 +82,7 @@ fn main() {
     let address = SocketAddr::from(([127, 0, 0, 1], port));
     let session_manager: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
+    let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(redis_config.clone(), redis.clone())));
     let listener = TcpListener::bind(address).unwrap();
     let project_name = env!("CARGO_PKG_NAME");
     let version = env!("CARGO_PKG_VERSION");
@@ -89,20 +91,17 @@ fn main() {
     /*
      * 加载本地数据
      */
-    if redis_config.appendonly {
-        match redis.lock() {
-            Ok(mut redis_c) => {
-                log::info!("Start loading appendfile");
-                redis_c.load_aof();
-                
-            }
-            Err(err) => {
-                eprintln!("Failed to acquire lock: {:?}", err);
-                return;
-            }
-        }   
+    match append_only_file.lock() {
+        Ok(mut file) => {
+            log::info!("Start loading appendfile");
+            file.load();
+        }
+        Err(err) => {
+            eprintln!("Failed to acquire lock: {:?}", err);
+            return;
+        }
     }
-    
+
     log::info!("Server initialized");
     log::info!("Ready to accept connections");
 
@@ -113,12 +112,14 @@ fn main() {
                 let redis_clone = Arc::clone(&redis);
                 let redis_config_clone = Arc::clone(&redis_config);
                 let sessions_manager_clone = Arc::clone(&session_manager);
+                let append_only_file_clone = Arc::clone(&append_only_file);
                 thread::spawn(|| {
                     connection(
                         stream,
                         redis_clone,
                         redis_config_clone,
                         sessions_manager_clone,
+                        append_only_file_clone,
                     )
                 });
             }
@@ -169,7 +170,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("hget", Box::new(HgetCommand {}));
     strategies.insert("hdel", Box::new(HdelCommand {}));
     strategies.insert("hexists", Box::new(HexistsCommand {}));
-    
+
     strategies
 }
 
@@ -179,8 +180,8 @@ fn connection(
     redis: Arc<Mutex<Redis>>,
     redis_config: Arc<RedisConfig>,
     session_manager: Arc<Mutex<HashMap<String, Session>>>,
+    append_only_file: Arc<Mutex<AppendOnlyFile>>,
 ) {
-    
     /*
      * 声明变量
      *
@@ -195,7 +196,7 @@ fn connection(
     {
         /*
          * 创建会话
-         * 
+         *
          * （1）判定 session 数量是否超出阈值 {maxclients}
          * （2）满足：响应 ERR max number of clients reached 错误
          * （3）否则：创建 session 会话
@@ -204,7 +205,8 @@ fn connection(
         if session_manager_ref.len() < redis_config.maxclients {
             session_manager_ref.insert(session_id.clone(), Session::new());
         } else {
-            let resp_value = RespValue::Error("ERR max number of clients reached".to_string()).to_bytes();
+            let err = "ERR max number of clients reached".to_string();
+            let resp_value = RespValue::Error(err).to_bytes();
             stream.write(&resp_value).unwrap();
             return;
         }
@@ -225,11 +227,10 @@ fn connection(
                  * command: 命令
                  */
 
-                let body = std::str::from_utf8(&buff[..size]).unwrap();
+                let bytes = &buff[..size];
+                let body = std::str::from_utf8(bytes).unwrap();
                 let fragments: Vec<&str> = body.split("\r\n").collect();
                 let command = fragments[2];
-
-                log::info!("Received {} command from client {}", command.to_uppercase(), session_id);
 
                 {
                     /*
@@ -255,7 +256,22 @@ fn connection(
                  * 否则响应 PONG 内容。
                  */
                 if let Some(strategy) = command_strategies.get(command) {
-                    strategy.execute(&mut stream, &fragments, &redis, &redis_config, &session_manager);
+                    strategy.execute(Some(&mut stream), &fragments, &redis, &redis_config, &session_manager, &session_id);
+                    
+                    match strategy.command_type() {
+                        CommandType::Write => {
+                            match append_only_file.lock() {
+                                Ok(mut append_only_file_ref) => {
+                                    append_only_file_ref.write(&fragments.join("\\r\\n"));
+                                }
+                                Err(_) => {
+                                    eprintln!("Failed to acquire lock on append_only_file");
+                                    return;
+                                }
+                            };
+                        }
+                        _ => {}
+                    }
                 } else {
                     let response_value = "PONG".to_string();
                     let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
@@ -270,7 +286,6 @@ fn connection(
                  */
                 let mut session_manager_ref = session_manager.lock().unwrap();
                 session_manager_ref.remove(&session_id);
-
                 break 'main;
             }
         }
@@ -279,7 +294,8 @@ fn connection(
 
 // 输入启动动画
 fn println_banner(project_name: &str, version: &str, port: u16) {
-    let pattern = format!(r#"
+    let pattern = format!(
+        r#"
      /\_____/\
     /  o   o  \          {} {}
    ( ==  ^  == )          
@@ -287,6 +303,8 @@ fn println_banner(project_name: &str, version: &str, port: u16) {
    (           )          
   ( (  )   (  ) )        
  (__(__)___(__)__)
-    "#, project_name ,version, port);
+    "#,
+        project_name, version, port
+    );
     println!("{}", pattern);
 }

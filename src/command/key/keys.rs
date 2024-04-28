@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, session::session::Session, tools::pattern::match_key, RedisConfig};
+use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::pattern::match_key, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 /*
  * Keys 命令
@@ -12,17 +12,18 @@ pub struct KeysCommand {}
 impl CommandStrategy for KeysCommand {
     fn execute(
         &self,
-        stream: &mut TcpStream,
+        stream: Option<&mut TcpStream>,
         fragments: &Vec<&str>,
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        session_id: &String
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
-            if let Some(session) = sessions_ref.get(&stream.peer_addr().unwrap().to_string()) {
+            if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {
                 return;
@@ -38,11 +39,17 @@ impl CommandStrategy for KeysCommand {
             }
         }
 
-        let response = format!("*{}\r\n", keys_list.len());
-        stream.write(response.as_bytes()).unwrap();
-        for key in keys_list {
-            let response = format!("${}\r\n{}\r\n", key.len(), key);
+        if let Some(stream) = stream { 
+            let response = format!("*{}\r\n", keys_list.len());
             stream.write(response.as_bytes()).unwrap();
+            for key in keys_list {
+                let response = format!("${}\r\n{}\r\n", key.len(), key);
+                stream.write(response.as_bytes()).unwrap();
+            }
         }
+    }
+
+    fn command_type(&self) -> crate::interface::command_type::CommandType {
+        return CommandType::Read;
     }
 }

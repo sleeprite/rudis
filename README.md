@@ -246,9 +246,9 @@ llen 命令
 | sadd    | ✅    | ✅         | ⛔       |
 | smembers| ✅    | ⚪         | ⛔       |
 | scard   | ✅    | ⚪         | ⛔       |
-| hmset   | ✅    | ⛔         | ⛔       |
+| hmset   | ✅    | ✅         | ⛔       |
 | hget    | ✅    | ⚪         | ⛔       |
-| hdel    | ✅    | ⛔         | ⛔       |
+| hdel    | ✅    | ✅         | ⛔       |
 | hexists | ✅    | ⚪         | ⛔       |
 
 ## 性能测试

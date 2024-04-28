@@ -3,6 +3,8 @@ use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use crate::{db::db_config::RedisConfig, session::session::Session};
 use crate::db::db::Redis;
 
+use super::command_type::CommandType;
+
 /*
  * 命令策略接口
  *
@@ -13,12 +15,18 @@ use crate::db::db::Redis;
  * @param sessions 会话列表
  */
 pub trait CommandStrategy {
+
+    // 命令逻辑
     fn execute(
         &self,
-        stream: &mut TcpStream,
+        stream: Option<&mut TcpStream>,
         fragments: &Vec<&str>,
         redis: &Arc<Mutex<Redis>>,
         redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        session_id: &String,
     );
+
+    // 命令类型
+    fn command_type(&self) -> CommandType; 
 }

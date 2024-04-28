@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
 use crate::{db::db::Redis, RedisConfig};
@@ -15,17 +16,18 @@ pub struct LindexCommand {}
 impl CommandStrategy for LindexCommand {
     fn execute(
         &self,
-        stream: &mut TcpStream,
+        stream: Option<&mut TcpStream>,
         fragments: &Vec<&str>,
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        session_id: &String
     ) {
         let redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
-            if let Some(session) = sessions_ref.get(&stream.peer_addr().unwrap().to_string()) {
+            if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {
                 return;
@@ -33,20 +35,20 @@ impl CommandStrategy for LindexCommand {
         };
 
         let key = fragments[4].to_string();
-        let index: usize = fragments[6].parse().unwrap_or_default(); // Assuming index is provided as parameter
+        let index: usize = fragments[6].parse().unwrap_or_default(); 
+        let result = redis_ref.lindex(db_index, &key.clone(), index as i64);
 
-        let result = redis_ref.lindex(db_index, &key.clone(), index as i64); // Assuming you have a method to retrieve value by index
+        let response_bytes = match result {
+            Some(value) => RespValue::BulkString(value).to_bytes(),
+            None => RespValue::Null.to_bytes(),
+        };
 
-        // Write the result back to the client
-        match result {
-            Some(value) => {
-                let response_bytes = &RespValue::BulkString(value).to_bytes();
-                stream.write(response_bytes).unwrap();
-            }
-            None => {
-                let response_bytes = &RespValue::Null.to_bytes();
-                stream.write(response_bytes).unwrap();
-            }
+        if let Some(stream) = stream {
+            stream.write(&response_bytes).unwrap();
         }
+    }
+
+    fn command_type(&self) -> crate::interface::command_type::CommandType {
+        return CommandType::Read;
     }
 }

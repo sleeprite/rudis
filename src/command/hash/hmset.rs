@@ -5,6 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::session::session::Session;
 use crate::{db::db::Redis, RedisConfig};
@@ -15,17 +16,18 @@ pub struct HmsetCommand {}
 impl CommandStrategy for HmsetCommand {
     fn execute(
         &self,
-        stream: &mut TcpStream,
+        stream: Option<&mut TcpStream>,
         fragments: &Vec<&str>,
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        session_id: &String
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
-            if let Some(session) = sessions_ref.get(&stream.peer_addr().unwrap().to_string()) {
+            if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {
                 return;
@@ -44,13 +46,20 @@ impl CommandStrategy for HmsetCommand {
         match redis_ref.hmset(db_index, key.clone(), values) {
             Ok(()) => {
                 let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
-                stream.write(response_bytes).unwrap();
+                if let Some(stream) = stream {
+                    stream.write(response_bytes).unwrap();
+                }
             }
             Err(err_msg) => {
                 let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
-                stream.write(response_bytes).unwrap();
-
+                if let Some(stream) = stream {
+                    stream.write(response_bytes).unwrap();
+                }
             }
         }
+    }
+
+    fn command_type(&self) -> crate::interface::command_type::CommandType {
+        return CommandType::Write;
     }
 }

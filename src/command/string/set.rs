@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::{
     db::db::Redis, session::session::Session,
@@ -20,22 +21,25 @@ pub struct SetCommand {}
 impl CommandStrategy for SetCommand {
     fn execute(
         &self,
-        stream: &mut TcpStream,
+        stream: Option<&mut TcpStream>,
         fragments: &Vec<&str>,
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        session_id: &String
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
-            if let Some(session) = sessions_ref.get(&stream.peer_addr().unwrap().to_string()) {
+            if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {
                 return;
             }
         };
+
+        println!("数据库索引:{}",db_index);
 
         let key = fragments[4].to_string();
         let value = fragments[6].to_string();
@@ -46,12 +50,20 @@ impl CommandStrategy for SetCommand {
                     _ => ttl,
                 };
                 let expire_at = current_millis() + ttl_millis;
-                redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at, false);
+                redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
             }
         } else {
-            redis_ref.set(db_index, key, value, false);
+            redis_ref.set(db_index, key, value);
         }
-        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
-        stream.write(response_bytes).unwrap();
+
+        if let Some(stream) = stream { 
+            let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+            stream.write(response_bytes).unwrap();
+        }
+    }
+
+        
+    fn command_type(&self) -> crate::interface::command_type::CommandType {
+        return CommandType::Write;
     }
 }

@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, session::session::Session, tools::resp::RespValue, RedisConfig};
+use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 /*
@@ -13,17 +13,18 @@ pub struct GetCommand {}
 impl CommandStrategy for GetCommand {
     fn execute(
         &self,
-        stream: &mut TcpStream,
+        stream: Option<&mut TcpStream>,
         fragments: &Vec<&str>,
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        session_id: &String
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
-            if let Some(session) = sessions_ref.get(&stream.peer_addr().unwrap().to_string()) {
+            if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {
                 return;
@@ -35,16 +36,27 @@ impl CommandStrategy for GetCommand {
 
         match redis_ref.get(db_index, &key) {
             Ok(Some(value)) => {
-                let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
-                stream.write(response_bytes).unwrap();
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
+                    stream.write(response_bytes).unwrap();
+                }
             },
             Ok(None) => {
-                stream.write(b"$-1\r\n").unwrap();
+                if let Some(stream) = stream { 
+                    stream.write(b"$-1\r\n").unwrap();
+                }
             },
             Err(err_msg) => {
-                let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
-                stream.write(response_bytes).unwrap();
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    stream.write(response_bytes).unwrap();
+                }
             }
         }
+    }
+
+        
+    fn command_type(&self) -> crate::interface::command_type::CommandType {
+        return CommandType::Read;
     }
 }

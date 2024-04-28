@@ -1,6 +1,10 @@
-0 SADD user admin1 admin2 admin3
-0 SADD user admin1 admin2 admin3
-0 SADD user admin1 admin2 admin3
-0 SET username root
-0 SET username root
-0 SET username root
+*3\r\n$3\r\nset\r\n$8\r\nusername\r\n$4\r\nroot\r\n
+*2\r\n$6\r\nselect\r\n$1\r\n1\r\n
+*3\r\n$3\r\nset\r\n$8\r\npassword\r\n$5\r\nadmin\r\n
+*2\r\n$6\r\nselect\r\n$1\r\n0\r\n
+*2\r\n$6\r\nselect\r\n$1\r\n1\r\n
+*2\r\n$6\r\nselect\r\n$1\r\n0\r\n
+*2\r\n$6\r\nselect\r\n$1\r\n1\r\n
+*6\r\n$5\r\nhmset\r\n$4\r\nuser\r\n$8\r\nusername\r\n$5\r\nadmin\r\n$8\r\npassword\r\n$5\r\nadmin\r\n
+*3\r\n$4\r\nhdel\r\n$4\r\nuser\r\n$8\r\npassword\r\n
+*2\r\n$6\r\nselect\r\n$1\r\n1\r\n
