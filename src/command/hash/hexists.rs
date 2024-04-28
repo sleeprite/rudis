@@ -1,11 +1,15 @@
 use std::io::Write;
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
+use std::{
+    collections::HashMap,
+    net::TcpStream,
+    sync::{Arc, Mutex},
+};
 
-use crate::interface::command_type::CommandType;
-use crate::tools::resp::RespValue;
-use crate::session::session::Session;
-use crate::{db::db::Redis, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_type::CommandType;
+use crate::session::session::Session;
+use crate::tools::resp::RespValue;
+use crate::{db::db::Redis, RedisConfig};
 
 pub struct HexistsCommand {}
 
@@ -17,9 +21,10 @@ impl CommandStrategy for HexistsCommand {
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &String
+        session_id: &String,
     ) {
         let redis_ref = redis.lock().unwrap();
+        
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
             if let Some(session) = sessions_ref.get(session_id) {
@@ -34,19 +39,17 @@ impl CommandStrategy for HexistsCommand {
 
         match redis_ref.hexists(db_index, &key, &field) {
             Ok(exists) => {
-                if exists {
-                    if let Some(stream) = stream {
+                if let Some(stream) = stream {
+                    if exists {
                         stream.write(b":1\r\n").unwrap();
-                    }
-                } else {
-                    if let Some(stream) = stream {
+                    } else {
                         stream.write(b":0\r\n").unwrap();
                     }
                 }
-            },
+            }
             Err(err_msg) => {
-                let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                 if let Some(stream) = stream {
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                     stream.write(response_bytes).unwrap();
                 }
             }

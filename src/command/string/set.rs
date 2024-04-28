@@ -39,8 +39,6 @@ impl CommandStrategy for SetCommand {
             }
         };
 
-        println!("数据库索引:{}",db_index);
-
         let key = fragments[4].to_string();
         let value = fragments[6].to_string();
         if fragments.len() > 8 {

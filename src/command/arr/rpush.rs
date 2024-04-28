@@ -36,6 +36,7 @@ impl CommandStrategy for RpushCommand {
 
         let key = fragments[4].to_string();
         let values: Vec<String> = fragments[6..].iter().enumerate().filter(|(i, _)| *i % 2 == 0).map(|(_, &x)| x.to_string()).collect();
+        
         redis_ref.rpush(db_index, key.clone(), values); 
 
         if let Some(stream) = stream {

@@ -30,6 +30,7 @@ impl CommandStrategy for AppendCommand {
                 return;
             }
         };
+        
         let key = fragments[4].to_string();
         let value = fragments[6].to_string();
         let len = match redis_ref.append(db_index, key, value) {

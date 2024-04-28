@@ -35,8 +35,8 @@ impl CommandStrategy for LlenCommand {
         };
         let key = fragments[4].to_string();
         let len = redis_ref.llen(db_index, &key.clone());
-        let response_bytes = &RespValue::Integer(len as i64).to_bytes();
         if let Some(stream) = stream {
+            let response_bytes = &RespValue::Integer(len as i64).to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }

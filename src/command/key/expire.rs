@@ -31,13 +31,13 @@ impl CommandStrategy for ExpireCommand {
         let result = redis_ref.expire(db_index, key, expire_at);
 
         if result {
-            let response_bytes = &RespValue::Integer(1).to_bytes();
             if let Some(stream) = stream { 
+                let response_bytes = &RespValue::Integer(1).to_bytes();
                 stream.write(response_bytes).unwrap();
             }
         } else {
-            let response_bytes = &RespValue::Integer(0).to_bytes();
             if let Some(stream) = stream { 
+                let response_bytes = &RespValue::Integer(0).to_bytes();
                 stream.write(response_bytes).unwrap();
             }
         }

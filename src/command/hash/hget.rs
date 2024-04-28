@@ -33,8 +33,8 @@ impl CommandStrategy for HgetCommand {
 
         match redis_ref.hget(db_index, &key, &field) {
             Ok(Some(value)) => {
-                let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
                 if let Some(stream) = stream {
+                    let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
                     stream.write(response_bytes).unwrap();
                 }
             },
@@ -44,8 +44,8 @@ impl CommandStrategy for HgetCommand {
                 }
             },
             Err(err_msg) => {
-                let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                 if let Some(stream) = stream {
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                     stream.write(response_bytes).unwrap();
                 }
             }

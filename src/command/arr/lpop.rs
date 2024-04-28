@@ -40,8 +40,8 @@ impl CommandStrategy for LpopCommand {
             None => return, // If key does not exist or list is empty, return early
         };
 
-        let response_bytes = &RespValue::BulkString(value).to_bytes();
         if let Some(stream) = stream {
+            let response_bytes = &RespValue::BulkString(value).to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }

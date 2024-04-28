@@ -43,8 +43,8 @@ impl CommandStrategy for DelCommand {
             }
         }
 
-        let response_bytes = &RespValue::Integer(del_count).to_bytes();
         if let Some(stream) = stream {
+            let response_bytes = &RespValue::Integer(del_count).to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }

@@ -34,15 +34,15 @@ impl CommandStrategy for HdelCommand {
 
         match redis_ref.hdel(db_index, &key, &fields) {
             Ok(deleted_count) => {
-                let response = RespValue::Integer(deleted_count as i64);
-                let response_bytes = &response.to_bytes();
                 if let Some(stream) = stream {
+                    let response = RespValue::Integer(deleted_count as i64);
+                    let response_bytes = &response.to_bytes();
                     stream.write(response_bytes).unwrap();
                 }
             }
             Err(err_msg) => {
-                let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                 if let Some(stream) = stream {
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                     stream.write(response_bytes).unwrap();
                 }
             }

@@ -36,10 +36,11 @@ impl CommandStrategy for LpushCommand {
 
         let key = fragments[4].to_string();
         let values: Vec<String> = fragments[6..].iter().enumerate().filter(|(i, _)| *i % 2 == 0).map(|(_, &x)| x.to_string()).collect();
+        
         redis_ref.lpush(db_index, key.clone(), values); 
 
-        let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
         if let Some(stream) = stream {
+            let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }
