@@ -23,18 +23,9 @@ impl AppendOnlyFile {
         let mut file = None;
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
-                file = Some(
-                    OpenOptions::new()
-                        .create(true)
-                        .read(true)
-                        .write(true)
-                        .append(true)
-                        .open(filename)
-                        .expect("Failed to open AOF file"),
-                );
+                file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"));
             }
         }
-
         AppendOnlyFile {
             redis_config,
             redis,

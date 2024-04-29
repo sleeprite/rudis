@@ -80,10 +80,11 @@ fn main() {
      */
     let port: u16 = redis_config.port;
     let address = SocketAddr::from(([127, 0, 0, 1], port));
-    let session_manager: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
+    let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(redis_config.clone(), redis.clone())));
     let listener = TcpListener::bind(address).unwrap();
+    
     let project_name = env!("CARGO_PKG_NAME");
     let version = env!("CARGO_PKG_VERSION");
     println_banner(project_name, version, port);
@@ -113,14 +114,14 @@ fn main() {
             Ok(stream) => {
                 let redis_clone = Arc::clone(&redis);
                 let redis_config_clone = Arc::clone(&redis_config);
-                let sessions_manager_clone = Arc::clone(&session_manager);
+                let sessions_clone = Arc::clone(&sessions);
                 let append_only_file_clone = Arc::clone(&append_only_file);
                 thread::spawn(|| {
                     connection(
                         stream,
                         redis_clone,
                         redis_config_clone,
-                        sessions_manager_clone,
+                        sessions_clone,
                         append_only_file_clone,
                     )
                 });
@@ -181,7 +182,7 @@ fn connection(
     mut stream: TcpStream,
     redis: Arc<Mutex<Redis>>,
     redis_config: Arc<RedisConfig>,
-    session_manager: Arc<Mutex<HashMap<String, Session>>>,
+    sessions: Arc<Mutex<HashMap<String, Session>>>,
     append_only_file: Arc<Mutex<AppendOnlyFile>>,
 ) {
     /*
@@ -203,14 +204,14 @@ fn connection(
          * （2）满足：响应 ERR max number of clients reached 错误
          * （3）否则：创建 session 会话
          */
-        let mut session_manager_ref = session_manager.lock().unwrap();
-        if session_manager_ref.len() < redis_config.maxclients {
-            session_manager_ref.insert(session_id.clone(), Session::new());
+        let mut sessions_ref = sessions.lock().unwrap();
+        if sessions_ref.len() < redis_config.maxclients {
+           sessions_ref.insert(session_id.clone(), Session::new());
         } else {
-            let err = "ERR max number of clients reached".to_string();
-            let resp_value = RespValue::Error(err).to_bytes();
-            stream.write(&resp_value).unwrap();
-            return;
+           let err = "ERR max number of clients reached".to_string();
+           let resp_value = RespValue::Error(err).to_bytes();
+           stream.write(&resp_value).unwrap();
+           return;
         }
     }
 
@@ -238,8 +239,8 @@ fn connection(
                     /*
                      * 安全认证【前置拦截】
                      */
-                    let session_manager_ref = session_manager.lock().unwrap();
-                    let session = session_manager_ref.get(&session_id).unwrap();
+                    let sessions_ref = sessions.lock().unwrap();
+                    let session = sessions_ref.get(&session_id).unwrap();
 
                     if redis_config.password != None && command != "auth" {
                         if !session.get_authenticated() {
@@ -258,7 +259,7 @@ fn connection(
                  * 否则响应 PONG 内容。
                  */
                 if let Some(strategy) = command_strategies.get(command) {
-                    strategy.execute(Some(&mut stream), &fragments, &redis, &redis_config, &session_manager, &session_id);
+                    strategy.execute(Some(&mut stream), &fragments, &redis, &redis_config, &sessions, &session_id);
                     
                     match strategy.command_type() {
                         CommandType::Write => {
@@ -286,7 +287,7 @@ fn connection(
                  *
                  * @param session_id 会话编号
                  */
-                let mut session_manager_ref = session_manager.lock().unwrap();
+                let mut session_manager_ref = sessions.lock().unwrap();
                 session_manager_ref.remove(&session_id);
                 break 'main;
             }
