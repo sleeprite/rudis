@@ -37,8 +37,7 @@ impl CommandStrategy for DBSizeCommand {
             stream.write(response_bytes).unwrap();
         }
     }
-
-        
+     
     fn command_type(&self) -> crate::interface::command_type::CommandType {
         return CommandType::Read;
     }
