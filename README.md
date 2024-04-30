@@ -3,7 +3,6 @@
 <img src="./logo.png" height="80"/>
 
 <br />
-<br />
 
 [Github](https://github.com/sleeprite/redis-for-rust) | [Gitee](https://gitee.com/Jmysy/redis-for-rust) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./redis-for-rust.exe) 
 
