@@ -1,9 +1,5 @@
-
 use std::collections::HashSet;
-use std::{
-    collections::HashMap,
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::tools::date::current_millis;
 
@@ -207,13 +203,7 @@ impl Redis {
      * @param value 数据值
      * @param ttl 过期时间，单位：毫秒
      */
-    pub fn set_with_ttl(
-        &mut self,
-        db_index: usize,
-        key: String,
-        value: String,
-        ttl: i64
-    ) {
+    pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64) {
         if db_index < self.databases.len() {
             let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
             self.databases[db_index].insert(key.clone(), redis_value);
@@ -275,12 +265,7 @@ impl Redis {
      * @param key 主键
      * @param ttl_millis 过期时间，单位: 毫秒
      */
-    pub fn expire(
-        &mut self,
-        db_index: usize,
-        key: String,
-        ttl_millis: i64
-    ) -> bool {
+    pub fn expire(&mut self, db_index: usize, key: String, ttl_millis: i64) -> bool {
         if db_index >= self.databases.len() {
             panic!("Invalid database index");
         }
@@ -319,12 +304,7 @@ impl Redis {
      * @param old_key 旧主键名称
      * @param new_key 新主键名称
      */
-    pub fn rename(
-        &mut self,
-        db_index: usize,
-        old_key: &str,
-        new_key: &str
-    ) -> Result<bool, &str> {
+    pub fn rename(&mut self, db_index: usize, old_key: &str, new_key: &str) -> Result<bool, &str> {
         let db = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("Database index out of bounds"),
@@ -345,12 +325,7 @@ impl Redis {
      * @param src_db_index 源数据库
      * @param target_db_index 目标数据库
      */
-    pub fn move_key(
-        &mut self,
-        src_db_index: usize,
-        key: &str,
-        target_db_index: usize
-    ) -> bool {
+    pub fn move_key(&mut self, src_db_index: usize, key: &str, target_db_index: usize) -> bool {
         if let Some(src_db) = self.databases.get_mut(src_db_index) {
             if let Some(value) = src_db.remove(key) {
                 if let Some(dest_db) = self.databases.get_mut(target_db_index) {
@@ -371,12 +346,7 @@ impl Redis {
      * @param key 列表键
      * @param values 要插入的值
      */
-    pub fn lpush(
-        &mut self,
-        db_index: usize,
-        key: String,
-        values: Vec<String>
-    ) {
+    pub fn lpush(&mut self, db_index: usize, key: String, values: Vec<String>) {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key.clone())
@@ -401,14 +371,42 @@ impl Redis {
                     *hash_map = values;
                     return Ok(());
                 } else {
-                    return Err("不能用 hashmap 覆盖非 HashValue 类型的值");
+                    return Err("Cannot use hashmap to overwrite values of non HashValue types");
                 }
             } else {
                 db.insert(key, RedisData::new(RedisValue::HashValue(values), -1));
                 return Ok(());
             }
         }
-        Err("数据库索引不存在")
+        Err("Invalid database index")
+    }
+
+    pub fn hset(
+        &mut self,
+        db_index: usize,
+        key: String,
+        field: String,
+        value: String,
+    ) -> Result<i32, &'static str> {
+        if let Some(db) = self.databases.get_mut(db_index) {
+            if let Some(redis_data) = db.get_mut(&key) {
+                if let RedisValue::HashValue(hash_map) = &mut redis_data.value {
+                    hash_map.insert(field.clone(), value.clone());
+                    return Ok(1);
+                } else {
+                    return Err("Cannot overwrite non HashValue type values with a single field value");
+                }
+            } else {
+                let mut values = HashMap::new();
+                values.insert(field.clone(), value.clone());
+                db.insert(
+                    key.clone(),
+                    RedisData::new(RedisValue::HashValue(values), -1),
+                );
+                return Ok(1);
+            }
+        }
+        Err("Invalid database index")
     }
 
     pub fn hget(
@@ -447,12 +445,7 @@ impl Redis {
         }
     }
 
-    pub fn hexists(
-        &self,
-        db_index: usize,
-        key: &str,
-        field: &str,
-    ) -> Result<bool, &'static str> {
+    pub fn hexists(&self, db_index: usize, key: &str, field: &str) -> Result<bool, &'static str> {
         // 获取数据库索引对应的数据库
         if let Some(db) = self.databases.get(db_index) {
             // 从数据库中获取指定键
@@ -505,7 +498,9 @@ impl Redis {
                     return Ok(deleted_count);
                 } else {
                     // 键存在，但不是 HashValue 类型
-                    return Err("WRONGTYPE Operation against a key holding the wrong kind of value");
+                    return Err(
+                        "WRONGTYPE Operation against a key holding the wrong kind of value",
+                    );
                 }
             } else {
                 // 键不存在
@@ -524,12 +519,7 @@ impl Redis {
      * @param key 列表键
      * @param values 要插入的值
      */
-    pub fn rpush(
-        &mut self,
-        db_index: usize,
-        key: String,
-        values: Vec<String>,
-    ) {
+    pub fn rpush(&mut self, db_index: usize, key: String, values: Vec<String>) {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key.clone())
@@ -707,7 +697,7 @@ impl Redis {
         &mut self,
         db_index: usize,
         key: String,
-        members: Vec<String>
+        members: Vec<String>,
     ) -> Result<i64, String> {
         if db_index < self.databases.len() {
             let set = self.databases[db_index]
@@ -767,12 +757,7 @@ impl Redis {
      * @param key 列表键
      * @return 列表长度，如果键不存在或者不是列表则返回 0
      */
-    pub fn append(
-        &mut self,
-        db_index: usize,
-        key: String,
-        value: String
-    ) -> Result<usize, String> {
+    pub fn append(&mut self, db_index: usize, key: String, value: String) -> Result<usize, String> {
         let db = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("ERR invalid database index".to_string()),
@@ -807,12 +792,7 @@ impl Redis {
      * @param key 列表键
      * @param increment 步长
      */
-    pub fn incr(
-        &mut self,
-        db_index: usize,
-        key: String,
-        increment: i64
-    ) -> Result<i64, String> {
+    pub fn incr(&mut self, db_index: usize, key: String, increment: i64) -> Result<i64, String> {
         let database = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("ERR invalid DB index".to_string()),
@@ -848,12 +828,7 @@ impl Redis {
      * @param key 列表键
      * @param increment 步长
      */
-    pub fn decr(
-        &mut self,
-        db_index: usize,
-        key: String,
-        increment: i64
-    ) -> Result<i64, String> {
+    pub fn decr(&mut self, db_index: usize, key: String, increment: i64) -> Result<i64, String> {
         let database = match self.databases.get_mut(db_index) {
             Some(db) => db,
             None => return Err("ERR invalid DB index".to_string()),

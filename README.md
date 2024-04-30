@@ -55,7 +55,6 @@ start redis-for-rust.exe --port 8848
 [2024-04-30T02:00:55Z INFO  redis_for_rust] Ready to accept connections
 ```
 
-
 ## 启动参数
 
 - databases 数据库数量, 默认：16
@@ -263,6 +262,7 @@ llen 命令
 | hget    | ✅    | ⚪         | ⛔       |
 | hdel    | ✅    | ✅         | ⛔       |
 | hexists | ✅    | ⚪         | ⛔       |
+| hset    | ✅    | ✅         | ⛔       |
 
 ## 性能测试
 

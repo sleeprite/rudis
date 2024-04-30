@@ -24,6 +24,7 @@ use command::hash::hexists::HexistsCommand;
 use command::hash::hget::HgetCommand;
 use command::hash::hmset::HmsetCommand;
 
+use command::hash::hset::HsetCommand;
 use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
@@ -173,6 +174,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("hget", Box::new(HgetCommand {}));
     strategies.insert("hdel", Box::new(HdelCommand {}));
     strategies.insert("hexists", Box::new(HexistsCommand {}));
+    strategies.insert("hset", Box::new(HsetCommand {}));
 
     strategies
 }

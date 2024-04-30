@@ -1,0 +1,3 @@
+*6\r\n$5\r\nhmset\r\n$4\r\nuser\r\n$8\r\nusername\r\n$4\r\nroot\r\n$8\r\npassword\r\n$4\r\nroot\r\n
+*4\r\n$4\r\nhset\r\n$4\r\nuser\r\n$8\r\nusername\r\n$4\r\nroot\r\n
+*4\r\n$4\r\nhset\r\n$4\r\nuser\r\n$8\r\nusername\r\n$5\r\nadmin\r\n
