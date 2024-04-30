@@ -67,6 +67,10 @@ start redis-for-rust.exe --port 8848
 
 ## 项目结构
 
+### aof
+
+aof 包实现了 appendonlyfile 的核心逻辑，该包负责将操作写入和追加到 AOF 文件中，确保 Redis 数据库的数据持久性和一致性。
+
 ### command
 
 command 包是一个用Rust编写的模拟Redis服务器的组件，主要负责实现Redis协议的解析、数据库操作的执行以及相关结果的响应。该包内部包含了针对不同Redis命令的实现，如SELECT、GET、SET等。其核心功能是根据Redis协议规范，解析来自客户端的命令请求，并在模拟的Redis数据库上执行相应的操作，再将结果返回给客户端。通过实现各个Redis命令处理器，实现了对Redis协议的完整支持，并提供了一个简单而有效的策略来处理不同类型的命令。
