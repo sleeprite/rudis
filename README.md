@@ -11,6 +11,7 @@ Redis for rust 服务端重写是一个基于 Rust 编程语言重新实现的 R
 
 特性：
 
+- 支持 string list set hash 四种数据结构
 - 兼容 Redis 协议和常见的 Redis 命令
 - 提供高效的内存管理和并发处理能力
 
