@@ -236,7 +236,7 @@ llen 命令
 | llen    | ✅    | ⚪         | ⛔       |
 | exists  | ✅    | ⚪         | ✅       |
 | expire  | ✅    | ✅         | ⛔       |
-| rename  | ✅    | ✅         | ⛔       |
+| rename  | ✅    | ✅         | ✅       |
 | move    | ✅    | ✅         | ⛔       |
 | lpush   | ✅    | ✅         | ⛔       |
 | rpush   | ✅    | ✅         | ⛔       |

@@ -28,19 +28,19 @@ mod tests {
         let mut con = setup();
 
         // 设置 key 为 "test"，值为 "Hello, Redis!"
-        let _: () = con.set("test", "Helloword").unwrap();
+        let _: () = con.set("del_test", "Helloword").unwrap();
 
         // 获取 key 为 "test" 的值
-        let get_set_result: String = con.get("test").unwrap();
+        let get_set_result: String = con.get("del_test").unwrap();
 
         // 断言获取到的值与预期值相等
         assert_eq!(get_set_result, "Helloword");
 
         // 删除 key 为 "test" 的值
-        let _: () = con.del("test").unwrap();
+        let _: () = con.del("del_test").unwrap();
 
         // 获取 key 为 "test" 的值
-        let get_del_result: Option<String> = con.get("test").unwrap();
+        let get_del_result: Option<String> = con.get("del_test").unwrap();
 
         // 断言获取到的值与预期值相等
         assert_eq!(get_del_result, None);
@@ -60,4 +60,6 @@ mod tests {
 
         assert_eq!(get_result, "HelloAppend");
     }
+
+
 }
