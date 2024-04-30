@@ -21,9 +21,8 @@ impl CommandStrategy for SmembersCommand {
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &String
-    ) {
+    ) { 
         let mut redis_ref = redis.lock().unwrap();
-
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
             if let Some(session) = sessions_ref.get(session_id) {

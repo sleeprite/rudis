@@ -224,9 +224,9 @@ llen 命令
 
 | Command | Supprt | Appendfile | Test case | 
 | ------- | ------ | ---------- | --------- |
-| set     | ✅    | ✅         | ⛔       |
-| get     | ✅    | ⚪         | ⛔       |
-| del     | ✅    | ✅         | ⛔       |
+| set     | ✅    | ✅         | ✅       |
+| get     | ✅    | ⚪         | ✅       |
+| del     | ✅    | ✅         | ✅       |
 | echo    | ✅    | ⚪         | ⛔       |
 | flushdb | ✅    | ✅         | ⛔       |
 | flushall| ✅    | ✅         | ⛔       |
@@ -234,7 +234,7 @@ llen 命令
 | auth    | ✅    | ⚪         | ⛔       |
 | select  | ✅    | ⚪         | ⛔       |
 | llen    | ✅    | ⚪         | ⛔       |
-| exists  | ✅    | ⚪         | ⛔       |
+| exists  | ✅    | ⚪         | ✅       |
 | expire  | ✅    | ✅         | ⛔       |
 | rename  | ✅    | ✅         | ⛔       |
 | move    | ✅    | ✅         | ⛔       |

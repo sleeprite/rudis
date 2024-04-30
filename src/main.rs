@@ -83,9 +83,12 @@ fn main() {
     let address = SocketAddr::from(([127, 0, 0, 1], port));
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
-    let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(redis_config.clone(), redis.clone())));
+    let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(
+        redis_config.clone(),
+        redis.clone(),
+    )));
     let listener = TcpListener::bind(address).unwrap();
-    
+
     let project_name = env!("CARGO_PKG_NAME");
     let version = env!("CARGO_PKG_VERSION");
     println_banner(project_name, version, port);
@@ -140,41 +143,41 @@ fn main() {
 fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
     let mut strategies: HashMap<&'static str, Box<dyn CommandStrategy>> = HashMap::new();
 
-    strategies.insert("echo", Box::new(EchoCommand {}));
-    strategies.insert("set", Box::new(SetCommand {}));
-    strategies.insert("get", Box::new(GetCommand {}));
-    strategies.insert("del", Box::new(DelCommand {}));
-    strategies.insert("exists", Box::new(ExistsCommand {}));
-    strategies.insert("expire", Box::new(ExpireCommand {}));
-    strategies.insert("rename", Box::new(RenameCommand {}));
-    strategies.insert("dbsize", Box::new(DBSizeCommand {}));
-    strategies.insert("flushall", Box::new(FlushAllCommand {}));
-    strategies.insert("flushdb", Box::new(FlushDbCommand {}));
-    strategies.insert("select", Box::new(SelectCommand {}));
-    strategies.insert("auth", Box::new(AuthCommand {}));
-    strategies.insert("llen", Box::new(LlenCommand {}));
-    strategies.insert("move", Box::new(MoveCommand {}));
-    strategies.insert("keys", Box::new(KeysCommand {}));
-    strategies.insert("append", Box::new(AppendCommand {}));
-    strategies.insert("lpush", Box::new(LpushCommand {}));
-    strategies.insert("rpush", Box::new(RpushCommand {}));
-    strategies.insert("lindex", Box::new(LindexCommand {}));
-    strategies.insert("lpop", Box::new(LpopCommand {}));
-    strategies.insert("rpop", Box::new(RpopCommand {}));
-    strategies.insert("incr", Box::new(IncrCommand {}));
-    strategies.insert("decr", Box::new(DecrCommand {}));
-    strategies.insert("pttl", Box::new(PttlCommand {}));
-    strategies.insert("type", Box::new(TypeCommand {}));
-    strategies.insert("sadd", Box::new(SaddCommand {}));
-    strategies.insert("smembers", Box::new(SmembersCommand {}));
-    strategies.insert("lrange", Box::new(LrangeCommand {}));
-    strategies.insert("scard", Box::new(ScardCommand {}));
-    strategies.insert("ttl", Box::new(TtlCommand {}));
-    strategies.insert("hmset", Box::new(HmsetCommand {}));
-    strategies.insert("hget", Box::new(HgetCommand {}));
-    strategies.insert("hdel", Box::new(HdelCommand {}));
-    strategies.insert("hexists", Box::new(HexistsCommand {}));
-    strategies.insert("hset", Box::new(HsetCommand {}));
+    strategies.insert("ECHO", Box::new(EchoCommand {}));
+    strategies.insert("SET", Box::new(SetCommand {}));
+    strategies.insert("GET", Box::new(GetCommand {}));
+    strategies.insert("DEL", Box::new(DelCommand {}));
+    strategies.insert("EXISTS", Box::new(ExistsCommand {}));
+    strategies.insert("EXPIRE", Box::new(ExpireCommand {}));
+    strategies.insert("RENAME", Box::new(RenameCommand {}));
+    strategies.insert("DBSIZE", Box::new(DBSizeCommand {}));
+    strategies.insert("FLUSHALL", Box::new(FlushAllCommand {}));
+    strategies.insert("FLUSHDB", Box::new(FlushDbCommand {}));
+    strategies.insert("SELECT", Box::new(SelectCommand {}));
+    strategies.insert("AUTH", Box::new(AuthCommand {}));
+    strategies.insert("LLEN", Box::new(LlenCommand {}));
+    strategies.insert("MOVE", Box::new(MoveCommand {}));
+    strategies.insert("KEYS", Box::new(KeysCommand {}));
+    strategies.insert("APPEND", Box::new(AppendCommand {}));
+    strategies.insert("LPUSH", Box::new(LpushCommand {}));
+    strategies.insert("RPUSH", Box::new(RpushCommand {}));
+    strategies.insert("LINDEX", Box::new(LindexCommand {}));
+    strategies.insert("LPOP", Box::new(LpopCommand {}));
+    strategies.insert("RPOP", Box::new(RpopCommand {}));
+    strategies.insert("INCR", Box::new(IncrCommand {}));
+    strategies.insert("DECR", Box::new(DecrCommand {}));
+    strategies.insert("PTTL", Box::new(PttlCommand {}));
+    strategies.insert("TYPE", Box::new(TypeCommand {}));
+    strategies.insert("SADD", Box::new(SaddCommand {}));
+    strategies.insert("SMEMBERS", Box::new(SmembersCommand {}));
+    strategies.insert("LRANGE", Box::new(LrangeCommand {}));
+    strategies.insert("SCARD", Box::new(ScardCommand {}));
+    strategies.insert("TTL", Box::new(TtlCommand {}));
+    strategies.insert("HMSET", Box::new(HmsetCommand {}));
+    strategies.insert("HGET", Box::new(HgetCommand {}));
+    strategies.insert("HDEL", Box::new(HdelCommand {}));
+    strategies.insert("HEXISTS", Box::new(HexistsCommand {}));
+    strategies.insert("HSET", Box::new(HsetCommand {}));
 
     strategies
 }
@@ -208,12 +211,12 @@ fn connection(
          */
         let mut sessions_ref = sessions.lock().unwrap();
         if sessions_ref.len() < redis_config.maxclients {
-           sessions_ref.insert(session_id.clone(), Session::new());
+            sessions_ref.insert(session_id.clone(), Session::new());
         } else {
-           let err = "ERR max number of clients reached".to_string();
-           let resp_value = RespValue::Error(err).to_bytes();
-           stream.write(&resp_value).unwrap();
-           return;
+            let err = "ERR max number of clients reached".to_string();
+            let resp_value = RespValue::Error(err).to_bytes();
+            stream.write(&resp_value).unwrap();
+            return;
         }
     }
 
@@ -236,7 +239,6 @@ fn connection(
                 let body = std::str::from_utf8(bytes).unwrap();
                 let fragments: Vec<&str> = body.split("\r\n").collect();
                 let command = fragments[2];
-
                 {
                     /*
                      * 安全认证【前置拦截】
@@ -260,9 +262,15 @@ fn connection(
                  * 利用策略模式，根据 command 获取具体实现，
                  * 否则响应 PONG 内容。
                  */
-                if let Some(strategy) = command_strategies.get(command) {
-                    strategy.execute(Some(&mut stream), &fragments, &redis, &redis_config, &sessions, &session_id);
-                    
+                if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str()) {
+                    strategy.execute(
+                        Some(&mut stream),
+                        &fragments,
+                        &redis,
+                        &redis_config,
+                        &sessions,
+                        &session_id,
+                    );
                     match strategy.command_type() {
                         CommandType::Write => {
                             match append_only_file.lock() {
