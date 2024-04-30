@@ -1,17 +1,8 @@
 ## 项目介绍
 
-```
-     /\_____/\
-    /  o   o  \          redis-for-rust 0.0.1
-   ( ==  ^  == )
-    )         (          Bind: 127.0.0.1:6379
-   (           )
-  ( (  )   (  ) )        
- (__(__)___(__)__)
-    
-[2024-04-17T03:41:58Z INFO  redis_for_rust] Server initialized
-[2024-04-17T03:41:58Z INFO  redis_for_rust] Ready to accept connections
-```
+ <img src="./logo.png" height="80"/>
+
+ <br />
 
 [Github](https://github.com/sleeprite/redis-for-rust) | [Gitee](https://gitee.com/Jmysy/redis-for-rust) | [Discord](https://discord.gg/38tMsRc3) 
 
@@ -46,6 +37,24 @@ start redis-for-rust.exe
 // 带参启动
 start redis-for-rust.exe --port 8848
 ```
+
+- 启动画面
+
+```
+     /\_____/\
+    /  o   o  \          redis-for-rust 0.0.1
+   ( ==  ^  == )
+    )         (          Bind: 127.0.0.1:6379
+   (           )
+  ( (  )   (  ) )        
+ (__(__)___(__)__)
+    
+[2024-04-30T02:00:55Z INFO  redis_for_rust] Start loading appendfile
+[=========================================] percent: 100% lines: 6/6 time: 00:00:00
+[2024-04-30T02:00:55Z INFO  redis_for_rust] Server initialized
+[2024-04-30T02:00:55Z INFO  redis_for_rust] Ready to accept connections
+```
+
 
 ## 启动参数
 
