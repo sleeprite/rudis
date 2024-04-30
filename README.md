@@ -240,7 +240,7 @@ llen 命令
 | move    | ✅    | ✅         | ⛔       |
 | lpush   | ✅    | ✅         | ⛔       |
 | rpush   | ✅    | ✅         | ⛔       |
-| append  | ✅    | ✅         | ⛔       |
+| append  | ✅    | ✅         | ✅       |
 | incr    | ✅    | ✅         | ⛔       |
 | decr    | ✅    | ✅         | ⛔       |
 | lindex  | ✅    | ⚪         | ⛔       |

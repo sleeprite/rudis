@@ -45,4 +45,19 @@ mod tests {
         // 断言获取到的值与预期值相等
         assert_eq!(get_del_result, None);
     }
+
+    #[test]
+    fn test_append() {
+
+        let mut con = setup();
+
+        // 设置 key 为 "test"，值为 "Hello, Redis!"
+        let _: () = con.set("append-test", "Hello").unwrap();
+
+        let _: () = con.append("append-test", "Append").unwrap();
+
+        let get_result: String = con.get("append-test").unwrap();
+
+        assert_eq!(get_result, "HelloAppend");
+    }
 }
