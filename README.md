@@ -233,17 +233,17 @@ llen 命令
 | dbsize  | ✅    | ⚪         | ⛔       |
 | auth    | ✅    | ⚪         | ⛔       |
 | select  | ✅    | ⚪         | ⛔       |
-| llen    | ✅    | ⚪         | ⛔       |
+| llen    | ✅    | ⚪         | ✅       |
 | exists  | ✅    | ⚪         | ✅       |
 | expire  | ✅    | ✅         | ⛔       |
 | rename  | ✅    | ✅         | ✅       |
 | move    | ✅    | ✅         | ⛔       |
-| lpush   | ✅    | ✅         | ⛔       |
-| rpush   | ✅    | ✅         | ⛔       |
+| lpush   | ✅    | ✅         | ✅       |
+| rpush   | ✅    | ✅         | ✅       |
 | append  | ✅    | ✅         | ✅       |
 | incr    | ✅    | ✅         | ⛔       |
 | decr    | ✅    | ✅         | ⛔       |
-| lindex  | ✅    | ⚪         | ⛔       |
+| lindex  | ✅    | ⚪         | ✅       |
 | lpop    | ✅    | ✅         | ⛔       |
 | rpop    | ✅    | ✅         | ⛔       |
 | lrange  | ✅    | ⚪         | ⛔       |
@@ -258,7 +258,7 @@ llen 命令
 | hdel    | ✅    | ✅         | ⛔       |
 | hexists | ✅    | ⚪         | ⛔       |
 | hset    | ✅    | ✅         | ⛔       |
-
+| keys    | ✅    | ⚪         | ✅       |
 ## 性能测试
 
  - percent: 100% lines: 100000/100000 time: 00:00:04
