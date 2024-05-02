@@ -154,4 +154,22 @@ mod tests {
         assert_eq!(value, "Helloworld3");
     }
     
+    #[test]
+    fn test_sadd() {
+
+        let mut con = setup();
+
+        let _: () = con.del("sadd-test").unwrap();
+        let _: () = con.sadd("sadd-test", "admin1").unwrap(); 
+        let _: () = con.sadd("sadd-test", "admin2").unwrap(); 
+        let _: () = con.sadd("sadd-test", "admin3").unwrap(); 
+    
+        let count: usize = con.scard("sadd-test").unwrap();
+        
+        assert_eq!(count, 3);
+
+        let members: Vec<String> =  con.smembers("sadd-test").unwrap();
+
+        assert_eq!(members.len(), 3);
+    }
 }

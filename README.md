@@ -250,9 +250,9 @@ llen 命令
 | ttl     | ✅    | ⚪         | ⛔       |
 | pttl    | ✅    | ⚪         | ⛔       |
 | type    | ✅    | ⚪         | ⛔       |
-| sadd    | ✅    | ✅         | ⛔       |
-| smembers| ✅    | ⚪         | ⛔       |
-| scard   | ✅    | ⚪         | ⛔       |
+| sadd    | ✅    | ✅         | ✅       |
+| smembers| ✅    | ⚪         | ✅       |
+| scard   | ✅    | ⚪         | ✅       |
 | hmset   | ✅    | ✅         | ⛔       |
 | hget    | ✅    | ⚪         | ⛔       |
 | hdel    | ✅    | ✅         | ⛔       |
