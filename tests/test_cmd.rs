@@ -3,7 +3,6 @@ mod tests {
     use std::{thread::sleep, time::Duration};
 
     use redis::{Client, Commands, Connection};
-    use tokio::time::Sleep;
 
     fn setup() -> Connection {
         let client = Client::open("redis://127.0.0.1:6379/").unwrap();
@@ -196,7 +195,41 @@ mod tests {
         let value2: Option<String> = con.get("test-expire").unwrap();
 
         assert_eq!(value2, None);
+    }
 
+    #[test]
+    fn test_hmset() {
+
+        let mut con = setup();
+
+        let data: [(String, String); 3] = [
+            ("name".to_string(), "Alice".to_string()), // 字段-值对数组
+            ("age".to_string(), "30".to_string()),
+            ("email".to_string(), "alice@example.com".to_string()),
+        ];
+
+        let _: () = con.del("test-hmset").unwrap();
+
+        let _: () = con.hset_multiple("test-hmset", &data).unwrap();
+
+        let name: String = con.hget("test-hmset", "name").unwrap();
         
+        assert_eq!(name, "Alice");
+    
+        let _: () = con.hdel("test-hmset", "email").unwrap();
+
+        let email: Option<String> = con.hget("test-hmset", "email").unwrap();
+
+        assert_eq!(email, None);
+
+        let _:() = con.hset("test-hmset", "sex", "boy").unwrap();
+
+        let sex: String = con.hget("test-hmset", "sex").unwrap();
+
+        assert_eq!(sex, "boy");
+
+        let exists: usize = con.hexists("test-hmset", "city").unwrap();
+
+        assert_eq!(exists, 0);
     }
 }

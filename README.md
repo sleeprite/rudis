@@ -235,7 +235,7 @@ llen 命令
 | select  | ✅    | ⚪         | ⛔       |
 | llen    | ✅    | ⚪         | ✅       |
 | exists  | ✅    | ⚪         | ✅       |
-| expire  | ✅    | ✅         | ⛔       |
+| expire  | ✅    | ✅         | ✅       |
 | rename  | ✅    | ✅         | ✅       |
 | move    | ✅    | ✅         | ⛔       |
 | lpush   | ✅    | ✅         | ✅       |
@@ -253,11 +253,11 @@ llen 命令
 | sadd    | ✅    | ✅         | ✅       |
 | smembers| ✅    | ⚪         | ✅       |
 | scard   | ✅    | ⚪         | ✅       |
-| hmset   | ✅    | ✅         | ⛔       |
-| hget    | ✅    | ⚪         | ⛔       |
-| hdel    | ✅    | ✅         | ⛔       |
-| hexists | ✅    | ⚪         | ⛔       |
-| hset    | ✅    | ✅         | ⛔       |
+| hmset   | ✅    | ✅         | ✅       |
+| hget    | ✅    | ⚪         | ✅       |
+| hdel    | ✅    | ✅         | ✅       |
+| hexists | ✅    | ⚪         | ✅       |
+| hset    | ✅    | ✅         | ✅       |
 | keys    | ✅    | ⚪         | ✅       |
 ## 性能测试
 
