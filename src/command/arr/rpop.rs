@@ -35,6 +35,9 @@ impl CommandStrategy for RpopCommand {
         };
 
         let key = fragments[4].to_string();
+        
+        redis_ref.check_ttl(db_index, &key);
+        
         let value = match redis_ref.rpop(db_index, key.clone()) {
             Some(v) => v,
             None => return, // If key does not exist or list is empty, return early

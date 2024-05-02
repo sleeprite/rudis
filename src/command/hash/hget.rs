@@ -18,7 +18,7 @@ impl CommandStrategy for HgetCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &String
     ) {
-        let redis_ref = redis.lock().unwrap();
+        let mut redis_ref = redis.lock().unwrap();
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
             if let Some(session) = sessions_ref.get(session_id) {
@@ -30,6 +30,8 @@ impl CommandStrategy for HgetCommand {
 
         let key = fragments[4].to_string();
         let field = fragments[6].to_string();
+
+        redis_ref.check_ttl(db_index, &key);
 
         match redis_ref.hget(db_index, &key, &field) {
             Ok(Some(value)) => {

@@ -34,10 +34,10 @@ impl CommandStrategy for ScardCommand {
             }
         };
 
-        // 检测过期
-        redis_ref.check_all_ttl(db_index);
-
         if let Some(key) = fragments.get(4) {
+
+            redis_ref.check_all_ttl(db_index);
+
             if let Some(cardinality) = redis_ref.scard(db_index, &key.to_string()) {
                 if let Some(stream) = stream { 
                     let response_value = RespValue::Integer(cardinality as i64).to_bytes();

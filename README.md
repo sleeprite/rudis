@@ -227,7 +227,7 @@ llen 命令
 | set     | ✅    | ✅         | ✅       |
 | get     | ✅    | ⚪         | ✅       |
 | del     | ✅    | ✅         | ✅       |
-| echo    | ✅    | ⚪         | ⛔       |
+| echo    | ✅    | ⚪         | ⚪       |
 | flushdb | ✅    | ✅         | ⛔       |
 | flushall| ✅    | ✅         | ⛔       |
 | dbsize  | ✅    | ⚪         | ⛔       |

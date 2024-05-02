@@ -23,7 +23,7 @@ impl CommandStrategy for HexistsCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &String,
     ) {
-        let redis_ref = redis.lock().unwrap();
+        let mut redis_ref = redis.lock().unwrap();
         
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -36,6 +36,8 @@ impl CommandStrategy for HexistsCommand {
 
         let key = fragments[4].to_string();
         let field = fragments[6].to_string();
+
+        redis_ref.check_ttl(db_index, &key);
 
         match redis_ref.hexists(db_index, &key, &field) {
             Ok(exists) => {

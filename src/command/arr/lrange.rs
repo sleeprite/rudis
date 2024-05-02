@@ -36,7 +36,8 @@ impl CommandStrategy for LrangeCommand {
         let key = fragments[4].to_string();
         let start: i64 = fragments[6].parse().unwrap();
         let end: i64 = fragments[8].parse().unwrap();
-
+        
+        let _:() = redis_ref.check_ttl(db_index, &key);
         let values = redis_ref.lrange(db_index, key.clone(), start, end);
 
         if let Some(stream) = stream {

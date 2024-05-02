@@ -32,6 +32,7 @@ impl CommandStrategy for GetCommand {
         };
 
         let key = fragments[4].to_string();
+        
         redis_ref.check_ttl(db_index, &key);
 
         match redis_ref.get(db_index, &key) {

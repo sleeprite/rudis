@@ -40,7 +40,9 @@ impl CommandStrategy for HsetCommand {
         let key = fragments[4].to_string();
         let field = fragments[6].to_string();
         let value = fragments[8].to_string();
-
+        
+        redis_ref.check_ttl(db_index, &key);
+        
         match redis_ref.hset(db_index, key.clone(), field, value) {
             Ok(result) => {
                 if let Some(stream) = stream {

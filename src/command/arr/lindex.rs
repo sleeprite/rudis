@@ -23,7 +23,7 @@ impl CommandStrategy for LindexCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &String
     ) {
-        let redis_ref = redis.lock().unwrap();
+        let mut redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -36,6 +36,7 @@ impl CommandStrategy for LindexCommand {
 
         let key = fragments[4].to_string();
         let index: usize = fragments[6].parse().unwrap_or_default(); 
+        let _:() = redis_ref.check_ttl(db_index, &key);
         let result = redis_ref.lindex(db_index, &key.clone(), index as i64);
 
         let response_bytes = match result {

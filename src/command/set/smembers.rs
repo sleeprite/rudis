@@ -32,10 +32,10 @@ impl CommandStrategy for SmembersCommand {
             }
         };
 
-        // 检测过期
-        redis_ref.check_all_ttl(db_index);
-
         if let Some(key) = fragments.get(4) {
+
+            redis_ref.check_all_ttl(db_index);
+
             if let Some(members) = redis_ref.smembers(db_index, &key.to_string()) {
                 if let Some(stream) = stream { 
                     let response = format!("*{}\r\n", members.len());

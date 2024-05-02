@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::process::id;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -89,9 +90,7 @@ fn main() {
     )));
     let listener = TcpListener::bind(address).unwrap();
 
-    let project_name = env!("CARGO_PKG_NAME");
-    let version = env!("CARGO_PKG_VERSION");
-    println_banner(project_name, version, port);
+    println_banner(port);
 
     /*
      * 加载本地数据
@@ -239,6 +238,7 @@ fn connection(
                 let body = std::str::from_utf8(bytes).unwrap();
                 let fragments: Vec<&str> = body.split("\r\n").collect();
                 let command = fragments[2];
+
                 {
                     /*
                      * 安全认证【前置拦截】
@@ -306,18 +306,17 @@ fn connection(
 }
 
 // 输入启动动画
-fn println_banner(project_name: &str, version: &str, port: u16) {
+fn println_banner(port: u16) {
+    let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
-        r#"
+    r#"
      /\_____/\
-    /  o   o  \          {} {}
+    /  o   o  \          Rudis {}
    ( ==  ^  == )          
-    )         (          Bind: 127.0.0.1:{}
+    )         (          Bind: {} PID: {} 
    (           )          
   ( (  )   (  ) )        
  (__(__)___(__)__)
-    "#,
-        project_name, version, port
-    );
+    "#,version, port, id());
     println!("{}", pattern);
 }

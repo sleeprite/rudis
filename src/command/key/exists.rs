@@ -38,6 +38,7 @@ impl CommandStrategy for ExistsCommand {
         };
 
         redis_ref.check_ttl(db_index, &fragments[4].to_string());
+        
         let is_exists = redis_ref.exists(db_index, &fragments[4].to_string());
         if is_exists {
             if let Some(stream) = stream {

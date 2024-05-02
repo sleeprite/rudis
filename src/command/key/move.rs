@@ -29,7 +29,7 @@ impl CommandStrategy for MoveCommand {
         };
 
         let key = fragments[4].to_string();
-        let dest_db_index: usize = fragments[6].parse().unwrap(); // 解析目标数据库索引
+        let dest_db_index: usize = fragments[6].parse().unwrap();
 
         let move_result = redis_ref.move_key(db_index, &key, dest_db_index);
 
