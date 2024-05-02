@@ -27,7 +27,7 @@ impl CommandStrategy for ExpireCommand {
 
         let key = fragments[4].to_string();
         let ttl_millis = fragments[6].parse::<i64>().unwrap();
-        let expire_at = current_millis() + ttl_millis;
+        let expire_at = current_millis() + ttl_millis * 1000;
         let result = redis_ref.expire(db_index, key, expire_at);
 
         if result {

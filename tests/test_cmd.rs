@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
+    use std::{thread::sleep, time::Duration};
+
     use redis::{Client, Commands, Connection};
+    use tokio::time::Sleep;
 
     fn setup() -> Connection {
         let client = Client::open("redis://127.0.0.1:6379/").unwrap();
@@ -119,7 +122,7 @@ mod tests {
         let _: () = con.rpush("llen-test", "Helloworld").unwrap();
         let _: () = con.rpush("llen-test", "Helloworld").unwrap();
 
-        let count: usize = con.llen("rpush-test").unwrap();
+        let count: usize = con.llen("llen-test").unwrap();
 
         assert_eq!(count, 3);
     }
@@ -153,7 +156,7 @@ mod tests {
 
         assert_eq!(value, "Helloworld3");
     }
-    
+
     #[test]
     fn test_sadd() {
 
@@ -171,5 +174,29 @@ mod tests {
         let members: Vec<String> =  con.smembers("sadd-test").unwrap();
 
         assert_eq!(members.len(), 3);
+    }
+
+    #[test]
+    fn test_expire () {
+
+        let mut con = setup();
+
+        let _: () = con.set("test-expire", "Helloword").unwrap();
+
+        let _: () = con.expire("test-expire", 3).unwrap();
+        
+        sleep(Duration::from_secs(2));
+
+        let value1: Option<String> = con.get("test-expire").unwrap();
+
+        assert_eq!(value1, Some("Helloword".to_string()));
+
+        sleep(Duration::from_secs(2));
+
+        let value2: Option<String> = con.get("test-expire").unwrap();
+
+        assert_eq!(value2, None);
+
+        
     }
 }
