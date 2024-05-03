@@ -15,7 +15,7 @@ impl CommandStrategy for TypeCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &String
     ) {
-        let redis_ref = redis.lock().unwrap();
+        let mut redis_ref = redis.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -26,7 +26,10 @@ impl CommandStrategy for TypeCommand {
             }
         };
 
-        let key = fragments[4].to_string();
+        let key: String = fragments[4].to_string();
+
+        redis_ref.check_ttl(db_index, &key);
+
         let key_type = redis_ref.key_type(db_index, key);
 
         if let Some(stream) = stream { 

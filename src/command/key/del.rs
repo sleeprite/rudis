@@ -33,6 +33,7 @@ impl CommandStrategy for DelCommand {
 
         let del_index = 4;
         let mut del_count = 0;
+
         redis_ref.check_all_ttl(db_index);
 
         for key in fragments.iter().skip(del_index).step_by(2) {

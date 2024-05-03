@@ -29,8 +29,10 @@ impl CommandStrategy for DBSizeCommand {
                 return;
             }
         };
+        
         redis_ref.check_all_ttl(db_index);
-        let db_size = redis_ref.size(db_index);
+
+        let db_size = redis_ref.dbsize(db_index);
 
         if let Some(stream) = stream { 
             let response_bytes = &RespValue::Integer(db_size as i64).to_bytes();

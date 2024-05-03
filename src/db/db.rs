@@ -64,7 +64,7 @@ impl Redis {
      * @param db_index 数据库索引
      * @return 数据库大小
      */
-    pub fn size(&self, db_index: usize) -> usize {
+    pub fn dbsize(&self, db_index: usize) -> usize {
         if db_index < self.databases.len() {
             self.databases[db_index].len()
         } else {

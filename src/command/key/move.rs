@@ -31,6 +31,8 @@ impl CommandStrategy for MoveCommand {
         let key = fragments[4].to_string();
         let dest_db_index: usize = fragments[6].parse().unwrap();
 
+        redis_ref.check_ttl(db_index, &key);
+
         let move_result = redis_ref.move_key(db_index, &key, dest_db_index);
 
         if move_result {

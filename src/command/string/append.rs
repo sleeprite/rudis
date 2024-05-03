@@ -33,6 +33,10 @@ impl CommandStrategy for AppendCommand {
         
         let key = fragments[4].to_string();
         let value = fragments[6].to_string();
+
+        // 检测是否过期
+        redis_ref.check_ttl(db_index, &key);
+
         let len = match redis_ref.append(db_index, key, value) {
             Ok(len) => len as i64,
             Err(err) => {

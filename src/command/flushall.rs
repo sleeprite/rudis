@@ -19,13 +19,14 @@ impl CommandStrategy for FlushAllCommand {
         _session_id: &String
     ) {
         let mut redis_ref = redis.lock().unwrap();
+        
         redis_ref.flush_all();
+        
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+            let response_bytes = &RespValue::Ok.to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }
-
         
     fn command_type(&self) -> crate::interface::command_type::CommandType {
         return CommandType::Write;

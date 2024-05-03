@@ -36,10 +36,11 @@ impl CommandStrategy for LpopCommand {
 
         let key = fragments[4].to_string();
         
-        let _:() = redis_ref.check_ttl(db_index, &key);
+        redis_ref.check_ttl(db_index, &key);
+        
         let value = match redis_ref.lpop(db_index, key.clone()) {
             Some(v) => v,
-            None => return, // If key does not exist or list is empty, return early
+            None => return
         };
 
         if let Some(stream) = stream {

@@ -27,10 +27,11 @@ impl CommandStrategy for FlushDbCommand {
                 return;
             }
         };
+
         redis_ref.flush_db(db_index);
+        
         if let Some(stream) = stream { 
-            let response_value = "OK".to_string();
-            let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
+            let response_bytes = &RespValue::Ok.to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }

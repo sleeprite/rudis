@@ -32,6 +32,8 @@ impl CommandStrategy for RenameCommand {
         let old_key = fragments[4].to_string();
         let new_key = fragments[6].to_string();
 
+        redis_ref.check_ttl(db_index, &old_key);
+        
         match redis_ref.rename(db_index, &old_key, &new_key) {
             Ok(_) => {
                 if let Some(stream) = stream { 

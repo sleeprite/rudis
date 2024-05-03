@@ -31,7 +31,6 @@ impl CommandStrategy for KeysCommand {
         };
 
         redis_ref.check_all_ttl(db_index);
-
         let mut keys_list: Vec<String> = Vec::new();
         for key in redis_ref.databases[db_index].keys() {
             if match_key(key, fragments[4]) {

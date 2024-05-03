@@ -46,7 +46,7 @@ impl CommandStrategy for HmsetCommand {
         match redis_ref.hmset(db_index, key.clone(), values) {
             Ok(()) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+                    let response_bytes = &RespValue::Ok.to_bytes();
                     stream.write(response_bytes).unwrap();
                 }
             }

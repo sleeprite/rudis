@@ -45,7 +45,7 @@ impl CommandStrategy for SetCommand {
             if let Some(ttl) = fragments.get(10).and_then(|t| t.parse::<i64>().ok()) {
                 let ttl_millis = match fragments[8].to_uppercase().as_str() {
                     "EX" => ttl * 1000,
-                    _ => ttl,
+                    _ => ttl
                 };
                 let expire_at = current_millis() + ttl_millis;
                 redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
@@ -55,7 +55,7 @@ impl CommandStrategy for SetCommand {
         }
 
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+            let response_bytes = &RespValue::Ok.to_bytes();
             stream.write(response_bytes).unwrap();
         }
     }

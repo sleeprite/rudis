@@ -26,11 +26,12 @@ impl CommandStrategy for ExpireCommand {
         };
 
         let key = fragments[4].to_string();
-        let ttl_millis = fragments[6].parse::<i64>().unwrap();
-        let expire_at = current_millis() + ttl_millis * 1000;
-        let result = redis_ref.expire(db_index, key, expire_at);
+        let ttl_millis = fragments[6].parse::<i64>().unwrap() * 1000;
+        let expire_at: i64 = current_millis() + ttl_millis;
 
-        if result {
+        redis_ref.check_ttl(db_index, &key);
+
+        if redis_ref.expire(db_index, key, expire_at) {
             if let Some(stream) = stream { 
                 let response_bytes = &RespValue::Integer(1).to_bytes();
                 stream.write(response_bytes).unwrap();

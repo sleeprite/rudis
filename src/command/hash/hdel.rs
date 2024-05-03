@@ -32,6 +32,8 @@ impl CommandStrategy for HdelCommand {
         let key = fragments[4].to_string();
         let fields: Vec<&str> = fragments[6..].to_vec();
 
+        redis_ref.check_ttl(db_index, &key);
+
         match redis_ref.hdel(db_index, &key, &fields) {
             Ok(deleted_count) => {
                 if let Some(stream) = stream {

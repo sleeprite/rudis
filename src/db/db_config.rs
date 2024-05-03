@@ -5,8 +5,11 @@ use std::env;
  * 
  * @param host 地址
  * @param port 端口
- * @param databases 初始化数据库 
  * @param password 密码
+ * @param maxclients 客户端上限
+ * @param databases 初始化数据库 
+ * @param appendfilename 命令持久化文件
+ * @param appendonly 是否开启持久化
  */
 pub struct RedisConfig {
     pub maxclients: usize,

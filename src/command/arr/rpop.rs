@@ -40,7 +40,7 @@ impl CommandStrategy for RpopCommand {
         
         let value = match redis_ref.rpop(db_index, key.clone()) {
             Some(v) => v,
-            None => return, // If key does not exist or list is empty, return early
+            None => return
         };
 
         if let Some(stream) = stream {

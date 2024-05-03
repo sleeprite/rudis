@@ -33,6 +33,9 @@ impl CommandStrategy for IncrCommand {
         };
 
         let key = fragments[4].to_string();
+
+        // 检测是否过期
+        redis_ref.check_ttl(db_index, &key);
         
         match redis_ref.incr(db_index, key, 1) {
             Ok(result) => {

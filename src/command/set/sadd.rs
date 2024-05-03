@@ -36,6 +36,9 @@ impl CommandStrategy for SaddCommand {
 
         let key = fragments[4].to_string();
         let members: Vec<String> = fragments[6..].iter().enumerate().filter(|(i, _)| *i % 2 == 0).map(|(_, &x)| x.to_string()).collect();
+        
+        redis_ref.check_ttl(db_index, &key);
+        
         let result = redis_ref.sadd(db_index, key.clone(), members);
         
         match result {
