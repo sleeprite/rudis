@@ -232,7 +232,7 @@ llen 命令
 | flushall| ✅    | ✅         | ⛔       |
 | dbsize  | ✅    | ⚪         | ⛔       |
 | auth    | ✅    | ⚪         | ⛔       |
-| select  | ✅    | ⚪         | ⛔       |
+| select  | ✅    | ✅         | ⛔       |
 | llen    | ✅    | ⚪         | ✅       |
 | exists  | ✅    | ⚪         | ✅       |
 | expire  | ✅    | ✅         | ✅       |
