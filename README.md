@@ -6,7 +6,6 @@
 
 [Github](https://github.com/sleeprite/redis-for-rust) | [Gitee](https://gitee.com/Jmysy/redis-for-rust) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3)
 
-<br />
 
 Redis for rust 服务端重写是一个基于 Rust 编程语言重新实现的 Redis 服务端，旨在提供高性能、可靠性和安全性的键值存储服务。通过利用 Rust 的优势，我们重新设计和实现了 Redis 的核心功能，使其更适合现代应用的需求。
 
