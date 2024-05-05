@@ -4,6 +4,7 @@ use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::process::id;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::Duration;
 
 mod aof;
 mod command;
@@ -110,6 +111,17 @@ fn main() {
 
     log::info!("Server initialized");
     log::info!("Ready to accept connections");
+
+    /*
+     * 内存守护线程 
+     */
+    let redis_c = Arc::clone(&redis);
+    thread::spawn(move || {
+        loop {
+            redis_c.lock().unwrap().check_all_database_ttl();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
 
     // 接收传入的链接
     for stream in listener.incoming() {

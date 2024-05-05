@@ -258,6 +258,20 @@ impl Redis {
         }
     }
 
+    pub fn check_all_database_ttl(&mut self) {
+        for (_db_index, database) in self.databases.iter_mut().enumerate() {
+            let mut expired_keys = HashSet::new();
+            for (key, value) in database.iter() {
+                if value.is_expired() {
+                    expired_keys.insert(key.clone());
+                }
+            }
+            for key in expired_keys {
+                database.remove(&key);
+            }
+        }
+    }
+
     /*
      * expire 方法用于设置键的过期时间
      *
