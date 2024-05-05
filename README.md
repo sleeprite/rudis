@@ -219,6 +219,7 @@ llen 命令
 - [x] Hash
 - [x] String
 - [x] Set
+- [ ] Json
 
 ## 命令列表
 
