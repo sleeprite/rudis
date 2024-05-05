@@ -85,11 +85,11 @@ fn main() {
     let address = SocketAddr::from(([127, 0, 0, 1], port));
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
+    let listener = TcpListener::bind(address).unwrap();
     let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(
         redis_config.clone(),
         redis.clone(),
     )));
-    let listener = TcpListener::bind(address).unwrap();
 
     println_banner(port);
 
@@ -115,11 +115,12 @@ fn main() {
     /*
      * 内存守护线程 
      */
-    let redis_c = Arc::clone(&redis);
+    let rc = Arc::clone(&redis);
+    let rcc = Arc::clone(&redis_config);
     thread::spawn(move || {
         loop {
-            redis_c.lock().unwrap().check_all_database_ttl();
-            thread::sleep(Duration::from_secs(1));
+            rc.lock().unwrap().check_all_database_ttl();
+            thread::sleep(Duration::from_secs(rcc.expiration_detection_cycle));
         }
     });
 

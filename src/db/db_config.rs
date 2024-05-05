@@ -19,6 +19,7 @@ pub struct RedisConfig {
     pub databases: usize,
     pub appendfilename: Option<String>,
     pub appendonly: bool,
+    pub expiration_detection_cycle: u64
 }
 
 impl Default for RedisConfig {
@@ -31,6 +32,7 @@ impl Default for RedisConfig {
             password: get_password_or(None),
             appendfilename: get_appendfilename_or(None),
             appendonly: get_appendonly_or(false),
+            expiration_detection_cycle: get_expiration_detection_cycle_or(1)
         }
     }
 }
@@ -66,6 +68,19 @@ fn get_port_or(default: u16) -> u16 {
 
     if let Some(arg) = args.next() {
         return arg.parse().expect("'--port' must have a value");
+    } else {
+        return default;
+    }
+}
+
+fn get_expiration_detection_cycle_or(default: u64) -> u64 {
+    let mut args = env::args().skip_while(|arg| arg != "--expiration_detection_cycle").take(2);
+    if args.next().is_none() {
+        return default;
+    }
+
+    if let Some(arg) = args.next() {
+        return arg.parse().expect("'--expiration_detection_cycle' must have a value");
     } else {
         return default;
     }

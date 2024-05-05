@@ -57,6 +57,7 @@ start redis-for-rust.exe --port 8848
 - password 密码, 默认：None
 - appendfilename 持久化日志路径，默认：None
 - appendonly 开启持久化，默认：false
+- expiration_detection_cycle 回收内存周期，默认 1，单位：秒
 - maxclients 会话上限，默认 1000
 
 ## 项目结构
