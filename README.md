@@ -4,8 +4,7 @@
 
 <br />
 
-[Github](https://github.com/sleeprite/redis-for-rust) | [Gitee](https://gitee.com/Jmysy/redis-for-rust) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./redis-for-rust.exe) 
-
+[Github](https://github.com/sleeprite/redis-for-rust) | [Gitee](https://gitee.com/Jmysy/redis-for-rust) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3)
 Redis for rust 服务端重写是一个基于 Rust 编程语言重新实现的 Redis 服务端，旨在提供高性能、可靠性和安全性的键值存储服务。通过利用 Rust 的优势，我们重新设计和实现了 Redis 的核心功能，使其更适合现代应用的需求。
 
 ## 快速入门
@@ -212,7 +211,8 @@ llen 命令
 
 - [x] 持久存储，存储每条修改命令到本地文件，启动时重新加载实现持久化存储；
 - [x] 日志体系，完善系统中日志打印，制订规范，帮助使用者更快速的追溯问题；
-- [ ] 测试用例，针对项目中的每个命令，编写对应的单元测试，提高项目稳定性；
+- [x] 测试用例，针对项目中的每个命令，编写对应的单元测试，提高项目稳定性；
+- [ ] 数据结构，增加 Json 数据结构以及常用命令；
 
 ## 数据结构
 
