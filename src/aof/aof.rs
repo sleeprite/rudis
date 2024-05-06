@@ -71,7 +71,7 @@ impl AppendOnlyFile {
 
                     if let Ok(_) = file.seek(SeekFrom::Start(0)) {
                         let pb = ProgressBar::new(line_count);
-                        pb.set_style(ProgressStyle::default_bar().template("[{bar:41.green/cyan}] percent: {percent}% lines: {pos}/{len} time: {elapsed_precise}").progress_chars("=>-"));
+                        pb.set_style(ProgressStyle::default_bar().template("[{bar:39.green/cyan}] percent: {percent}% lines: {pos}/{len} time: {elapsed_precise}").progress_chars("=>-"));
                         let reader = BufReader::new(&mut file);
                         for line in reader.lines() {
                             if let Ok(operation) = line {

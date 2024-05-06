@@ -1,5 +1,5 @@
 [package]
-name = "redis-for-rust"
+name = "rudis-server"
 version = "0.0.1"
 authors = ["Jmys"]
 edition = "2021"

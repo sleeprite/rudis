@@ -4,10 +4,10 @@
 
 <br />
 
-[Github](https://github.com/sleeprite/redis-for-rust) | [Gitee](https://gitee.com/Jmysy/redis-for-rust) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3)
+[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./release/)
 
 
-Redis for rust 服务端重写是一个基于 Rust 编程语言重新实现的 Redis 服务端，旨在提供高性能、可靠性和安全性的键值存储服务。通过利用 Rust 的优势，我们重新设计和实现了 Redis 的核心功能，使其更适合现代应用的需求。
+Rudis 是一个基于 Rust 编程语言重新实现的 Redis 服务端，旨在提供高性能、可靠性和安全性的键值存储服务。通过利用 Rust 的优势，我们重新设计和实现了 Redis 的核心功能，使其更适合现代应用的需求。
 
 ## 快速入门
 
@@ -28,27 +28,27 @@ cargo build
 
 ```
 // 普通启动
-start redis-for-rust.exe
+start rudis-server.exe
 
 // 带参启动
-start redis-for-rust.exe --port 8848
+start rudis-server.exe --port 8848
 ```
 
 - 启动画面
 
 ```
      /\_____/\
-    /  o   o  \          redis-for-rust 0.0.1
+    /  o   o  \          Rudis 0.0.1
    ( ==  ^  == )
     )         (          Bind: 127.0.0.1:6379
    (           )
   ( (  )   (  ) )        
  (__(__)___(__)__)
     
-[2024-04-30T02:00:55Z INFO  redis_for_rust] Start loading appendfile
-[=========================================] percent: 100% lines: 6/6 time: 00:00:00
-[2024-04-30T02:00:55Z INFO  redis_for_rust] Server initialized
-[2024-04-30T02:00:55Z INFO  redis_for_rust] Ready to accept connections
+[2024-04-30T02:00:55Z INFO  rudis_server] Start loading appendfile
+[=======================================] percent: 100% lines: 6/6 time: 00:00:00
+[2024-04-30T02:00:55Z INFO  rudis_server] Server initialized
+[2024-04-30T02:00:55Z INFO  rudis_server] Ready to accept connections
 ```
 
 ## 启动参数
@@ -273,8 +273,8 @@ llen 命令
 
 ## 开源共建
 
-Redis for rust 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/redis-for-rust/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/redis-for-rust/graphs/contributors)。
+Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rudis/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/rudis/graphs/contributors)。
 
-<a href="https://github.com/sleeprite/redis-for-rust/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=sleeprite/redis-for-rust" />
+<a href="https://github.com/sleeprite/rudis/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />
 </a>

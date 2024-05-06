@@ -353,21 +353,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "redis-for-rust"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "bytes",
- "env_logger",
- "indicatif",
- "log",
- "redis",
- "regex",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "redox_syscall"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -404,6 +389,21 @@ name = "regex-syntax"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adad44e29e4c806119491a7f06f03de4d1af22c3a680dd47f1e6e179439d1f56"
+
+[[package]]
+name = "rudis-server"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "env_logger",
+ "indicatif",
+ "log",
+ "redis",
+ "regex",
+ "thiserror",
+ "tokio",
+]
 
 [[package]]
 name = "rustc-demangle"
