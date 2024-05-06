@@ -1,6 +1,6 @@
 ## 项目介绍
 
-<img src="./logo.png" height="80"/>
+<img src="./logo/logo-with-title.png" height="80"/>
 
 <br />
 
