@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 use std::{collections::HashMap, sync::Arc};
 
 use crate::tools::date::current_millis;
@@ -10,6 +10,7 @@ pub enum RedisValue {
     ListValue(Vec<String>),
     SetValue(HashSet<String>),
     HashValue(HashMap<String, String>),
+    ZsetValue(BTreeSet<String>)
 }
 
 pub struct RedisData {
@@ -156,6 +157,7 @@ impl Redis {
                     RedisValue::ListValue(_) => "list".to_string(),
                     RedisValue::StringValue(_) => "string".to_string(),
                     RedisValue::SetValue(_) => "set".to_string(),
+                    RedisValue::ZsetValue(_) => "zset".to_string(),
                     RedisValue::HashValue(_) => "hash".to_string(),
                 },
                 None => "none".to_string(),

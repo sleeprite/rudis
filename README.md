@@ -222,6 +222,7 @@ llen 命令
 
 - [x] List
 - [x] Hash
+- [ ] Zset
 - [x] String
 - [x] Set
 - [ ] Json

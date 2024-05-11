@@ -118,6 +118,7 @@ fn main() {
      */
     let rc = Arc::clone(&redis);
     let rcc = Arc::clone(&redis_config);
+    
     thread::spawn(move || {
         loop {
             rc.lock().unwrap().check_all_database_ttl();
