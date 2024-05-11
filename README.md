@@ -226,6 +226,7 @@ llen 命令
 - [x] String
 - [x] Set
 - [ ] Json
+- [ ] Geo
 
 ## 命令列表
 
