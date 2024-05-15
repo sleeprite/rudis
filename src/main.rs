@@ -53,6 +53,8 @@ use command::echo::EchoCommand;
 use command::flushall::FlushAllCommand;
 use command::flushdb::FlushDbCommand;
 use command::select::SelectCommand;
+use command::zset::zadd::ZaddCommand;
+use command::zset::zcard::ZcardCommand;
 use interface::command_strategy::CommandStrategy;
 use tools::resp::RespValue;
 
@@ -192,7 +194,9 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("HDEL", Box::new(HdelCommand {}));
     strategies.insert("HEXISTS", Box::new(HexistsCommand {}));
     strategies.insert("HSET", Box::new(HsetCommand {}));
-
+    strategies.insert("ZADD", Box::new(ZaddCommand {}));
+    strategies.insert("ZCARD", Box::new(ZcardCommand {}));
+    
     strategies
 }
 

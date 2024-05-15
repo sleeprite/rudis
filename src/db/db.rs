@@ -5,12 +5,49 @@ use crate::tools::date::current_millis;
 
 use super::db_config::RedisConfig;
 
+/*
+ * ZsetElement 对象
+ * 
+ * @param value 值
+ * @param score 分
+ */
+struct ZsetElement {
+    value: String,
+    score: usize,
+}
+
+impl ZsetElement {
+    fn new(value: String, score: usize) -> Self {
+        ZsetElement { value, score }
+    }
+}
+
+impl Ord for ZsetElement {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.score.cmp(&other.score)
+    }
+}
+
+impl PartialOrd for ZsetElement {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for ZsetElement {}
+
+impl PartialEq for ZsetElement {
+    fn eq(&self, other: &Self) -> bool {
+        self.score == other.score
+    }
+}
+
 pub enum RedisValue {
     StringValue(String),
     ListValue(Vec<String>),
     SetValue(HashSet<String>),
     HashValue(HashMap<String, String>),
-    ZsetValue(BTreeSet<String>)
+    ZsetValue(BTreeSet<ZsetElement>)
 }
 
 pub struct RedisData {
@@ -70,6 +107,45 @@ impl Redis {
             self.databases[db_index].len()
         } else {
             panic!("Invalid database index");
+        }
+    }
+
+    pub fn zadd(&mut self, db_index: usize, key: String, value: String, score: usize) -> Result<usize, String> {
+
+        let db = &mut self.databases[db_index];
+    
+        let zset = match db.get_mut(&key) {
+            Some(redis_data) => match &mut redis_data.value {
+                RedisValue::ZsetValue(zset) => zset,
+                _ => return Err(format!("Key {} exists in the database but is not a sorted set.", key)),
+            },
+            None => {
+                let zset = BTreeSet::new();
+                db.insert(key.clone(), RedisData::new(RedisValue::ZsetValue(zset), -1));
+                match db.get_mut(&key) {
+                    Some(redis_data) => match &mut redis_data.value {
+                        RedisValue::ZsetValue(zset) => zset,
+                        _ => unreachable!(),
+                    },
+                    None => unreachable!(),
+                }
+            }
+        };
+    
+        zset.insert(ZsetElement::new(value, score));
+    
+        Ok(zset.len())
+    }
+
+    pub fn zcard(&self, db_index: usize, key: &str) -> Result<usize, String> {
+        let db = &self.databases[db_index];
+    
+        match db.get(key) {
+            Some(redis_data) => match &redis_data.value {
+                RedisValue::ZsetValue(zset) => Ok(zset.len()),
+                _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
+            },
+            None => Err(format!("Key {} does not exist in the database.", key)),
         }
     }
 

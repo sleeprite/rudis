@@ -222,7 +222,7 @@ llen 命令
 
 - [x] List
 - [x] Hash
-- [ ] Zset
+- [x] Zset
 - [x] String
 - [x] Set
 - [ ] Json
@@ -267,6 +267,9 @@ llen 命令
 | hexists | ✅    | ⚪         | ✅       |
 | hset    | ✅    | ✅         | ✅       |
 | keys    | ✅    | ⚪         | ✅       |
+| zadd    | ✅    | ✅         | ⛔       |
+| zcard   | ✅    | ⚪         | ⛔       |
+
 ## 性能测试
 
  - percent: 100% lines: 100000/100000 time: 00:00:04
