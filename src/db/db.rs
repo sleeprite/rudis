@@ -11,7 +11,7 @@ use super::db_config::RedisConfig;
  * @param value 值
  * @param score 分
  */
-struct ZsetElement {
+pub struct ZsetElement {
     value: String,
     score: usize,
 }
@@ -143,6 +143,21 @@ impl Redis {
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
                 RedisValue::ZsetValue(zset) => Ok(zset.len()),
+                _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
+            },
+            None => Err(format!("Key {} does not exist in the database.", key)),
+        }
+    }
+
+    pub fn zcount(&self, db_index: usize, key: &str, min: i64, max: i64) -> Result<usize, String> {
+        let db = &self.databases[db_index];
+    
+        match db.get(key) {
+            Some(redis_data) => match &redis_data.value {
+                RedisValue::ZsetValue(zset) => {
+                    let count = zset.iter().filter(|zset_element| zset_element.score >= min as usize && zset_element.score <= max as usize).count();
+                    Ok(count)
+                },
                 _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
             },
             None => Err(format!("Key {} does not exist in the database.", key)),
