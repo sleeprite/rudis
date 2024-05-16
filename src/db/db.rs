@@ -7,7 +7,7 @@ use super::db_config::RedisConfig;
 
 /*
  * ZsetElement 对象
- * 
+ *
  * @param value 值
  * @param score 分
  */
@@ -47,7 +47,7 @@ pub enum RedisValue {
     ListValue(Vec<String>),
     SetValue(HashSet<String>),
     HashValue(HashMap<String, String>),
-    ZsetValue(BTreeSet<ZsetElement>)
+    ZsetValue(BTreeSet<ZsetElement>),
 }
 
 pub struct RedisData {
@@ -79,6 +79,7 @@ pub struct Redis {
 }
 
 impl Redis {
+
     /*
      * Redis 构造函数
      *
@@ -97,7 +98,7 @@ impl Redis {
     }
 
     /*
-     * 获取数据库大小
+     * 获取数据库 key 的数量
      *
      * @param db_index 数据库索引
      * @return 数据库大小
@@ -110,14 +111,24 @@ impl Redis {
         }
     }
 
-    pub fn zadd(&mut self, db_index: usize, key: String, value: String, score: usize) -> Result<usize, String> {
-
+    pub fn zadd(
+        &mut self,
+        db_index: usize,
+        key: String,
+        value: String,
+        score: usize,
+    ) -> Result<usize, String> {
         let db = &mut self.databases[db_index];
-    
+
         let zset = match db.get_mut(&key) {
             Some(redis_data) => match &mut redis_data.value {
                 RedisValue::ZsetValue(zset) => zset,
-                _ => return Err(format!("Key {} exists in the database but is not a sorted set.", key)),
+                _ => {
+                    return Err(format!(
+                        "Key {} exists in the database but is not a sorted set.",
+                        key
+                    ))
+                }
             },
             None => {
                 let zset = BTreeSet::new();
@@ -131,19 +142,22 @@ impl Redis {
                 }
             }
         };
-    
+
         zset.insert(ZsetElement::new(value, score));
-    
+
         Ok(zset.len())
     }
 
     pub fn zcard(&self, db_index: usize, key: &str) -> Result<usize, String> {
         let db = &self.databases[db_index];
-    
+
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
                 RedisValue::ZsetValue(zset) => Ok(zset.len()),
-                _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
+                _ => Err(format!(
+                    "Key {} exists in the database but is not a sorted set.",
+                    key
+                )),
             },
             None => Err(format!("Key {} does not exist in the database.", key)),
         }
@@ -151,14 +165,22 @@ impl Redis {
 
     pub fn zcount(&self, db_index: usize, key: &str, min: i64, max: i64) -> Result<usize, String> {
         let db = &self.databases[db_index];
-    
+
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
                 RedisValue::ZsetValue(zset) => {
-                    let count = zset.iter().filter(|zset_element| zset_element.score >= min as usize && zset_element.score <= max as usize).count();
+                    let count = zset
+                        .iter()
+                        .filter(|zset_element| {
+                            zset_element.score >= min as usize && zset_element.score <= max as usize
+                        })
+                        .count();
                     Ok(count)
-                },
-                _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
+                }
+                _ => Err(format!(
+                    "Key {} exists in the database but is not a sorted set.",
+                    key
+                )),
             },
             None => Err(format!("Key {} does not exist in the database.", key)),
         }
@@ -237,7 +259,6 @@ impl Redis {
                 }
             }
         }
-
         -2 // Key不存在或无过期时间返回-2
     }
 
@@ -259,10 +280,10 @@ impl Redis {
     }
 
     /*
-     * 删除 Key
+     * 删除数据
      *
-     * @param db_index 数据库索引
-     * @param key 数据键
+     * @param db_index DB 索引
+     * @param key 数据主键
      * @return 如果删除成功返回 true，如果不存在返回 false
      */
     pub fn del(&mut self, db_index: usize, key: &String) -> bool {
@@ -289,9 +310,9 @@ impl Redis {
     }
 
     /*
-     * 设置值的同时，设置过期时间
+     * 设置值的同时设置过期时间
      *
-     * @param db_index 数据库索引
+     * @param db_index DB 索引
      * @param key 数据键
      * @param value 数据值
      * @param ttl 过期时间，单位：毫秒
@@ -351,6 +372,9 @@ impl Redis {
         }
     }
 
+    /**
+     * 检查过期【所有库】
+     */
     pub fn check_all_database_ttl(&mut self) {
         for (_db_index, database) in self.databases.iter_mut().enumerate() {
             let mut expired_keys = HashSet::new();
@@ -368,7 +392,7 @@ impl Redis {
     /*
      * expire 方法用于设置键的过期时间
      *
-     * @param db_index 数据库索引
+     * @param db_index DB 索引
      * @param key 主键
      * @param ttl_millis 过期时间，单位: 毫秒
      */
@@ -386,9 +410,9 @@ impl Redis {
     }
 
     /*
-     * 清空数据库
+     * 清空数据
      *
-     * @param db_index 数据库索引
+     * @param db_index DB 索引
      */
     pub fn flush_db(&mut self, db_index: usize) {
         if db_index < self.databases.len() {
@@ -397,7 +421,7 @@ impl Redis {
     }
 
     /*
-     * 清空所有数据库
+     * 清空数据【所有】
      */
     pub fn flush_all(&mut self) {
         for db in &mut self.databases {
@@ -406,7 +430,7 @@ impl Redis {
     }
 
     /*
-     * 重命名主键
+     * 数据主键重命名
      *
      * @param old_key 旧主键名称
      * @param new_key 新主键名称
@@ -426,11 +450,11 @@ impl Redis {
     }
 
     /*
-     * 移动主键
+     * 移动数据【n 库 -> m 库】
      *
-     * @param key 主键
-     * @param src_db_index 源数据库
-     * @param target_db_index 目标数据库
+     * @param key 数据主键
+     * @param src_db_index 来源 DB 索引
+     * @param target_db_index 目标 DB 索引
      */
     pub fn move_key(&mut self, src_db_index: usize, key: &str, target_db_index: usize) -> bool {
         if let Some(src_db) = self.databases.get_mut(src_db_index) {
@@ -449,7 +473,7 @@ impl Redis {
     /*
      * 将一个或多个值插入到列表的头部
      *
-     * @param db_index  DB 索引
+     * @param db_index DB 索引
      * @param key 列表键
      * @param values 要插入的值
      */
@@ -501,7 +525,9 @@ impl Redis {
                     hash_map.insert(field.clone(), value.clone());
                     return Ok(1);
                 } else {
-                    return Err("Cannot overwrite non HashValue type values with a single field value");
+                    return Err(
+                        "Cannot overwrite non HashValue type values with a single field value",
+                    );
                 }
             } else {
                 let mut values = HashMap::new();
