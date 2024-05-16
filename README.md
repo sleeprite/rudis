@@ -268,6 +268,7 @@ llen 命令
 | hset    | ✅    | ✅         | ✅       |
 | keys    | ✅    | ⚪         | ✅       |
 | zadd    | ✅    | ✅         | ⛔       |
+| zscore  | ✅    | ⚪         | ⛔       |
 | zcard   | ✅    | ⚪         | ⛔       |
 | zcount  | ✅    | ⚪         | ⛔       |
 

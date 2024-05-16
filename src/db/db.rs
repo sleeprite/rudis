@@ -163,6 +163,29 @@ impl Redis {
         }
     }
 
+    pub fn zscore(&self, db_index: usize, key: &str, member: &str) -> Result<Option<usize>, String> {
+        let db = &self.databases[db_index];
+    
+        match db.get(key) {
+            Some(redis_data) => match &redis_data.value {
+                RedisValue::ZsetValue(zset) => {
+                    for zset_element in zset {
+                        if zset_element.value == member {
+                            return Ok(Some(zset_element.score));
+                        }
+                    }
+                    // If the member is not found in the sorted set
+                    Ok(None)
+                }
+                _ => Err(format!(
+                    "Key {} exists in the database but is not a sorted set.",
+                    key
+                )),
+            },
+            None => Err(format!("Key {} does not exist in the database.", key)),
+        }
+    }
+
     pub fn zcount(&self, db_index: usize, key: &str, min: i64, max: i64) -> Result<usize, String> {
         let db = &self.databases[db_index];
 
