@@ -31,6 +31,7 @@ use command::key::del::DelCommand;
 use command::key::exists::ExistsCommand;
 use command::key::expire::ExpireCommand;
 use command::key::keys::KeysCommand;
+use command::key::pexpire::PexpireCommand;
 use command::key::pttl::PttlCommand;
 use command::key::r#move::MoveCommand;
 use command::key::r#type::TypeCommand;
@@ -199,6 +200,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("ZADD", Box::new(ZaddCommand {}));
     strategies.insert("ZCOUNT", Box::new(ZcountCommand {}));
     strategies.insert("ZCARD", Box::new(ZcardCommand {}));
+    strategies.insert("PEXPIRE", Box::new(PexpireCommand {}));
     strategies.insert("ZSCORE", Box::new(ZscoreCommand {}));
 
     strategies

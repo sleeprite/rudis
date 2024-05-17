@@ -31,7 +31,6 @@ impl CommandStrategy for DBSizeCommand {
         };
         
         redis_ref.check_all_ttl(db_index);
-
         let db_size = redis_ref.dbsize(db_index);
 
         if let Some(stream) = stream { 

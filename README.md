@@ -271,6 +271,7 @@ llen 命令
 | zscore  | ✅    | ⚪         | ⛔       |
 | zcard   | ✅    | ⚪         | ⛔       |
 | zcount  | ✅    | ⚪         | ⛔       |
+| pexpire | ✅    | ⚪         | ⛔       |
 
 ## 性能测试
 
