@@ -272,6 +272,7 @@ llen 命令
 | zcard   | ✅    | ⚪         | ⛔       |
 | zcount  | ✅    | ⚪         | ⛔       |
 | pexpire | ✅    | ⚪         | ⛔       |
+| mset    | ✅    | ✅         | ⛔       |
 
 ## 性能测试
 

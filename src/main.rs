@@ -47,6 +47,7 @@ use command::string::decr::DecrCommand;
 use command::string::get::GetCommand;
 use command::string::incr::IncrCommand;
 use command::string::set::SetCommand;
+use command::string::mset::MsetCommand;
 
 use command::auth::AuthCommand;
 use command::dbsize::DBSizeCommand;
@@ -202,7 +203,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("ZCARD", Box::new(ZcardCommand {}));
     strategies.insert("PEXPIRE", Box::new(PexpireCommand {}));
     strategies.insert("ZSCORE", Box::new(ZscoreCommand {}));
-
+    strategies.insert("MSET", Box::new(MsetCommand {}));
     strategies
 }
 

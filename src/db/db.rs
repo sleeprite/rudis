@@ -226,6 +226,19 @@ impl Redis {
         }
     }
 
+    pub fn mset(&mut self, db_index: usize, data: Vec<(String, String)>) {
+        if db_index < self.databases.len() {
+            for (key, value) in data {
+                self.databases[db_index].insert(
+                    key.clone(),
+                    RedisData::new(RedisValue::StringValue(value.clone()), -1),
+                );
+            }
+        } else {
+            panic!("Invalid database index");
+        }
+    }
+
     /*
      * 获取值
      *
