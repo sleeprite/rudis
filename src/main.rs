@@ -132,7 +132,6 @@ fn main() {
         }
     });
 
-    // 接收传入的链接
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
@@ -158,7 +157,7 @@ fn main() {
 }
 
 /*
- * 初始化命令集合
+ * 命令集合
  */
 fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
     let mut strategies: HashMap<&'static str, Box<dyn CommandStrategy>> = HashMap::new();
@@ -204,6 +203,7 @@ fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> 
     strategies.insert("PEXPIRE", Box::new(PexpireCommand {}));
     strategies.insert("ZSCORE", Box::new(ZscoreCommand {}));
     strategies.insert("MSET", Box::new(MsetCommand {}));
+
     strategies
 }
 
@@ -331,18 +331,20 @@ fn connection(
     }
 }
 
-// 输入启动动画
+/*
+ * 启动服务
+ */
 fn println_banner(port: u16) {
     let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
     r#"
-     /\_____/\
-    /  o   o  \          Rudis {}
-   ( ==  ^  == )          
-    )         (          Bind: {} PID: {} 
-   (           )          
-  ( (  )   (  ) )        
- (__(__)___(__)__)
+         /\_____/\
+        /  o   o  \          Rudis {}
+       ( ==  ^  == )          
+        )         (          Bind: {} PID: {} 
+       (           )          
+      ( (  )   (  ) )        
+     (__(__)___(__)__)
     "#,version, port, id());
     println!("{}", pattern);
 }
