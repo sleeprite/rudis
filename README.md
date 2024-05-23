@@ -41,16 +41,6 @@ cargo run -- --port 8848
 cargo build
 ```
 
-- Windows 
-
-```
-// 普通启动
-start rudis-server.exe
-
-// 带参启动
-start rudis-server.exe --port 8848
-```
-
 ## 启动参数
 
 - databases 数据库数量, 默认：16
