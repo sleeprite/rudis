@@ -11,6 +11,23 @@ Rudis 是一个基于 Rust 编程语言重新实现的 Redis 服务端，旨在�
 
 ## 快速入门
 
+- 启动画面
+
+```
+     /\_____/\
+    /  o   o  \          Rudis 0.0.1
+   ( ==  ^  == )
+    )         (          Bind: 127.0.0.1:6379
+   (           )
+  ( (  )   (  ) )        
+ (__(__)___(__)__)
+    
+[2024-04-30T02:00:55Z INFO  rudis_server] Start loading appendfile
+[=======================================] percent: 100% lines: 6/6 
+[2024-04-30T02:00:55Z INFO  rudis_server] Server initialized
+[2024-04-30T02:00:55Z INFO  rudis_server] Ready to accept connections
+```
+
 - 本地调试
 
 ```
@@ -32,23 +49,6 @@ start rudis-server.exe
 
 // 带参启动
 start rudis-server.exe --port 8848
-```
-
-- 启动画面
-
-```
-     /\_____/\
-    /  o   o  \          Rudis 0.0.1
-   ( ==  ^  == )
-    )         (          Bind: 127.0.0.1:6379
-   (           )
-  ( (  )   (  ) )        
- (__(__)___(__)__)
-    
-[2024-04-30T02:00:55Z INFO  rudis_server] Start loading appendfile
-[=======================================] percent: 100% lines: 6/6 time: 00:00:00
-[2024-04-30T02:00:55Z INFO  rudis_server] Server initialized
-[2024-04-30T02:00:55Z INFO  rudis_server] Ready to accept connections
 ```
 
 ## 启动参数
