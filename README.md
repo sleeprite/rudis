@@ -7,7 +7,7 @@
 [Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./release/)
 
 
-Rudis 是一个基于 Rust 编程语言重新实现的 Redis 服务端，旨在提供高性能、可靠性和安全性的键值存储服务。通过利用 Rust 的优势，我们重新设计和实现了 Redis 的核心功能，使其更适合现代应用的需求。
+Rudis的目标是成为一个高性能、可靠性和安全性的键值存储服务，同时利用Rust语言的优势来重新设计和实现Redis的核心功能，使其更适合现代应用的需求。Rudis的开发团队将持续努力，不断改进和优化这个基于Rust语言的Redis服务端，以满足用户对高性能、可靠性和安全性的需求。
 
 ## 快速入门
 
