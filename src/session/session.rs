@@ -1,8 +1,8 @@
 /*
  * 会话信息
  * 
- * @param selected_database 索引, 默认: 0
- * @param authenticated 认证, 默认：false
+ * @param selected_database DB 索引, 默认: 0
+ * @param authenticated 是否登录, 默认：false
  */
 pub struct Session {
     selected_database: usize,

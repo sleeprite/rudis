@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 
 /*
  * Redis 配置
@@ -12,28 +12,70 @@ use std::env;
  * @param appendonly 是否开启持久化
  */
 pub struct RedisConfig {
-    pub maxclients: usize,
     pub host: String,
     pub port: u16,
     pub password: Option<String>,
     pub databases: usize,
     pub appendfilename: Option<String>,
     pub appendonly: bool,
-    pub expiration_detection_cycle: u64
+    pub expiration_detection_cycle: u64,
+    pub maxclients: usize
 }
 
 impl Default for RedisConfig {
     fn default() -> Self {
-        Self {
-            maxclients: get_maxclients_or(1000),
-            host: "127.0.0.1".to_string(),
-            databases: get_databases_or(16),
-            port: get_port_or(6379),
-            password: get_password_or(None),
-            appendfilename: get_appendfilename_or(None),
-            appendonly: get_appendonly_or(false),
-            expiration_detection_cycle: get_expiration_detection_cycle_or(1)
+
+        let config_path = get_config_path_or(None);
+
+        let mut port = get_port_or(6379);
+        let mut databases = get_databases_or(16);
+        let mut password = get_password_or(None);
+        let mut appendfilename = get_appendfilename_or(None);
+        let mut appendonly = get_appendonly_or(false);
+        let mut expiration_detection_cycle = get_expiration_detection_cycle_or(1);
+        let mut maxclients = get_maxclients_or(1000);
+
+        if let Some(config) = config_path {
+            if let Ok(content) = fs::read_to_string(config) {
+                for line in content.lines() {
+                    if let Some((key, value)) = parse_config_line(line) {
+                        print!("{}",key.as_str());
+                        match key.as_str() {
+                            "port" => port = value.parse().unwrap_or(port),
+                            "password" => password = Some(value.to_string()),
+                            "databases" => databases = value.parse().unwrap_or(databases),
+                            "appendfilename" => appendfilename = Some(value.to_string()),
+                            "appendonly" => appendonly = value.parse().unwrap_or(appendonly),
+                            "expiration_detection_cycle" => expiration_detection_cycle = value.parse().unwrap_or(expiration_detection_cycle),
+                            "maxclients" => maxclients = value.parse().unwrap_or(maxclients),
+                            _ => {}  // Ignore unknown config keys
+                        }
+                    }
+                }
+            } else {
+                eprintln!("Error reading the config file");
+            }
         }
+
+        Self {
+            databases,
+            port,
+            password,
+            appendfilename,
+            appendonly,
+            host: "127.0.0.1".to_string(),
+            expiration_detection_cycle,
+            maxclients,
+        }
+    }
+}
+
+fn parse_config_line(line: &str) -> Option<(String, String)> {
+    let parts: Vec<&str> = line.splitn(2, '=').map(|s| s.trim()).collect();
+    if parts.len() == 2 {
+        Some((parts[0].to_string(), parts[1].to_string()))
+    } else {
+        None
     }
 }
 
@@ -141,7 +183,7 @@ fn get_password_or(default_password: Option<String>) -> Option<String> {
 }
 
 /*
- * 获取持久化文件路径参数
+ * 获取 appendfilename 参数
  */
 fn get_appendfilename_or(default_appendfilename: Option<String>) -> Option<String> {
     let mut args = env::args().skip_while(|arg| arg != "--appendfilename").take(2);
@@ -153,5 +195,21 @@ fn get_appendfilename_or(default_appendfilename: Option<String>) -> Option<Strin
         return Some(arg);
     } else {
         return default_appendfilename;
+    }
+}
+
+/*
+ * 获取 config_path 参数
+ */
+fn get_config_path_or(default_config_path: Option<String>) -> Option<String> {
+    let mut args = env::args().skip_while(|arg| arg != "--config_path").take(2);
+    if args.next().is_none() {
+        return default_config_path;
+    }
+
+    if let Some(arg) = args.next() {
+        return Some(arg);
+    } else {
+        return default_config_path;
     }
 }
