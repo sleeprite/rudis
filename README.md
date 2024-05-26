@@ -50,6 +50,7 @@ cargo build
 - appendonly 开启持久化，默认：false
 - expiration_detection_cycle 回收内存周期，默认 1，单位：秒
 - maxclients 会话上限，默认 1000
+- config_path 配置文件路径，默认：None
 
 ## 项目结构
 
