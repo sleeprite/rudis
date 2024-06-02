@@ -167,11 +167,9 @@ mod tests {
         let _: () = con.sadd("sadd-test", "admin3").unwrap(); 
     
         let count: usize = con.scard("sadd-test").unwrap();
-        
         assert_eq!(count, 3);
 
         let members: Vec<String> =  con.smembers("sadd-test").unwrap();
-
         assert_eq!(members.len(), 3);
     }
 
@@ -209,27 +207,22 @@ mod tests {
         ];
 
         let _: () = con.del("test-hmset").unwrap();
-
         let _: () = con.hset_multiple("test-hmset", &data).unwrap();
 
         let name: String = con.hget("test-hmset", "name").unwrap();
-        
         assert_eq!(name, "Alice");
     
         let _: () = con.hdel("test-hmset", "email").unwrap();
 
         let email: Option<String> = con.hget("test-hmset", "email").unwrap();
-
         assert_eq!(email, None);
 
         let _:() = con.hset("test-hmset", "sex", "boy").unwrap();
 
         let sex: String = con.hget("test-hmset", "sex").unwrap();
-
         assert_eq!(sex, "boy");
 
         let exists: usize = con.hexists("test-hmset", "city").unwrap();
-
         assert_eq!(exists, 0);
     }
 }

@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "jsx": "preserve",
+    "lib": ["esnext", "dom"],
+    "useDefineForClassFields": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": ["./docs/.vitepress/*"]
+    },
+    "resolveJsonModule": true,
+    "types": ["vite/client", "@types/gtag.js"],
+    "strict": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "typings/**/*.d.ts",
+    "docs/**/*.vue",
+    "docs/**/*.tsx",
+    "docs/**/*.ts",
+    "docs/.**/**/*.ts",
+    "docs/.**/**/*.tsx",
+    "docs/.**/**/*.vue"
+  ],
+  "exclude": ["**/node_modules/**", "dist/**"],
+  "extensions": [".js", ".ts", ".tsx", ".jsx", ".vue"],
+  "allowSyntheticDefaultImports": true
+}

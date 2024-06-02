@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../node_modules/.pnpm/element-plus@2.4.4_vue@3.4.5/node_modules/element-plus/es/components/base/style/css.mjs", "../../../../node_modules/.pnpm/element-plus@2.4.4_vue@3.4.5/node_modules/element-plus/es/components/loading/style/css.mjs"],
+  "sourcesContent": ["import 'element-plus/theme-chalk/base.css';\n//# sourceMappingURL=css.mjs.map\n", "import '../../base/style/css.mjs';\nimport 'element-plus/theme-chalk/el-loading.css';\n//# sourceMappingURL=css.mjs.map\n"],
+  "mappings": ";AAAA,OAAO;;;ACCP,OAAO;",
+  "names": []
+}
