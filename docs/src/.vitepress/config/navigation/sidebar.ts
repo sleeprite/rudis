@@ -14,13 +14,47 @@ function defaultSidebar(): DefaultTheme.SidebarItem[] {
       text: 'Guides',
       items: [
         {
-          text: 'Getting started',
-          link: '/docs/guides/getting-started',
+          text: 'Introduce',
+          link: '/docs/guides/introduce',
         },
         {
           text: 'Install',
-          link: '/extensions/',
+          link: '/docs/guides/install',
         },
+        {
+          text: 'Configuration',
+          link: '/docs/guides/configuration',
+        }
+      ],
+    },
+    {
+      text: 'Command',
+      items: [
+        {
+          text: 'Key',
+          link: '/docs/command/key',
+        },
+        {
+          text: 'String',
+          link: '/docs/command/string',
+        },
+        {
+          text: 'Hash',
+          link: '/docs/command/hash',
+        },
+        {
+          text: 'Sorted Set',
+          link: '/docs/command/sortedSet',
+        },
+        {
+          text: 'Set',
+          link: '/docs/command/set',
+        },
+      ],
+    }, 
+    {
+      text: 'Advanced',
+      items: [
       ],
     },
   ]

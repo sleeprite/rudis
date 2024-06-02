@@ -12,11 +12,11 @@ hero:
     alt: General
   actions:
     - theme: brand
-      text: Get started
-      link: /docs/guides/getting-started
+      text: Introduce
+      link: /docs/guides/introduce
     - theme: alt
-      text: Download
-      link: /docs/guides/getting-started
+      text: Install
+      link: /docs/guides/install
 
 features:
   - title: Tracking
