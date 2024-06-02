@@ -1,17 +1,9 @@
 {
-  "name": "tachiyomi-website",
+  "name": "rust-docs",
   "type": "module",
   "version": "3.0.0",
   "private": true,
-  "description": "Official website for the Tachiyomi app.",
-  "license": "MPL-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tachiyomiorg/website.git"
-  },
-  "bugs": {
-    "url": "https://github.com/tachiyomiorg/website/issues"
-  },
+  "description": "Docs for the Rust.",
   "engines": {
     "node": ">=20",
     "pnpm": ">=8"
