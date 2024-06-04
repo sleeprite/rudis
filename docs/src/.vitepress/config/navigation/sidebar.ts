@@ -55,6 +55,14 @@ function defaultSidebar(): DefaultTheme.SidebarItem[] {
     {
       text: 'Advanced',
       items: [
+        {
+          text: 'Secure',
+          link: '/docs/advanced/secure',
+        },
+        {
+          text: 'Persistence',
+          link: '/docs/advanced/persistence',
+        },
       ],
     },
   ]
