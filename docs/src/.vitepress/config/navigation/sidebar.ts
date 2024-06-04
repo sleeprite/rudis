@@ -24,7 +24,7 @@ function defaultSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Configuration',
           link: '/docs/guides/configuration',
-        }
+        },
       ],
     },
     {
