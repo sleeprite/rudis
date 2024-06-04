@@ -5,7 +5,7 @@ layout: home
 hero:
   name: Rudis
   text: A high-performance in memory database
-  tagline: Get the world's fastest in-memory database.
+  tagline: Remote Dictionary Service，In memory database
   image:
     light: /imgs/logo.png
     dark: /imgs/logo.png
