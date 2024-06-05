@@ -1,6 +1,6 @@
 ---
 title: Key
-titleTemplate: Guides
+titleTemplate: Command
 description: Essential information to help you get set up with Tachiyomi.
 ---
 

@@ -1,11 +1,7 @@
 import type { DefaultTheme } from 'vitepress'
 
 const sidebar: DefaultTheme.SidebarMulti = {
-  '/extensions/': defaultSidebar(),
-  '/docs/': defaultSidebar(),
-  '/changelogs/': defaultSidebar(),
-  '/news/': defaultSidebar(),
-  '/sandbox/': defaultSidebar(),
+   '/docs/': defaultSidebar(),
 }
 
 function defaultSidebar(): DefaultTheme.SidebarItem[] {

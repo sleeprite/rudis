@@ -1,11 +1,11 @@
 ---
-title: Getting started
+title: Introduce
 titleTemplate: Guides
 description: Essential information to help you get set up with Tachiyomi.
 ---
 
-# Getting started
+# Introduce
 
-Essential information to help you get set up with Tachiyomi.
+Essential information to help you get set up with Rudis.
 
 ## Installation guide
