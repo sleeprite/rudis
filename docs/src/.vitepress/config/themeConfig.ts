@@ -9,12 +9,10 @@ const themeConfig: DefaultTheme.Config = {
     height: 24,
     width: 24,
   },
-
   nav,
   sidebar,
-
+  i18nRouting: true,
   outline: [2, 3],
-
   socialLinks: [
     {
       icon: 'github',
@@ -27,12 +25,10 @@ const themeConfig: DefaultTheme.Config = {
       ariaLabel: 'Facebook Page',
     },
   ],
-
   editLink: {
     pattern: 'https://github.com/tachiyomiorg/website/edit/main/website/src/:path',
     text: 'Help us improve this page',
   },
-
   lastUpdated: {
     text: 'Last updated',
     formatOptions: {
@@ -41,7 +37,6 @@ const themeConfig: DefaultTheme.Config = {
       timeStyle: 'short',
     },
   },
-
   search: {
     provider: 'algolia',
     options: {

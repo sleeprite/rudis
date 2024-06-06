@@ -10,8 +10,8 @@ export function langName(code: string) {
   if (code === 'all')
     return 'All'
 
-  const namesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' })
   const namesInNative = new Intl.DisplayNames([code], { type: 'language' })
+  const namesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' })
   return `${capitalize(namesInEnglish.of(code)!, 'en')} - ${capitalize(namesInNative.of(code)!, code)}`
 }
 

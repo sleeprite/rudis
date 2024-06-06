@@ -16,11 +16,6 @@ function mountGoogleAnalytics(id: string) {
       // eslint-disable-next-line prefer-rest-params
       window.dataLayer.push(arguments)
     }
-
-    gtag('js', new Date())
-    gtag('config', id)
-
-    window.gtag = gtag
   })
 
   analyticsScript.src = `https://www.googletagmanager.com/gtag/js?id=${id}`

@@ -1,10 +1,62 @@
 import type { DefaultTheme } from 'vitepress'
 
 const sidebar: DefaultTheme.SidebarMulti = {
-   '/docs/': defaultSidebar(),
+   '/zh/docs/': zhSidebar(),
+   "/docs/": enSidebar()
 }
 
-function defaultSidebar(): DefaultTheme.SidebarItem[] {
+function zhSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    {
+      text: '指南',
+      items: [
+        {
+          text: '介绍',
+          link: '/zh/docs/guides/introduce',
+        },
+        {
+          text: '安装',
+          link: '/zh/docs/guides/install',
+        },
+        {
+          text: '配置',
+          link: '/zh/docs/guides/configuration',
+        },
+      ],
+    },
+    {
+      text: '命令',
+      items: [
+        {
+          text: '键',
+          link: '/docs/commands/key',
+        },
+        {
+          text: '字符串',
+          link: '/docs/commands/string',
+        },
+        {
+          text: '集合',
+          link: '/docs/commands/set',
+        },
+        {
+          text: '有序集合',
+          link: '/docs/commands/sortedSet',
+        },
+        {
+          text: '列表',
+          link: '/docs/commands/list',
+        },
+        {
+          text: '哈希',
+          link: '/docs/commands/hash',
+        },
+      ],
+    },
+  ]
+}
+
+function enSidebar(): DefaultTheme.SidebarItem[] {
   return [
     {
       text: 'Guides',
@@ -24,40 +76,31 @@ function defaultSidebar(): DefaultTheme.SidebarItem[] {
       ],
     },
     {
-      text: 'Command',
+      text: 'Commands',
       items: [
         {
           text: 'Key',
-          link: '/docs/command/key',
+          link: '/docs/commands/key',
         },
         {
           text: 'String',
-          link: '/docs/command/string',
-        },
-        {
-          text: 'Hash',
-          link: '/docs/command/hash',
-        },
-        {
-          text: 'Sorted Set',
-          link: '/docs/command/sortedSet',
+          link: '/docs/commands/string',
         },
         {
           text: 'Set',
-          link: '/docs/command/set',
-        },
-      ],
-    }, 
-    {
-      text: 'Advanced',
-      items: [
-        {
-          text: 'Secure',
-          link: '/docs/advanced/secure',
+          link: '/docs/commands/set',
         },
         {
-          text: 'Persistence',
-          link: '/docs/advanced/persistence',
+          text: 'Sorted set',
+          link: '/docs/commands/sortedSet',
+        },
+        {
+          text: 'List',
+          link: '/docs/commands/list',
+        },
+        {
+          text: 'Hash',
+          link: '/docs/commands/hash',
         },
       ],
     },

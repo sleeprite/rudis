@@ -7,8 +7,6 @@ import {
   ElFormItem,
   ElInput,
   ElOption,
-  ElRadio,
-  ElRadioGroup,
   ElSelect,
 } from 'element-plus'
 
@@ -63,15 +61,6 @@ const labelPosition = computed(() => isSmallScreen.value ? 'top' : 'right')
               :value="group.lang"
             />
           </ElSelect>
-        </ElFormItem>
-        <ElFormItem label="Sort by:">
-          <ElRadioGroup
-            :model-value="sort"
-            @update:model-value="$emit('update:sort', $event)"
-          >
-            <ElRadio label="Ascending" />
-            <ElRadio label="Descending" />
-          </ElRadioGroup>
         </ElFormItem>
       </ElForm>
     </div>

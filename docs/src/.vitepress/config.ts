@@ -21,19 +21,37 @@ const hostname: string = env.VITE_HOSTNAME || 'http://localhost:4173'
 
 export default defineConfig({
   outDir: '../dist',
-  lastUpdated: true,
-  cleanUrls: true,
   title,
+  lang: "en",
   description,
+  locales: {
+    root: {
+      label: 'English',
+      lang: 'en',
+    },
+    zh: {
+      label: '简体中文',
+      lang: 'zh',
+      link: "/zh/"
+    },
+  },
   sitemap: {
     hostname,
   },
+  cleanUrls: true,
+  lastUpdated: true,
   head: headConfig,
   markdown: markdownConfig,
   themeConfig,
   vite: {
     resolve: {
       alias: [
+        {
+          find: /^.*VPSwitchAppearance\.vue$/,
+          replacement: fileURLToPath(
+            new URL('./theme/components/CustomSwitchAppearance.vue', import.meta.url),
+          ),
+        },
       ],
     },
     plugins: [ElementPlus({})],
