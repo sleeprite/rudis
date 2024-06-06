@@ -29,27 +29,27 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
       items: [
         {
           text: '键',
-          link: '/docs/commands/key',
+          link: '/zh/docs/commands/key',
         },
         {
           text: '字符串',
-          link: '/docs/commands/string',
+          link: '/zh/docs/commands/string',
         },
         {
           text: '集合',
-          link: '/docs/commands/set',
+          link: '/zh/docs/commands/set',
         },
         {
           text: '有序集合',
-          link: '/docs/commands/sortedSet',
+          link: '/zh/docs/commands/sortedSet',
         },
         {
           text: '列表',
-          link: '/docs/commands/list',
+          link: '/zh/docs/commands/list',
         },
         {
           text: '哈希',
-          link: '/docs/commands/hash',
+          link: '/zh/docs/commands/hash',
         },
       ],
     },
