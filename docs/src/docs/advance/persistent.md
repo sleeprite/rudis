@@ -1,10 +1,10 @@
 ---
-title: String
-titleTemplate: Commands
+title: Persistent
+titleTemplate: Advance
 description: Essential information to help you get set up with Tachiyomi.
 ---
 
-# String
+# Persistent
 
 Essential information to help you get set up with Rudis.
 

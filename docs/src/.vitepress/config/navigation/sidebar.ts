@@ -53,6 +53,19 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
         },
       ],
     },
+    {
+      text: '高级',
+      items: [
+        {
+          text: '安全',
+          link: '/zh/docs/advance/secure',
+        },
+        {
+          text: '持久化',
+          link: '/zh/docs/advance/persistent',
+        },
+      ],
+    }
   ]
 }
 
@@ -104,6 +117,19 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         },
       ],
     },
+    {
+      text: 'Advanced',
+      items: [
+        {
+          text: 'Secure',
+          link: '/docs/advance/secure',
+        },
+        {
+          text: 'Persistent',
+          link: '/docs/advance/persistent',
+        },
+      ],
+    }
   ]
 }
 
