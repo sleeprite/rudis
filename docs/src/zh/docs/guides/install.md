@@ -9,10 +9,7 @@ next: false
 
 # 安装
 
-By default, **Rudis** comes without any extensions.
-You can choose to read local content, manually add extensions, or include an external repository.
-
-**Rudis** maintains only one official repository; any other repositories are unofficial and have no affiliation with us.
+Essential information to help you get set up with Rudis.
 
 <AddRepoButton/>
 

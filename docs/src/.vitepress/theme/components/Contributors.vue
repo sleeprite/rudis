@@ -24,7 +24,7 @@ const contributors = computed(() => {
   return [...new Set([...uncredited, ...list])].filter(user => !nonExistent.value.includes(user))
 })
 
-const listFormatter = new Intl.ListFormat('en', {
+const listFormatter = new (Intl as any).ListFormat('en', {
   style: 'long',
   type: 'conjunction',
 })
