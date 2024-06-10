@@ -25,8 +25,6 @@ pub struct RedisConfig {
 impl Default for RedisConfig {
     fn default() -> Self {
 
-        let config_path = get_config_path_or(None);
-
         let mut port = get_port_or(6379);
         let mut databases = get_databases_or(16);
         let mut password = get_password_or(None);
@@ -34,7 +32,9 @@ impl Default for RedisConfig {
         let mut appendonly = get_appendonly_or(false);
         let mut expiration_detection_cycle = get_expiration_detection_cycle_or(1);
         let mut maxclients = get_maxclients_or(1000);
+        let config_path = get_config_path_or(None);
 
+        
         if let Some(config) = config_path {
             if let Ok(content) = fs::read_to_string(config) {
                 for line in content.lines() {
@@ -198,17 +198,10 @@ fn get_appendfilename_or(default_appendfilename: Option<String>) -> Option<Strin
     }
 }
 
-/*
- * 获取 config_path 参数
- */
 fn get_config_path_or(default_config_path: Option<String>) -> Option<String> {
-    let mut args = env::args().skip_while(|arg| arg != "--config_path").take(2);
-    if args.next().is_none() {
-        return default_config_path;
-    }
-
-    if let Some(arg) = args.next() {
-        return Some(arg);
+    let mut args = env::args();
+    if let Some(config_path) = args.nth(1) {
+        return Some(config_path);
     } else {
         return default_config_path;
     }
