@@ -65,6 +65,22 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           link: '/zh/docs/advance/persistent',
         },
       ],
+    }, {
+      text: "工具",
+      items: [
+        {
+          text: 'Rust',
+          link: '/docs/libraries/rust',
+        },
+        {
+          text: 'PHP',
+          link: '/docs/libraries/php',
+        },
+        {
+          text: 'Java',
+          link: '/docs/libraries/java',
+        },
+      ],
     }
   ]
 }
@@ -127,6 +143,22 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Persistent',
           link: '/docs/advance/persistent',
+        },
+      ],
+    }, {
+      text: "libraries",
+      items: [
+        {
+          text: 'Rust',
+          link: '/docs/libraries/rust',
+        },
+        {
+          text: 'PHP',
+          link: '/docs/libraries/php',
+        },
+        {
+          text: 'Java',
+          link: '/docs/libraries/java',
         },
       ],
     }
