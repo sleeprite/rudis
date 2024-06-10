@@ -37,13 +37,15 @@ cargo run
 // 带参启动
 cargo run -- --port 8848
 
+// 指定配置
+cargo run -- rudis.properties
+
 // 构建程序
 cargo build
 ```
 
 ## 启动参数
 
-- config_path 配置文件路径，默认：None
 - databases 数据库数量, 默认：16
 - port 端口, 默认: 6379
 - password 密码, 默认：None
