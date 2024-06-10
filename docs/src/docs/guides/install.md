@@ -9,7 +9,7 @@ next: false
 
 # Install
 
-Essential information to help you get set up with Rudis.
+Install Redis on Linux, macOS, and Windows.
 
 <AddRepoButton/>
 
