@@ -25,11 +25,12 @@ pub struct RedisConfig {
 impl Default for RedisConfig {
     fn default() -> Self {
 
+        let filename = "appendonly.aof";
         let mut port = get_port_or(6379);
         let mut databases = get_databases_or(16);
         let mut password = get_password_or(None);
-        let mut appendfilename = get_appendfilename_or(None);
         let mut appendonly = get_appendonly_or(false);
+        let mut appendfilename = get_appendfilename_or(Some(filename.to_string()));
         let mut expiration_detection_cycle = get_expiration_detection_cycle_or(1);
         let mut maxclients = get_maxclients_or(1000);
         let config_path = get_config_path_or(None);
