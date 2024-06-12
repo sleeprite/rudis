@@ -21,16 +21,3 @@ bind 127.0.0.1
 ```
 
 Failing to protect the Redis port from the outside can have a big security impact because of the nature of Redis. For instance, a single FLUSHALL command can be used by an external attacker to delete the whole data set.
-
-## Authentication
-
-The legacy authentication method is enabled by editing the rudis.properties file, and providing a database password using the setting. This password is then used by all clients.requirepass
-
-```
-password 12345
-```
-
-When the setting is enabled, Redis will refuse any query by unauthenticated clients. A client can authenticate itself by sending the AUTH command followed by the password.requirepass
-
-The goal of the authentication layer is to optionally provide a layer of redundancy. If firewalling or any other system implemented to protect Redis from external attackers fail, an external client will still not be able to access the Redis instance without knowledge of the authentication password.
-
