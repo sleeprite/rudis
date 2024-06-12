@@ -201,28 +201,7 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Secure',
           link: '/docs/advance/secure',
-        },
-        {
-          text: 'Persistent',
-          link: '/docs/advance/persistent',
-        },
-      ],
-    },
-    {
-      text: "library",
-      items: [
-        {
-          text: 'Rust',
-          link: '/docs/libraries/rust',
-        },
-        {
-          text: 'PHP',
-          link: '/docs/libraries/php',
-        },
-        {
-          text: 'Java',
-          link: '/docs/libraries/java',
-        },
+        }
       ],
     }
   ]
