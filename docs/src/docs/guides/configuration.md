@@ -40,30 +40,30 @@ Note that internally this generates an in-memory temporary config file (possibly
 
 ### Password
 
-- version: `1.0.0`
+- version: `0.0.1`
 
 After setting the password for the client to connect to the server, password verification is required for the client to connect to the Redis service, otherwise the command cannot be executed.
 
 ### Port
 
-- version: `1.0.0`
+- version: `0.0.1`
 
 Accept connections on the specified port, default is 6379 (IANA #815344). If port 0 is specified Redis will not listen on a TCP socket.
 
 ### Appendonly
 
-- version: `1.0.0`
+- version: `0.0.1`
 
 Specify whether to log after each update operation. Rudis does not write data to the disk by default. If not enabled, it may result in data loss for a period of time in the event of a power outage.
 
 ### Appendfilename
 
-- version: `1.0.0`
+- version: `0.0.1`
 
 Specify the update log file name, which defaults to appendonly.aof
 
 ### Databases
 
-- version: `1.0.0`
+- version: `0.0.1`
 
 Set the number of databases. The default database is DB 0. You can use the select dbid command on each connection to select a different database, but the dbid must be a value between 0 and databases -1.

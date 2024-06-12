@@ -1,8 +1,8 @@
 import type { DefaultTheme } from 'vitepress'
 
 const sidebar: DefaultTheme.SidebarMulti = {
-   '/zh/docs/': zhSidebar(),
-   "/docs/": enSidebar()
+  '/zh/docs/': zhSidebar(),
+  "/docs/": enSidebar()
 }
 
 function zhSidebar(): DefaultTheme.SidebarItem[] {
@@ -105,15 +105,37 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
       ],
     },
     {
-      text: 'Commands',
+      text: 'Command',
       items: [
         {
           text: 'Key',
           link: '/docs/commands/key',
+          collapsed: true,
+          items: [
+            {
+              text: 'DEL',
+              link: '/docs/commands/key/del',
+            },
+            {
+              text: 'TTL',
+              link: '/docs/commands/key/ttl',
+            },
+          ]
         },
         {
           text: 'String',
           link: '/docs/commands/string',
+          collapsed: true,
+          items: [
+            {
+              text: 'SET',
+              link: '/docs/commands/string/set',
+            },
+            {
+              text: 'GET',
+              link: '/docs/commands/string/get',
+            },
+          ]
         },
         {
           text: 'Set',
@@ -145,8 +167,9 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           link: '/docs/advance/persistent',
         },
       ],
-    }, {
-      text: "libraries",
+    },
+    {
+      text: "library",
       items: [
         {
           text: 'Rust',

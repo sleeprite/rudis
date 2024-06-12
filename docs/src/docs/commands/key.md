@@ -6,6 +6,4 @@ description: Essential information to help you get set up with Tachiyomi.
 
 # Key
 
-Essential information to help you get set up with Rudis.
-
-## Installation guide
+The Redis key command is used to manage Redis keys.
