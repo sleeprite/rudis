@@ -184,8 +184,8 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
       text: 'Advanced',
       items: [
         {
-          text: 'Secure',
-          link: '/docs/advance/secure',
+          text: 'Security',
+          link: '/docs/advance/security',
         }
       ],
     }
