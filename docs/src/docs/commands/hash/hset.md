@@ -2,10 +2,6 @@
 
 The Redis Hset command is used to assign values to fields in a hash table.
 
-If the hash table does not exist, a new hash table is created and HSET operation is performed.
-
-If the field already exists in the hash table, the old value will be overwritten.
-
 ## Syntax
 
 ```

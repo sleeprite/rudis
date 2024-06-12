@@ -155,6 +155,13 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Sorted set',
           link: '/docs/commands/sortedSet',
+          collapsed: true,
+          items: [
+            {
+              text: 'ZADD',
+              link: '/docs/commands/sortedSet/zadd',
+            },
+          ]
         },
         {
           text: 'List',
