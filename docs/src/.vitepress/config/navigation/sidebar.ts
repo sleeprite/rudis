@@ -140,6 +140,17 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Set',
           link: '/docs/commands/set',
+          collapsed: true,
+          items: [
+            {
+              text: 'SADD',
+              link: '/docs/commands/set/sadd',
+            },
+            {
+              text: 'SPOP',
+              link: '/docs/commands/set/spop',
+            },
+          ]
         },
         {
           text: 'Sorted set',
