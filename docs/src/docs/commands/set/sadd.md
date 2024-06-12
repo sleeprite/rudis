@@ -14,4 +14,4 @@ SADD key member [member ...]
 
 ## Return
 
-The number of new elements added to the collection, excluding ignored elements.
+The number of deleted keys.
