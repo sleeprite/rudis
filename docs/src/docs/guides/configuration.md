@@ -67,3 +67,10 @@ Specify the update log file name, which defaults to appendonly.aof
 - version: `0.0.1`
 
 Set the number of databases. The default database is DB 0. You can use the select dbid command on each connection to select a different database, but the dbid must be a value between 0 and databases -1.
+
+### Bind
+
+- version: `0.0.1`
+
+The bound host address effectively controls the network interface that Rudis server listens to, thereby achieving safer and more proprietary network access settings.
+

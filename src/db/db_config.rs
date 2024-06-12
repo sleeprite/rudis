@@ -3,7 +3,7 @@ use std::{env, fs};
 /*
  * Redis 配置
  * 
- * @param host 地址
+ * @param bind 地址
  * @param port 端口
  * @param password 密码
  * @param maxclients 客户端上限
@@ -12,7 +12,7 @@ use std::{env, fs};
  * @param appendonly 是否开启持久化
  */
 pub struct RedisConfig {
-    pub host: String,
+    pub bind: String,
     pub port: u16,
     pub password: Option<String>,
     pub databases: usize,
@@ -27,6 +27,7 @@ impl Default for RedisConfig {
 
         let filename = "appendonly.aof";
         let mut port = get_port_or(6379);
+        let mut bind = get_bind_or(String::from("127.0.0.1"));
         let mut databases = get_databases_or(16);
         let mut password = get_password_or(None);
         let mut appendonly = get_appendonly_or(false);
@@ -43,6 +44,7 @@ impl Default for RedisConfig {
                         print!("{}",key.as_str());
                         match key.as_str() {
                             "port" => port = value.parse().unwrap_or(port),
+                            "bind" => bind = value.to_string(),
                             "password" => password = Some(value.to_string()),
                             "databases" => databases = value.parse().unwrap_or(databases),
                             "appendfilename" => appendfilename = Some(value.to_string()),
@@ -59,14 +61,14 @@ impl Default for RedisConfig {
         }
 
         Self {
-            databases,
             port,
             password,
+            databases,
+            expiration_detection_cycle,
             appendfilename,
             appendonly,
-            host: "127.0.0.1".to_string(),
-            expiration_detection_cycle,
             maxclients,
+            bind,
         }
     }
 }
@@ -180,6 +182,24 @@ fn get_password_or(default_password: Option<String>) -> Option<String> {
         return Some(arg);
     } else {
         return default_password;
+    }
+}
+
+/*
+ * 获取 password 参数
+ *
+ * @param default_password 默认密码（None）
+ */
+fn get_bind_or(default_bind: String) -> String {
+    let mut args = env::args().skip_while(|arg| arg != "--bind").take(2);
+    if args.next().is_none() {
+        return default_bind;
+    }
+
+    if let Some(arg) = args.next() {
+        return arg;
+    } else {
+        return default_bind;
     }
 }
 

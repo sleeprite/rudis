@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -89,7 +89,15 @@ fn main() {
      * 创建通讯服务
      */
     let port: u16 = redis_config.port;
-    let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let string_addr = format!("{}:{}", redis_config.bind, port);
+    let socket_addr = match string_addr.to_socket_addrs() {
+        Ok(mut addr_iter) => addr_iter.next().unwrap(),
+        Err(e) => {
+            eprintln!("Failed to resolve bind address: {}", e);
+            return;
+        }
+    };
+    let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
