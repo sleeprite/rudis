@@ -1,6 +1,6 @@
 # GET
 
-The Rudis Get command is used to obtain the value of a specified key. If the key does not exist, return nil. If the value stored in the key is not of string type, an error is returned.
+Get the value of. If the key does not exist the special value is returned. An error is returned if the value stored at is not a string, because only handles string values.
 
 ## Syntax
 

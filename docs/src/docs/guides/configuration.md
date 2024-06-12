@@ -74,3 +74,8 @@ Set the number of databases. The default database is DB 0. You can use the selec
 
 The bound host address effectively controls the network interface that Rudis server listens to, thereby achieving safer and more proprietary network access settings.
 
+### Maxclients
+
+- version: `0.0.1`
+
+Set the maximum number of client connections at the same time, with a default value of 0, indicating no restrictions. When the number of client connections reaches the limit, Rudis will close new connections and return a max number of clients reached error message to the client.

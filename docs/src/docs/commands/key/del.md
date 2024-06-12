@@ -1,8 +1,6 @@
 # DEL
 
-The Rudis DEL command is used to delete existing keys. 
-
-Non existing keys will be ignored.
+Removes the specified keys. A key is ignored if it does not exist.
 
 ## Syntax
 
@@ -12,4 +10,4 @@ DEL key [key ...]
 
 ## Return
 
-The number of deleted keys.
+The number of keys that were removed.

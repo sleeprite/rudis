@@ -243,7 +243,7 @@ fn connection(
          * （3）否则：创建 session 会话
          */
         let mut sessions_ref = sessions.lock().unwrap();
-        if sessions_ref.len() < redis_config.maxclients {
+        if redis_config.maxclients == 0 || sessions_ref.len() < redis_config.maxclients {
             sessions_ref.insert(session_id.clone(), Session::new());
         } else {
             let err = "ERR max number of clients reached".to_string();
@@ -279,7 +279,6 @@ fn connection(
                      */
                     let sessions_ref = sessions.lock().unwrap();
                     let session = sessions_ref.get(&session_id).unwrap();
-
                     if redis_config.password != None && command != "auth" {
                         if !session.get_authenticated() {
                             let response_value = "ERR Authentication required".to_string();

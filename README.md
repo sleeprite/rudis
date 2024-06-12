@@ -220,9 +220,9 @@ llen 命令
 
 | Command | Supprt | Appendfile | Test case | Document | 
 | ------- | ------ | ---------- | --------- |--------- |
-| set     | ✅    | ✅         | ✅       | ⛔       |
-| get     | ✅    | ⚪         | ✅       | ⛔       |
-| del     | ✅    | ✅         | ✅       | ⛔       |
+| set     | ✅    | ✅         | ✅       | ✅       |
+| get     | ✅    | ⚪         | ✅       | ✅       |
+| del     | ✅    | ✅         | ✅       | ✅       |
 | echo    | ✅    | ⚪         | ⚪       | ⛔       |
 | flushdb | ✅    | ✅         | ⛔       | ⛔       |
 | flushall| ✅    | ✅         | ⛔       | ⛔       |

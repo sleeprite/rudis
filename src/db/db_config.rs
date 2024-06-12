@@ -33,7 +33,7 @@ impl Default for RedisConfig {
         let mut appendonly = get_appendonly_or(false);
         let mut appendfilename = get_appendfilename_or(Some(filename.to_string()));
         let mut expiration_detection_cycle = get_expiration_detection_cycle_or(1);
-        let mut maxclients = get_maxclients_or(1000);
+        let mut maxclients = get_maxclients_or(0);
         let config_path = get_config_path_or(None);
 
         

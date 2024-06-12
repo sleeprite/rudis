@@ -47,6 +47,7 @@ impl CommandStrategy for AuthCommand {
             }
         }
         let mut session_ref = sessions.lock().unwrap();
+        
         if let Some(session) = session_ref.get_mut(session_id) {
             session.set_authenticated(true);
         }

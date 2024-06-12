@@ -47,7 +47,7 @@ impl AppendOnlyFile {
     }
 
     /*
-     * 将 appendfile 文件 load 内容到数据库
+     * 解析 appendfile 文件，执行命令，回填数据
      *
      * 调用时机：项目启动
      */
@@ -77,7 +77,6 @@ impl AppendOnlyFile {
                             if let Ok(operation) = line {
                                 let fragments: Vec<&str> = operation.split("\\r\\n").collect();
                                 let command = fragments[2];
-
                                 if let Some(strategy) = command_strategies.get(command) {
                                     strategy.execute(None, &fragments, &self.redis, &self.redis_config, &sessions,&session_id.to_string());
                                 }
