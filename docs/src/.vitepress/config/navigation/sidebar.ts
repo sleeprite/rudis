@@ -164,21 +164,6 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           ]
         },
         {
-          text: 'List',
-          link: '/docs/commands/list',
-          collapsed: true,
-          items: [
-            {
-              text: 'LLEN',
-              link: '/docs/commands/list/llen',
-            },
-            {
-              text: 'LPOP',
-              link: '/docs/commands/list/lpop',
-            },
-          ]
-        },
-        {
           text: 'Hash',
           link: '/docs/commands/hash',
           collapsed: true,
@@ -192,7 +177,7 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
               link: '/docs/commands/hash/hset',
             },
           ]
-        },
+        }
       ],
     },
     {
