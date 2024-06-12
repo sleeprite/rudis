@@ -1,4 +1,4 @@
-# DEL
+# HSET
 
 The Redis Hset command is used to assign values to fields in a hash table.
 

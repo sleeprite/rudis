@@ -1,4 +1,4 @@
-# DEL
+# HDEL
 
 The Redis Hdel command is used to delete one or more specified fields from the hash table key, and non-existent fields will be ignored.
 
