@@ -201,6 +201,10 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Security',
           link: '/docs/advance/security',
+        },
+        {
+          text: 'Persistence',
+          link: '/docs/advance/persistence',
         }
       ],
     }
