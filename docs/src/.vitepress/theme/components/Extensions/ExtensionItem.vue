@@ -13,10 +13,6 @@ const pkgId = computed(() => {
 
 const pkgName = computed(() => item.value.name.split(': ')[1])
 
-const iconUrl = computed(() => {
-  return `https://raw.githubusercontent.com/tachiyomiorg/extensions/repo/icon/${item.value.pkg}.png`
-})
-
 const apkUrl = computed(() => {
   return `https://raw.githubusercontent.com/tachiyomiorg/extensions/repo/apk/${item.value.apk}`
 })
@@ -33,13 +29,13 @@ function handleAnalytics() {
 <template>
   <div class="extension" tabindex="-1">
     <a :href="`#${pkgId}`" class="anchor" aria-hidden="true" @click.stop>#</a>
-    <img class="extension-icon" :src="iconUrl" loading="lazy" width="42" height="42">
+    <img class="extension-icon" src="/imgs/logo.png" loading="lazy" width="42" height="42">
     <div class="extension-text">
       <div class="upper">
-        {{ pkgName }}
+        Redis
       </div>
       <div class="lower">
-        {{ pkgId }}
+        lunix
       </div>
     </div>
     <Badge type="info" :text="item.version" />
