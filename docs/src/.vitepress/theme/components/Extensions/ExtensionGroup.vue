@@ -10,13 +10,7 @@ const { list } = toRefs(props)
 <template>
   <div class="extension-group">
     <h2>
-      <span>Official extensions</span>
-      <span class="extensions-total">
-        Total:
-        <span class="extensions-total-sum">
-          {{ totalCount }}
-        </span>
-      </span>
+      <span>Packages</span>
     </h2>
     <ExtensionItem
       v-for="extension in list"
