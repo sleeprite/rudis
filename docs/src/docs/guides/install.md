@@ -11,6 +11,8 @@ next: false
 
 Install Redis on Linux, macOS, and Windows.
 
+This is a an installation guide. You'll learn how to install, run, and experiment with the Redis server process.
+
 <AddRepoButton/>
 
 <ExtensionsWrapper/>
