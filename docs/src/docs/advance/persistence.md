@@ -21,3 +21,4 @@ appendonly=true
 ```
 
 From now on, every time Rudis receives a command that changes the dataset (e.g. SET) it will append it to the AOF. When you restart Rudis it will re-play the AOF to rebuild the state.
+
