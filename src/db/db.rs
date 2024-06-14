@@ -226,6 +226,23 @@ impl Redis {
         }
     }
 
+    /*
+     * 设置值的同时设置过期时间
+     *
+     * @param db_index DB 索引
+     * @param key 数据键
+     * @param value 数据值
+     * @param ttl 过期时间，单位：毫秒
+     */
+    pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64) {
+        if db_index < self.databases.len() {
+            let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
+            self.databases[db_index].insert(key.clone(), redis_value);
+        } else {
+            panic!("Invalid database index");
+        }
+    }
+
     pub fn mset(&mut self, db_index: usize, data: Vec<(String, String)>) {
         if db_index < self.databases.len() {
             for (key, value) in data {
@@ -340,23 +357,6 @@ impl Redis {
     pub fn exists(&self, db_index: usize, key: &String) -> bool {
         if db_index < self.databases.len() {
             self.databases[db_index].contains_key(key)
-        } else {
-            panic!("Invalid database index");
-        }
-    }
-
-    /*
-     * 设置值的同时设置过期时间
-     *
-     * @param db_index DB 索引
-     * @param key 数据键
-     * @param value 数据值
-     * @param ttl 过期时间，单位：毫秒
-     */
-    pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64) {
-        if db_index < self.databases.len() {
-            let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
-            self.databases[db_index].insert(key.clone(), redis_value);
         } else {
             panic!("Invalid database index");
         }

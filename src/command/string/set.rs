@@ -40,19 +40,55 @@ impl CommandStrategy for SetCommand {
         };
 
         let key = fragments[4].to_string();
-        let value = fragments[6].to_string();
-        if fragments.len() > 8 {
-            if let Some(ttl) = fragments.get(10).and_then(|t| t.parse::<i64>().ok()) {
-                let ttl_millis = match fragments[8].to_uppercase().as_str() {
-                    "EX" => ttl * 1000,
-                    _ => ttl
-                };
-                let expire_at = current_millis() + ttl_millis;
-                redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
+
+        if fragments.contains(&"NX") {
+            let is_exists = redis_ref.exists(db_index, &key);
+            if is_exists{
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::Null.to_bytes();
+                    stream.write(response_bytes).unwrap();
+                    return;
+                }
             }
-        } else {
-            redis_ref.set(db_index, key, value);
         }
+
+        if fragments.contains(&"XX") {
+            let is_exists = redis_ref.exists(db_index, &key);
+            if !is_exists{
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::Null.to_bytes();
+                    stream.write(response_bytes).unwrap();
+                    return;
+                }
+            }
+        }
+
+        let mut ttl_index = None;
+        let mut ttl_unit = None;
+        for (index, f) in fragments.iter().enumerate().rev() {
+            if f.eq_ignore_ascii_case("PX") || f.eq_ignore_ascii_case("EX") {
+                ttl_index = Some(index);
+                ttl_unit = Some(fragments[index].to_uppercase());
+                break;
+            }
+        }
+
+        let mut expire_at = -1;
+        if let Some(ttl_index) = ttl_index {
+            if let Some(ttl_str) = fragments.get(ttl_index + 1) {
+                if let Ok(ttl) = ttl_str.parse::<i64>() {
+                    let ttl_millis = match ttl_unit.unwrap().as_str() {
+                        "EX" => ttl * 1000,
+                        _ => ttl
+                    };
+        
+                    expire_at = current_millis() + ttl_millis;
+                }
+            }
+        } 
+
+        let value = fragments[6].to_string();
+        redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
 
         if let Some(stream) = stream { 
             let response_bytes = &RespValue::Ok.to_bytes();
