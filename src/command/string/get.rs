@@ -32,8 +32,6 @@ impl CommandStrategy for GetCommand {
         };
 
         let key = fragments[4].to_string();
-        
-        // 检测是否过期
         redis_ref.check_ttl(db_index, &key);
 
         match redis_ref.get(db_index, &key) {
@@ -45,7 +43,8 @@ impl CommandStrategy for GetCommand {
             },
             Ok(None) => {
                 if let Some(stream) = stream { 
-                    stream.write(b"$-1\r\n").unwrap();
+                    let response_bytes = &RespValue::Null.to_bytes();
+                    stream.write(response_bytes).unwrap();
                 }
             },
             Err(err_msg) => {

@@ -85,7 +85,7 @@ impl CommandStrategy for SetCommand {
                     expire_at = current_millis() + ttl_millis;
                 }
             }
-        } 
+        }
 
         let value = fragments[6].to_string();
         redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
