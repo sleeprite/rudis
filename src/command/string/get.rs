@@ -20,8 +20,8 @@ impl CommandStrategy for GetCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &String
     ) {
+        
         let mut redis_ref = redis.lock().unwrap();
-
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
             if let Some(session) = sessions_ref.get(session_id) {

@@ -22,3 +22,8 @@ appendonly=true
 
 From now on, every time Rudis receives a command that changes the dataset (e.g. SET) it will append it to the AOF. When you restart Rudis it will re-play the AOF to rebuild the state.
 
+```
+appendfilename=./data/appendonly.aof
+```
+
+The data will be persisted to the appendonly.aof file in the Rudis installation directory by default, and you can configure and modify the location through appendfilename.

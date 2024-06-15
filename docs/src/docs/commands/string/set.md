@@ -10,7 +10,7 @@ SET key value [NX | XX] [EX seconds | PX milliseconds ]
 
 ## Option
 
-The command supports a set of options that modify its behavior:SET
+The SET command supports a set of options that modify its behavior:
 
 - EX seconds -- Set the specified expire time, in seconds (a positive integer).
 - PX milliseconds -- Set the specified expire time, in milliseconds (a positive integer).
@@ -19,4 +19,6 @@ The command supports a set of options that modify its behavior:SET
 
 ## Return
 
-When SET successfully completes the setting operation, it returns OK.
+Simple string reply: OK if SET was executed correctly.
+
+Null reply: (nil) if the SET operation was not performed because the user specified the NX or XX option but the condition was not met.

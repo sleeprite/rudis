@@ -10,4 +10,4 @@ GET key
 
 ## Return
 
-Return the value of the key, and if the key does not exist, return nil. If the key is not of string type, an error is returned.
+Bulk string reply: the value of key, or nil when key does not exist.

@@ -10,4 +10,4 @@ DEL key [key ...]
 
 ## Return
 
-The number of keys that were removed.
+Integer reply: The number of keys that were removed.

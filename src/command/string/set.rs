@@ -75,7 +75,7 @@ impl CommandStrategy for SetCommand {
 
         let mut expire_at = -1;
         if let Some(ttl_index) = ttl_index {
-            if let Some(ttl_str) = fragments.get(ttl_index + 1) {
+            if let Some(ttl_str) = fragments.get(ttl_index + 2) {
                 if let Ok(ttl) = ttl_str.parse::<i64>() {
                     let ttl_millis = match ttl_unit.unwrap().as_str() {
                         "EX" => ttl * 1000,
