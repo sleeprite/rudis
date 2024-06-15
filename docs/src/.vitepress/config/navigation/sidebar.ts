@@ -121,8 +121,16 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
               link: '/docs/commands/key/del',
             },
             {
+              text: 'RENAME',
+              link: '/docs/commands/key/rename',
+            },
+            {
               text: 'TTL',
               link: '/docs/commands/key/ttl',
+            },
+            {
+              text: 'TYPE',
+              link: '/docs/commands/key/type',
             },
           ]
         },
