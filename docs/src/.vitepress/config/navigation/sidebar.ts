@@ -103,8 +103,8 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           link: '/docs/guides/configuration',
         },
         {
-          text: 'Protocol Spec',
-          link: '/docs/guides/protocolSpec',
+          text: 'Changelog',
+          link: '/docs/guides/changelog',
         },
       ],
     },
@@ -202,6 +202,17 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
             {
               text: 'HSET',
               link: '/docs/commands/hash/hset',
+            },
+          ]
+        },
+        {
+          text: 'Geo',
+          link: '/docs/commands/hash',
+          collapsed: true,
+          items: [
+            {
+              text: 'GEO',
+              link: '/docs/commands/hash/hdel',
             },
           ]
         }

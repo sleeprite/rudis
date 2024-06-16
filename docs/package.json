@@ -56,6 +56,7 @@
     "lint-staged": "15.2.0",
     "markdownlint": "0.32.1",
     "markdownlint-cli": "0.38.0",
+    "naive-ui": "^2.38.2",
     "sentences-per-line": "0.2.1",
     "stylelint": "16.1.0",
     "stylelint-stylus": "1.0.0",

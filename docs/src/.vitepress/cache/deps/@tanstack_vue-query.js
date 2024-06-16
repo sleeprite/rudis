@@ -1,9 +1,9 @@
 import {
-  isVue2
-} from "./chunk-I3RIQLCS.js";
-import {
   setupDevtoolsPlugin
 } from "./chunk-Y2XQL4KM.js";
+import {
+  isVue2
+} from "./chunk-I3RIQLCS.js";
 import {
   computed2 as computed,
   getCurrentScope,
