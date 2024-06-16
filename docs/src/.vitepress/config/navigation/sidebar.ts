@@ -88,6 +88,10 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
 function enSidebar(): DefaultTheme.SidebarItem[] {
   return [
     {
+      text: 'Changelog',
+      link: '/docs/guides/changelog',
+    },
+    {
       text: 'Guides',
       items: [
         {
@@ -103,8 +107,8 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           link: '/docs/guides/configuration',
         },
         {
-          text: 'Changelog',
-          link: '/docs/guides/changelog',
+          text: 'Protocol Spec',
+          link: '/docs/guides/protocolSpec',
         },
       ],
     },
