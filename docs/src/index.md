@@ -35,3 +35,38 @@ features:
     link: /docs/guides/getting-started
     linkText: Get started
 ---
+
+
+<script setup>
+import {
+  VPTeamPage,
+  VPTeamPageTitle,
+  VPTeamMembers
+} from 'vitepress/theme'
+
+const members = [
+  {
+    avatar: 'https://foruda.gitee.com/avatar/1677022544584087390/4835367_jmysy_1578975358.png!avatar200',
+    name: '就眠儀式',
+    title: 'Creator',
+    links: [
+      { icon: 'github', link: 'https://github.com/sleeprite' }
+    ]
+  },
+]
+</script>
+
+<VPTeamPage>
+  <VPTeamPageTitle>
+    <template #title>
+      Our Team
+    </template>
+    <template #lead>
+      The development of Rudis is guided by an international
+      team, some of whom have chosen to be featured below.
+    </template>
+  </VPTeamPageTitle>
+  <VPTeamMembers
+    :members="members"
+  />
+</VPTeamPage>
