@@ -8,6 +8,10 @@ const sidebar: DefaultTheme.SidebarMulti = {
 function zhSidebar(): DefaultTheme.SidebarItem[] {
   return [
     {
+      text: '更新日志',
+      link: '/zh/docs/guides/changelog',
+    },
+    {
       text: '指南',
       items: [
         {
@@ -21,6 +25,10 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: '配置',
           link: '/zh/docs/guides/configuration',
+        },
+        {
+          text: '协议规范',
+          link: '/zh/docs/guides/protocolSpec',
         },
       ],
     },
@@ -103,12 +111,12 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           link: '/docs/guides/install',
         },
         {
-          text: 'Configuration',
-          link: '/docs/guides/configuration',
-        },
-        {
           text: 'Protocol Spec',
           link: '/docs/guides/protocolSpec',
+        },
+        {
+          text: 'Configuration',
+          link: '/docs/guides/configuration',
         },
       ],
     },
@@ -208,17 +216,6 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
               link: '/docs/commands/hash/hset',
             },
           ]
-        },
-        {
-          text: 'Geo',
-          link: '/docs/commands/hash',
-          collapsed: true,
-          items: [
-            {
-              text: 'GEO',
-              link: '/docs/commands/hash/hdel',
-            },
-          ]
         }
       ],
     },
@@ -232,7 +229,7 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
         {
           text: 'Persistence',
           link: '/docs/advance/persistence',
-        }
+        },
       ],
     }
   ]
