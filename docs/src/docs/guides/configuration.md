@@ -79,3 +79,10 @@ The bound host address effectively controls the network interface that Rudis ser
 - version: `0.0.1`
 
 Set the maximum number of client connections at the same time, with a default value of 0, indicating no restrictions. When the number of client connections reaches the limit, Rudis will close new connections and return a max number of clients reached error message to the client.
+
+
+### Hz
+
+- version: `0.0.1`
+
+By modifying the value of the hz parameter, you can adjust the frequency of Redis executing periodic tasks, thereby changing the efficiency of Redis clearing expired keys and clearing timeout connections.

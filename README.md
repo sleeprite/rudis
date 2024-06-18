@@ -52,6 +52,7 @@ cargo build
 - appendfilename 持久化日志路径，默认：None
 - appendonly 开启持久化，默认：false
 - maxclients 会话上限，默认 1000
+- hz 定时任务的频率，默认 10（次/秒）
 - bind 绑定的主机地址
 
 ## 项目结构

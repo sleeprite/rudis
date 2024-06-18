@@ -18,7 +18,7 @@ pub struct RedisConfig {
     pub databases: usize,
     pub appendfilename: Option<String>,
     pub appendonly: bool,
-    pub expiration_detection_cycle: u64,
+    pub hz: u64,
     pub maxclients: usize
 }
 
@@ -32,10 +32,9 @@ impl Default for RedisConfig {
         let mut password = get_password_or(None);
         let mut appendonly = get_appendonly_or(false);
         let mut appendfilename = get_appendfilename_or(Some(filename.to_string()));
-        let mut expiration_detection_cycle = get_expiration_detection_cycle_or(1);
+        let mut hz = get_hz_or(10);
         let mut maxclients = get_maxclients_or(0);
         let config_path = get_config_path_or(None);
-
         
         if let Some(config) = config_path {
             if let Ok(content) = fs::read_to_string(config) {
@@ -49,7 +48,7 @@ impl Default for RedisConfig {
                             "databases" => databases = value.parse().unwrap_or(databases),
                             "appendfilename" => appendfilename = Some(value.to_string()),
                             "appendonly" => appendonly = value.parse().unwrap_or(appendonly),
-                            "expiration_detection_cycle" => expiration_detection_cycle = value.parse().unwrap_or(expiration_detection_cycle),
+                            "hz" => hz = value.parse().unwrap_or(hz),
                             "maxclients" => maxclients = value.parse().unwrap_or(maxclients),
                             _ => {}  // Ignore unknown config keys
                         }
@@ -64,7 +63,7 @@ impl Default for RedisConfig {
             port,
             password,
             databases,
-            expiration_detection_cycle,
+            hz,
             appendfilename,
             appendonly,
             maxclients,
@@ -118,14 +117,14 @@ fn get_port_or(default: u16) -> u16 {
     }
 }
 
-fn get_expiration_detection_cycle_or(default: u64) -> u64 {
-    let mut args = env::args().skip_while(|arg| arg != "--expiration_detection_cycle").take(2);
+fn get_hz_or(default: u64) -> u64 {
+    let mut args = env::args().skip_while(|arg| arg != "--hz").take(2);
     if args.next().is_none() {
         return default;
     }
 
     if let Some(arg) = args.next() {
-        return arg.parse().expect("'--expiration_detection_cycle' must have a value");
+        return arg.parse().expect("'--hz' must have a value");
     } else {
         return default;
     }

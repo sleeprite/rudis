@@ -55,10 +55,10 @@ use command::echo::EchoCommand;
 use command::flushall::FlushAllCommand;
 use command::flushdb::FlushDbCommand;
 use command::select::SelectCommand;
-use command::zset::zadd::ZaddCommand;
-use command::zset::zcard::ZcardCommand;
 use command::zset::zcount::ZcountCommand;
 use command::zset::zscore::ZscoreCommand;
+use command::zset::zadd::ZaddCommand;
+use command::zset::zcard::ZcardCommand;
 use interface::command_strategy::CommandStrategy;
 use tools::resp::RespValue;
 
@@ -127,16 +127,15 @@ fn main() {
     log::info!("Server initialized");
     log::info!("Ready to accept connections");
 
-    /*
-     * 内存守护线程 
-     */
     let rc = Arc::clone(&redis);
     let rcc = Arc::clone(&redis_config);
-    
+
     thread::spawn(move || {
         loop {
+            // 检测设置过期时间的键值，释放内存占用【高负载】
+            // 但是独立的线程，不需要担心主线程长时间的阻塞
             rc.lock().unwrap().check_all_database_ttl();
-            thread::sleep(Duration::from_secs(rcc.expiration_detection_cycle));
+            thread::sleep(Duration::from_secs(1 / rcc.hz));
         }
     });
 
