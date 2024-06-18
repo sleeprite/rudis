@@ -46,11 +46,12 @@ import {
 
 const members = [
   {
-    avatar: 'https://foruda.gitee.com/avatar/1677022544584087390/4835367_jmysy_1578975358.png!avatar200',
-    name: '就眠儀式',
+    avatar: 'https://www.github.com/yyx990803.png',
+    name: 'Evan You',
     title: 'Creator',
     links: [
-      { icon: 'github', link: 'https://github.com/sleeprite' }
+      { icon: 'github', link: 'https://github.com/yyx990803' },
+      { icon: 'twitter', link: 'https://twitter.com/youyuxi' }
     ]
   },
 ]
@@ -62,7 +63,7 @@ const members = [
       Our Team
     </template>
     <template #lead>
-      The development of Rudis is guided by an international
+      The development of VitePress is guided by an international
       team, some of whom have chosen to be featured below.
     </template>
   </VPTeamPageTitle>
