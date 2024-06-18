@@ -203,6 +203,17 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           ]
         },
         {
+          text: 'Generic',
+          link: '/docs/commands/generic',
+          collapsed: true,
+          items: [
+            {
+              text: 'AUTH',
+              link: '/docs/commands/generic/auth',
+            },
+          ]
+        },
+        {
           text: 'Hash',
           link: '/docs/commands/hash',
           collapsed: true,
@@ -216,7 +227,7 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
               link: '/docs/commands/hash/hset',
             },
           ]
-        }
+        },
       ],
     },
     {

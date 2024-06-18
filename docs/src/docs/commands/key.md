@@ -8,7 +8,6 @@ description: Essential information to help you get set up with Tachiyomi.
 
 The Redis key command is used to manage Redis keys.
 
-
 <script setup>
       import { NGrid, NGi} from 'naive-ui'
       import CommandsCard from '@theme/components/CommandsCard.vue'
