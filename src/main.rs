@@ -101,6 +101,10 @@ fn main() {
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
+    
+    /*
+     * 根据 appendfsync 配置，创建 append_only_file 实例 【always】【everysec】
+     */
     let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(
         redis_config.clone(),
         redis.clone(),
@@ -132,8 +136,6 @@ fn main() {
 
     thread::spawn(move || {
         loop {
-            // 检测设置过期时间的键值，释放内存占用【高负载】
-            // 但是独立的线程，不需要担心主线程长时间的阻塞
             rc.lock().unwrap().check_all_database_ttl();
             thread::sleep(Duration::from_secs(1 / rcc.hz));
         }
@@ -303,6 +305,11 @@ fn connection(
                         &sessions,
                         &session_id,
                     );
+
+                    /*
+                     * 假定是个影响内存的命令，记录到日志，
+                     * 【备份与恢复】中的 “备份”。
+                     */
                     match strategy.command_type() {
                         CommandType::Write => {
                             match append_only_file.lock() {

@@ -19,6 +19,7 @@ pub struct RedisConfig {
     pub appendfilename: Option<String>,
     pub appendonly: bool,
     pub hz: u64,
+    pub appendfsync: Option<String>,
     pub maxclients: usize
 }
 
@@ -34,6 +35,7 @@ impl Default for RedisConfig {
         let mut appendfilename = get_appendfilename_or(Some(filename.to_string()));
         let mut hz = get_hz_or(10);
         let mut maxclients = get_maxclients_or(0);
+        let mut appendfsync = get_appendfsync_or(None);
         let config_path = get_config_path_or(None);
         
         if let Some(config) = config_path {
@@ -46,10 +48,11 @@ impl Default for RedisConfig {
                             "bind" => bind = value.to_string(),
                             "password" => password = Some(value.to_string()),
                             "databases" => databases = value.parse().unwrap_or(databases),
-                            "appendfilename" => appendfilename = Some(value.to_string()),
-                            "appendonly" => appendonly = value.parse().unwrap_or(appendonly),
-                            "hz" => hz = value.parse().unwrap_or(hz),
                             "maxclients" => maxclients = value.parse().unwrap_or(maxclients),
+                            "appendonly" => appendonly = value.parse().unwrap_or(appendonly),
+                            "appendfilename" => appendfilename = Some(value.to_string()),
+                            "appendfsync" => appendfsync = Some(value.to_string()),
+                            "hz" => hz = value.parse().unwrap_or(hz),
                             _ => {}  // Ignore unknown config keys
                         }
                     }
@@ -62,12 +65,13 @@ impl Default for RedisConfig {
         Self {
             port,
             password,
+            appendfsync,
             databases,
-            hz,
             appendfilename,
             appendonly,
             maxclients,
             bind,
+            hz
         }
     }
 }
@@ -215,6 +219,22 @@ fn get_appendfilename_or(default_appendfilename: Option<String>) -> Option<Strin
         return Some(arg);
     } else {
         return default_appendfilename;
+    }
+}
+
+/*
+ * 获取 appendfsync 参数
+ */
+fn get_appendfsync_or(default_appendfsync: Option<String>) -> Option<String> {
+    let mut args = env::args().skip_while(|arg| arg != "--appendfsync").take(2);
+    if args.next().is_none() {
+        return default_appendfsync;
+    }
+
+    if let Some(arg) = args.next() {
+        return Some(arg);
+    } else {
+        return default_appendfsync;
     }
 }
 
