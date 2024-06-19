@@ -210,23 +210,6 @@ impl Redis {
     }
 
     /*
-     * 设置值
-     *
-     * @param db_index 数据库索引
-     * @param key 数据键
-     */
-    pub fn set(&mut self, db_index: usize, key: String, value: String) {
-        if db_index < self.databases.len() {
-            self.databases[db_index].insert(
-                key.clone(),
-                RedisData::new(RedisValue::StringValue(value.clone()), -1),
-            );
-        } else {
-            panic!("Invalid database index");
-        }
-    }
-
-    /*
      * 设置值的同时设置过期时间
      *
      * @param db_index DB 索引
