@@ -31,7 +31,10 @@
     "lodash.groupby": "4.6.0",
     "markdown-it": "14.0.0",
     "markdown-it-shortcode-tag": "1.1.0",
-    "moment": "2.30.1"
+    "moment": "2.30.1",
+    "@octokit/types": "12.4.0",
+    "@octokit/rest": "20.0.2",
+    "node-fetch": "3.3.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.6.1",

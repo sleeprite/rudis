@@ -111,12 +111,12 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           link: '/docs/guides/install',
         },
         {
-          text: 'Protocol Spec',
-          link: '/docs/guides/protocolSpec',
-        },
-        {
           text: 'Configuration',
           link: '/docs/guides/configuration',
+        },
+        {
+          text: 'Protocol Spec',
+          link: '/docs/guides/protocolSpec',
         },
       ],
     },

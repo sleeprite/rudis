@@ -1,88 +1,85 @@
 {
-  "hash": "dd4f7806",
+  "hash": "64ee7bbe",
   "configHash": "19d2c39f",
-  "lockfileHash": "65096b99",
-  "browserHash": "7d28fd80",
+  "lockfileHash": "3acb6a80",
+  "browserHash": "9ac6dcf0",
   "optimized": {
     "vue": {
       "src": "../../../../node_modules/.pnpm/vue@3.4.5_typescript@5.2.2/node_modules/vue/dist/vue.runtime.esm-bundler.js",
       "file": "vue.js",
-      "fileHash": "910a6aeb",
+      "fileHash": "a493ce48",
       "needsInterop": false
     },
     "vitepress > @vue/devtools-api": {
       "src": "../../../../node_modules/.pnpm/@vue+devtools-api@6.5.1/node_modules/@vue/devtools-api/lib/esm/index.js",
       "file": "vitepress___@vue_devtools-api.js",
-      "fileHash": "f8d56f55",
+      "fileHash": "d88574ba",
       "needsInterop": false
     },
     "vitepress > @vueuse/core": {
       "src": "../../../../node_modules/.pnpm/@vueuse+core@10.7.1_vue@3.4.5/node_modules/@vueuse/core/index.mjs",
       "file": "vitepress___@vueuse_core.js",
-      "fileHash": "ec5871a4",
+      "fileHash": "0f5acd9f",
       "needsInterop": false
     },
     "@tanstack/vue-query": {
       "src": "../../../../node_modules/.pnpm/@tanstack+vue-query@5.17.8_vue@3.4.5/node_modules/@tanstack/vue-query/build/modern/index.js",
       "file": "@tanstack_vue-query.js",
-      "fileHash": "7d6e3dee",
+      "fileHash": "fe9bc098",
       "needsInterop": false
     },
     "vitepress-plugin-tabs/client": {
       "src": "../../../../node_modules/.pnpm/vitepress-plugin-tabs@0.5.0_vitepress@1.0.0-rc.35_vue@3.4.5/node_modules/vitepress-plugin-tabs/src/client/index.ts",
       "file": "vitepress-plugin-tabs_client.js",
-      "fileHash": "f94c01d4",
+      "fileHash": "bc4082cb",
       "needsInterop": false
     },
     "@iconify-prerendered/vue-mdi": {
       "src": "../../../../node_modules/.pnpm/@iconify-prerendered+vue-mdi@0.23.1702456985_vue@3.4.5/node_modules/@iconify-prerendered/vue-mdi/index.js",
       "file": "@iconify-prerendered_vue-mdi.js",
-      "fileHash": "2353db07",
+      "fileHash": "068291c9",
+      "needsInterop": false
+    },
+    "markdown-it": {
+      "src": "../../../../node_modules/.pnpm/markdown-it@14.0.0/node_modules/markdown-it/index.mjs",
+      "file": "markdown-it.js",
+      "fileHash": "13af069b",
       "needsInterop": false
     },
     "lodash.groupby": {
       "src": "../../../../node_modules/.pnpm/lodash.groupby@4.6.0/node_modules/lodash.groupby/index.js",
       "file": "lodash__groupby.js",
-      "fileHash": "9b8555d3",
+      "fileHash": "a7be381f",
       "needsInterop": true
     },
     "element-plus": {
       "src": "../../../../node_modules/.pnpm/element-plus@2.4.4_vue@3.4.5/node_modules/element-plus/es/index.mjs",
       "file": "element-plus.js",
-      "fileHash": "85aacbdf",
+      "fileHash": "0f789bc8",
       "needsInterop": false
     },
     "element-plus/es/components/loading/style/css": {
       "src": "../../../../node_modules/.pnpm/element-plus@2.4.4_vue@3.4.5/node_modules/element-plus/es/components/loading/style/css.mjs",
       "file": "element-plus_es_components_loading_style_css.js",
-      "fileHash": "00c11c2d",
+      "fileHash": "8fd4d9c5",
       "needsInterop": false
     },
     "axios": {
       "src": "../../../../node_modules/.pnpm/axios@1.6.5/node_modules/axios/index.js",
       "file": "axios.js",
-      "fileHash": "41d98041",
-      "needsInterop": false
-    },
-    "naive-ui": {
-      "src": "../../../../node_modules/.pnpm/naive-ui@2.38.2_vue@3.4.5/node_modules/naive-ui/es/index.mjs",
-      "file": "naive-ui.js",
-      "fileHash": "4fc81058",
+      "fileHash": "5fffaeec",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-X4ECCFDQ": {
-      "file": "chunk-X4ECCFDQ.js"
-    },
-    "chunk-Y2XQL4KM": {
-      "file": "chunk-Y2XQL4KM.js"
-    },
     "chunk-I3RIQLCS": {
       "file": "chunk-I3RIQLCS.js"
     },
     "chunk-T3FA6UVC": {
       "file": "chunk-T3FA6UVC.js"
+    },
+    "chunk-Y2XQL4KM": {
+      "file": "chunk-Y2XQL4KM.js"
     },
     "chunk-HL2QZUHZ": {
       "file": "chunk-HL2QZUHZ.js"

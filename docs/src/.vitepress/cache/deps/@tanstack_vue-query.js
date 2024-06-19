@@ -1,7 +1,4 @@
 import {
-  setupDevtoolsPlugin
-} from "./chunk-Y2XQL4KM.js";
-import {
   isVue2
 } from "./chunk-I3RIQLCS.js";
 import {
@@ -19,6 +16,9 @@ import {
   watch,
   watchEffect
 } from "./chunk-T3FA6UVC.js";
+import {
+  setupDevtoolsPlugin
+} from "./chunk-Y2XQL4KM.js";
 import {
   __privateAdd,
   __privateGet,
