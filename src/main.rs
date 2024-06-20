@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-mod aof;
+mod persistence;
 mod command;
 mod db;
 mod interface;
@@ -17,7 +17,7 @@ mod command_strategies;
 use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
-use crate::aof::aof::AppendOnlyFile;
+use crate::persistence::aof::AppendOnlyFile;
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
