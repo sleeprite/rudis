@@ -12,54 +12,9 @@ mod db;
 mod interface;
 mod session;
 mod tools;
+mod command_strategies;
 
-use command::arr::lindex::LindexCommand;
-use command::arr::llen::LlenCommand;
-use command::arr::lpop::LpopCommand;
-use command::arr::lpush::LpushCommand;
-use command::arr::lrange::LrangeCommand;
-use command::arr::rpop::RpopCommand;
-use command::arr::rpush::RpushCommand;
-
-use command::hash::hdel::HdelCommand;
-use command::hash::hexists::HexistsCommand;
-use command::hash::hget::HgetCommand;
-use command::hash::hmset::HmsetCommand;
-
-use command::hash::hset::HsetCommand;
-use command::key::del::DelCommand;
-use command::key::exists::ExistsCommand;
-use command::key::expire::ExpireCommand;
-use command::key::keys::KeysCommand;
-use command::key::pexpire::PexpireCommand;
-use command::key::pttl::PttlCommand;
-use command::key::r#move::MoveCommand;
-use command::key::r#type::TypeCommand;
-use command::key::rename::RenameCommand;
-use command::key::ttl::TtlCommand;
-
-use command::set::sadd::SaddCommand;
-use command::set::scard::ScardCommand;
-use command::set::smembers::SmembersCommand;
-
-use command::string::append::AppendCommand;
-use command::string::decr::DecrCommand;
-use command::string::get::GetCommand;
-use command::string::incr::IncrCommand;
-use command::string::set::SetCommand;
-use command::string::mset::MsetCommand;
-
-use command::auth::AuthCommand;
-use command::dbsize::DBSizeCommand;
-use command::echo::EchoCommand;
-use command::flushall::FlushAllCommand;
-use command::flushdb::FlushDbCommand;
-use command::select::SelectCommand;
-use command::zset::zcount::ZcountCommand;
-use command::zset::zscore::ZscoreCommand;
-use command::zset::zadd::ZaddCommand;
-use command::zset::zcard::ZcardCommand;
-use interface::command_strategy::CommandStrategy;
+use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
 use crate::aof::aof::AppendOnlyFile;
@@ -163,57 +118,6 @@ fn main() {
             }
         }
     }
-}
-
-/*
- * 命令集合
- */
-fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
-    let mut strategies: HashMap<&'static str, Box<dyn CommandStrategy>> = HashMap::new();
-
-    strategies.insert("ECHO", Box::new(EchoCommand {}));
-    strategies.insert("SET", Box::new(SetCommand {}));
-    strategies.insert("GET", Box::new(GetCommand {}));
-    strategies.insert("DEL", Box::new(DelCommand {}));
-    strategies.insert("EXISTS", Box::new(ExistsCommand {}));
-    strategies.insert("EXPIRE", Box::new(ExpireCommand {}));
-    strategies.insert("RENAME", Box::new(RenameCommand {}));
-    strategies.insert("DBSIZE", Box::new(DBSizeCommand {}));
-    strategies.insert("FLUSHALL", Box::new(FlushAllCommand {}));
-    strategies.insert("FLUSHDB", Box::new(FlushDbCommand {}));
-    strategies.insert("SELECT", Box::new(SelectCommand {}));
-    strategies.insert("AUTH", Box::new(AuthCommand {}));
-    strategies.insert("LLEN", Box::new(LlenCommand {}));
-    strategies.insert("MOVE", Box::new(MoveCommand {}));
-    strategies.insert("KEYS", Box::new(KeysCommand {}));
-    strategies.insert("APPEND", Box::new(AppendCommand {}));
-    strategies.insert("LPUSH", Box::new(LpushCommand {}));
-    strategies.insert("RPUSH", Box::new(RpushCommand {}));
-    strategies.insert("LINDEX", Box::new(LindexCommand {}));
-    strategies.insert("LPOP", Box::new(LpopCommand {}));
-    strategies.insert("RPOP", Box::new(RpopCommand {}));
-    strategies.insert("INCR", Box::new(IncrCommand {}));
-    strategies.insert("DECR", Box::new(DecrCommand {}));
-    strategies.insert("PTTL", Box::new(PttlCommand {}));
-    strategies.insert("TYPE", Box::new(TypeCommand {}));
-    strategies.insert("SADD", Box::new(SaddCommand {}));
-    strategies.insert("SMEMBERS", Box::new(SmembersCommand {}));
-    strategies.insert("LRANGE", Box::new(LrangeCommand {}));
-    strategies.insert("SCARD", Box::new(ScardCommand {}));
-    strategies.insert("TTL", Box::new(TtlCommand {}));
-    strategies.insert("HMSET", Box::new(HmsetCommand {}));
-    strategies.insert("HGET", Box::new(HgetCommand {}));
-    strategies.insert("HDEL", Box::new(HdelCommand {}));
-    strategies.insert("HEXISTS", Box::new(HexistsCommand {}));
-    strategies.insert("HSET", Box::new(HsetCommand {}));
-    strategies.insert("ZADD", Box::new(ZaddCommand {}));
-    strategies.insert("ZCOUNT", Box::new(ZcountCommand {}));
-    strategies.insert("ZCARD", Box::new(ZcardCommand {}));
-    strategies.insert("PEXPIRE", Box::new(PexpireCommand {}));
-    strategies.insert("ZSCORE", Box::new(ZscoreCommand {}));
-    strategies.insert("MSET", Box::new(MsetCommand {}));
-
-    strategies
 }
 
 // 处理 Tcp 链接

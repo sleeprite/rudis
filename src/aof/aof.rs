@@ -8,8 +8,8 @@ use std::{fs::OpenOptions, sync::Arc};
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::db::db::Redis;
+use crate::command_strategies::init_command_strategies;
 use crate::db::db_config::RedisConfig;
-use crate::init_command_strategies;
 use crate::session::session::Session;
 
 pub struct AppendOnlyFile {
