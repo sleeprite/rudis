@@ -15,6 +15,7 @@ mod tools;
 mod command_strategies;
 
 use command_strategies::init_command_strategies;
+use persistence::rdb::RDB;
 use tools::resp::RespValue;
 
 use crate::persistence::aof::AOF;
@@ -65,6 +66,11 @@ fn main() {
         redis.clone(),
     )));
 
+    let rdb = Arc::new(Mutex::new(RDB::new(
+        redis_config.clone(),
+        redis.clone(),
+    )));
+
     println_banner(port);
 
     /*
@@ -89,10 +95,19 @@ fn main() {
     let rc = Arc::clone(&redis);
     let rcc = Arc::clone(&redis_config);
 
+    // 清理 Cache
     thread::spawn(move || {
         loop {
             rc.lock().unwrap().check_all_database_ttl();
             thread::sleep(Duration::from_secs(1 / rcc.hz));
+        }
+    });
+
+    // 保存 dump.rdb
+    thread::spawn(move || {
+        loop {
+            rdb.lock().unwrap().save();
+            thread::sleep(Duration::from_secs(5));
         }
     });
 

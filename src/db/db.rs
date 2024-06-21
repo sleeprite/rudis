@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashSet};
+use std::io::SeekFrom;
 use std::{collections::HashMap, sync::Arc};
 
 use crate::tools::date::current_millis;
@@ -11,6 +12,7 @@ use super::db_config::RedisConfig;
  * @param value 值
  * @param score 分
  */
+#[derive(Debug)]
 pub struct ZsetElement {
     value: String,
     score: usize,
@@ -19,6 +21,10 @@ pub struct ZsetElement {
 impl ZsetElement {
     fn new(value: String, score: usize) -> Self {
         ZsetElement { value, score }
+    }
+
+    pub fn get_score(&self) -> usize {
+        return self.score;
     }
 }
 
@@ -68,6 +74,10 @@ impl RedisData {
         return self.expire_at;
     }
 
+    pub fn get_value(&self) -> &RedisValue {
+        return &self.value;
+    }
+
     pub fn set_expire_at(&mut self, expire_at: i64) {
         self.expire_at = expire_at;
     }
@@ -95,6 +105,15 @@ impl Redis {
             databases,
             redis_config,
         }
+    }
+
+    /*
+     * 获取数据库列表
+     *
+     * @return databases
+     */
+    pub fn get_databases(&self) -> &Vec<HashMap<String, RedisData>> {
+        &self.databases
     }
 
     /*

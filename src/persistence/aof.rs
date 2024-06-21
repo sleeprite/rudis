@@ -35,7 +35,7 @@ impl AOF {
     }
 
     /*
-     * 写入 aof 日志
+     * 写入 aof 日志【增量】
      *
      * @param command 命令
      */
@@ -63,7 +63,6 @@ impl AOF {
                     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
 
                     {
-                        // 创建模拟 Session 会话
                         let mut sessions_ref = sessions.lock().unwrap();
                         let mut session = Session::new();
                         session.set_selected_database(0);

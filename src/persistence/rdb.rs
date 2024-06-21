@@ -1,7 +1,7 @@
-use std::{fs::OpenOptions, sync::{Arc, Mutex}};
+use std::{collections::HashMap, fs::OpenOptions, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::db::{db::Redis, db_config::RedisConfig};
+use crate::db::{db::{Redis, RedisData, RedisValue}, db_config::RedisConfig};
 
 pub struct RDB {
     pub redis_config: Arc<RedisConfig>,
@@ -24,16 +24,38 @@ impl RDB {
         }
     }
 
+    /*
+     * 写入 rdb 文件【全量】
+     */
     pub fn save(&mut self) {
-
-
         if let Some(file) = self.rdb_file.as_mut() {
-        
-            // 查询所有键值，并将 dbIndex key value valueType 组合，存储到 dump.rdb 文件
-            let mut redis_ref = self.redis.lock().unwrap();
-        
-            if let Err(err) = writeln!(file, "{}", "") {
-                eprintln!("Failed to append to AOF file: {}", err);
+            let redis_ref = self.redis.lock().unwrap();
+            let databases: &Vec<HashMap<String, RedisData>> = redis_ref.get_databases();
+            for (db_index, database) in databases.iter().enumerate() {
+                for (key, redis_data) in database.iter() {
+                    let expire_at = redis_data.get_expire_at();
+                    let protocol_line = match redis_data.get_value() {
+                        RedisValue::ListValue(list) => {
+                            format!("{} {} {:?} List {}",  db_index, key, list, expire_at)
+                        },
+                        RedisValue::HashValue(hash) => {
+                            format!("{} {} {:?} Hash {}",  db_index, key, hash, expire_at)
+                        },
+                        RedisValue::ZsetValue(zset) => {
+                            format!("{} {} {:?} Zset {}",  db_index, key, zset, expire_at)
+                        },
+                        RedisValue::StringValue(value) => {                            
+                            format!("{} {} {:?} String {}",  db_index, key, value, expire_at)
+                        },
+                        RedisValue::SetValue(set) => {
+                            format!("{} {} {:?} Set {}",  db_index, key, set, expire_at)
+                        },
+                    };
+
+                    if let Err(err) = writeln!(file, "{}", protocol_line) {
+                        eprintln!("Failed to append to RDB file: {}", err);
+                    }
+                }
             }
         }
     }
