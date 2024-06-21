@@ -1,5 +1,4 @@
 use std::collections::{BTreeSet, HashSet};
-use std::io::SeekFrom;
 use std::{collections::HashMap, sync::Arc};
 
 use crate::tools::date::current_millis;
@@ -21,10 +20,6 @@ pub struct ZsetElement {
 impl ZsetElement {
     fn new(value: String, score: usize) -> Self {
         ZsetElement { value, score }
-    }
-
-    pub fn get_score(&self) -> usize {
-        return self.score;
     }
 }
 
