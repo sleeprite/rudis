@@ -12,25 +12,25 @@ use crate::command_strategies::init_command_strategies;
 use crate::db::db_config::RedisConfig;
 use crate::session::session::Session;
 
-pub struct AppendOnlyFile {
+pub struct AOF {
     pub redis_config: Arc<RedisConfig>,
     pub redis: Arc<Mutex<Redis>>,
-    pub file: Option<std::fs::File>,
+    pub aof_file: Option<std::fs::File>,
 }
 
-impl AppendOnlyFile {
+impl AOF {
     
-    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> AppendOnlyFile {
-        let mut file = None;
+    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> AOF {
+        let mut aof_file = None;
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
-                file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"));
+                aof_file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"));
             }
         }
-        AppendOnlyFile {
+        AOF {
             redis_config,
             redis,
-            file,
+            aof_file,
         }
     }
 
@@ -39,8 +39,8 @@ impl AppendOnlyFile {
      *
      * @param command 命令
      */
-    pub fn write(&mut self, command: &str) {
-        if let Some(file) = self.file.as_mut() {
+    pub fn save(&mut self, command: &str) {
+        if let Some(file) = self.aof_file.as_mut() {
             if let Err(err) = writeln!(file, "{}", command) {
                 eprintln!("Failed to append to AOF file: {}", err);
             }
@@ -63,6 +63,7 @@ impl AppendOnlyFile {
                     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
 
                     {
+                        // 创建模拟 Session 会话
                         let mut sessions_ref = sessions.lock().unwrap();
                         let mut session = Session::new();
                         session.set_selected_database(0);

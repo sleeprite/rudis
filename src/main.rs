@@ -17,7 +17,7 @@ mod command_strategies;
 use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
-use crate::persistence::aof::AppendOnlyFile;
+use crate::persistence::aof::AOF;
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
@@ -60,7 +60,7 @@ fn main() {
     /*
      * 根据 appendfsync 配置，创建 append_only_file 实例 【always】【everysec】
      */
-    let append_only_file = Arc::new(Mutex::new(AppendOnlyFile::new(
+    let append_only_file = Arc::new(Mutex::new(AOF::new(
         redis_config.clone(),
         redis.clone(),
     )));
@@ -126,7 +126,7 @@ fn connection(
     redis: Arc<Mutex<Redis>>,
     redis_config: Arc<RedisConfig>,
     sessions: Arc<Mutex<HashMap<String, Session>>>,
-    append_only_file: Arc<Mutex<AppendOnlyFile>>,
+    append_only_file: Arc<Mutex<AOF>>,
 ) {
     /*
      * 声明变量
@@ -218,7 +218,7 @@ fn connection(
                         CommandType::Write => {
                             match append_only_file.lock() {
                                 Ok(mut append_only_file_ref) => {
-                                    append_only_file_ref.write(&fragments.join("\\r\\n"));
+                                    append_only_file_ref.save(&fragments.join("\\r\\n"));
                                 }
                                 Err(_) => {
                                     eprintln!("Failed to acquire lock on append_only_file");

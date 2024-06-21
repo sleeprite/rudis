@@ -16,12 +16,15 @@ pub struct RedisConfig {
     pub port: u16,
     pub password: Option<String>,
     pub databases: usize,
+    pub dbfilename: Option<String>,
     pub appendfilename: Option<String>,
     pub appendonly: bool,
     pub hz: u64,
     pub appendfsync: Option<String>,
-    pub maxclients: usize
+    pub maxclients: usize,
 }
+// dbfilename dump.rdb
+
 
 impl Default for RedisConfig {
     fn default() -> Self {
@@ -30,6 +33,7 @@ impl Default for RedisConfig {
         let mut port = get_port_or(6379);
         let mut bind = get_bind_or(String::from("127.0.0.1"));
         let mut databases = get_databases_or(16);
+        let mut dbfilename = get_dbfilename_or(Some("dump.rdb".to_string()));
         let mut password = get_password_or(None);
         let mut appendonly = get_appendonly_or(false);
         let mut appendfilename = get_appendfilename_or(Some(filename.to_string()));
@@ -47,6 +51,7 @@ impl Default for RedisConfig {
                             "port" => port = value.parse().unwrap_or(port),
                             "bind" => bind = value.to_string(),
                             "password" => password = Some(value.to_string()),
+                            "dbfilename" => dbfilename = Some(value.to_string()),
                             "databases" => databases = value.parse().unwrap_or(databases),
                             "maxclients" => maxclients = value.parse().unwrap_or(maxclients),
                             "appendonly" => appendonly = value.parse().unwrap_or(appendonly),
@@ -66,6 +71,7 @@ impl Default for RedisConfig {
             port,
             password,
             appendfsync,
+            dbfilename,
             databases,
             appendfilename,
             appendonly,
@@ -203,6 +209,24 @@ fn get_bind_or(default_bind: String) -> String {
         return arg;
     } else {
         return default_bind;
+    }
+}
+
+/*
+ * 获取 password 参数
+ *
+ * @param default_password 默认密码（None）
+ */
+fn get_dbfilename_or(default_dbfilename: Option<String>) -> Option<String >{
+    let mut args = env::args().skip_while(|arg| arg != "--dbfilename").take(2);
+    if args.next().is_none() {
+        return default_dbfilename;
+    }
+
+    if let Some(arg) = args.next() {
+        return Some(arg);
+    } else {
+        return default_dbfilename;
     }
 }
 
