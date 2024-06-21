@@ -95,7 +95,6 @@ fn main() {
     let rc = Arc::clone(&redis);
     let rcc = Arc::clone(&redis_config);
 
-    // 清理 Cache
     thread::spawn(move || {
         loop {
             rc.lock().unwrap().check_all_database_ttl();
@@ -103,13 +102,17 @@ fn main() {
         }
     });
 
-    // 保存 dump.rdb
-    thread::spawn(move || {
-        loop {
-            rdb.lock().unwrap().save();
-            thread::sleep(Duration::from_secs(5));
+
+    if let Some(save_interval) = &redis_config.save {
+        if let Ok(interval) = save_interval.parse::<u64>() {
+            thread::spawn(move || {
+                loop {
+                    rdb.lock().unwrap().save();
+                    thread::sleep(Duration::from_secs(interval));
+                }
+            });      
         }
-    });
+    }
 
     for stream in listener.incoming() {
         match stream {

@@ -14,6 +14,7 @@ impl RDB {
     
     pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> RDB {
         let mut rdb_file = None;
+      
         if let Some(filename ) = &redis_config.dbfilename {
             rdb_file = Some(OpenOptions::new().create(true).write(true).open(filename).expect("Failed to open AOF file"));
         }

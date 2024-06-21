@@ -22,6 +22,7 @@ pub struct RedisConfig {
     pub hz: u64,
     pub appendfsync: Option<String>,
     pub maxclients: usize,
+    pub save: Option<String>
 }
 // dbfilename dump.rdb
 
@@ -40,6 +41,7 @@ impl Default for RedisConfig {
         let mut hz = get_hz_or(10);
         let mut maxclients = get_maxclients_or(0);
         let mut appendfsync = get_appendfsync_or(None);
+        let mut save = get_save_or(None);
         let config_path = get_config_path_or(None);
         
         if let Some(config) = config_path {
@@ -57,8 +59,9 @@ impl Default for RedisConfig {
                             "appendonly" => appendonly = value.parse().unwrap_or(appendonly),
                             "appendfilename" => appendfilename = Some(value.to_string()),
                             "appendfsync" => appendfsync = Some(value.to_string()),
+                            "save" => save = Some(value.to_string()),
                             "hz" => hz = value.parse().unwrap_or(hz),
-                            _ => {}  // Ignore unknown config keys
+                            _ => {}  
                         }
                     }
                 }
@@ -77,6 +80,7 @@ impl Default for RedisConfig {
             appendonly,
             maxclients,
             bind,
+            save,
             hz
         }
     }
@@ -195,9 +199,9 @@ fn get_password_or(default_password: Option<String>) -> Option<String> {
 }
 
 /*
- * 获取 password 参数
+ * 获取 bind 参数
  *
- * @param default_password 默认密码（None）
+ * @param default_bind 绑定主机（None）
  */
 fn get_bind_or(default_bind: String) -> String {
     let mut args = env::args().skip_while(|arg| arg != "--bind").take(2);
@@ -213,9 +217,9 @@ fn get_bind_or(default_bind: String) -> String {
 }
 
 /*
- * 获取 password 参数
+ * 获取 dbfilename 参数
  *
- * @param default_password 默认密码（None）
+ * @param default_dbfilename RDB 文件名（None）
  */
 fn get_dbfilename_or(default_dbfilename: Option<String>) -> Option<String >{
     let mut args = env::args().skip_while(|arg| arg != "--dbfilename").take(2);
@@ -229,6 +233,25 @@ fn get_dbfilename_or(default_dbfilename: Option<String>) -> Option<String >{
         return default_dbfilename;
     }
 }
+
+/*
+ * 获取 save 参数
+ *
+ * @param default_save
+ */
+fn get_save_or(default_save: Option<String>) -> Option<String >{
+    let mut args = env::args().skip_while(|arg| arg != "--save").take(2);
+    if args.next().is_none() {
+        return default_save;
+    }
+
+    if let Some(arg) = args.next() {
+        return Some(arg);
+    } else {
+        return default_save;
+    }
+}
+
 
 /*
  * 获取 appendfilename 参数
