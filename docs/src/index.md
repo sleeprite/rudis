@@ -46,11 +46,11 @@ import {
 
 const members = [
   {
-    avatar: 'https://www.github.com/yyx990803.png',
-    name: 'Evan You',
+    avatar: 'https://avatars.githubusercontent.com/u/96010787?v=4',
+    name: '就眠儀式',
     title: 'Creator',
     links: [
-      { icon: 'github', link: 'https://github.com/yyx990803' },
+      { icon: 'github', link: 'https://github.com/sleeprite/rudis' },
       { icon: 'twitter', link: 'https://twitter.com/youyuxi' }
     ]
   },

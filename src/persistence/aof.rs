@@ -19,6 +19,7 @@ pub struct AppendOnlyFile {
 }
 
 impl AppendOnlyFile {
+    
     pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> AppendOnlyFile {
         let mut file = None;
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
