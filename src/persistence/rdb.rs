@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fs::OpenOptions, sync::{Arc, Mutex}};
+use std::{collections::HashMap, fs::OpenOptions, io::SeekFrom, sync::{Arc, Mutex}};
 use std::io::Write;
+use std::io::Seek;
 
 use crate::db::{db::{Redis, RedisData, RedisValue}, db_config::RedisConfig};
 
@@ -14,7 +15,7 @@ impl RDB {
     pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> RDB {
         let mut rdb_file = None;
         if let Some(filename ) = &redis_config.dbfilename {
-            rdb_file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"));
+            rdb_file = Some(OpenOptions::new().create(true).write(true).open(filename).expect("Failed to open AOF file"));
         }
 
         RDB {
@@ -24,11 +25,20 @@ impl RDB {
         }
     }
 
-    /*
-     * 写入 rdb 文件【全量】
-     */
     pub fn save(&mut self) {
+
         if let Some(file) = self.rdb_file.as_mut() {
+
+            if let Err(err) = file.set_len(0) {
+                eprintln!("Failed to truncate RDB file: {}", err);
+                return;
+            }
+            
+            if let Err(err) = file.seek(SeekFrom::Start(0)) {
+                eprintln!("Failed to seek to start of RDB file: {}", err);
+                return;
+            }
+
             let redis_ref = self.redis.lock().unwrap();
             let databases: &Vec<HashMap<String, RedisData>> = redis_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
@@ -51,12 +61,13 @@ impl RDB {
                             format!("{} {} {:?} Set {}",  db_index, key, set, expire_at)
                         },
                     };
-
                     if let Err(err) = writeln!(file, "{}", protocol_line) {
                         eprintln!("Failed to append to RDB file: {}", err);
                     }
                 }
             }
+        } else {
+            eprintln!("RDB file is not available.");
         }
     }
 }
