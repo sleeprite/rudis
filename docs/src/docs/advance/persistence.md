@@ -10,7 +10,19 @@ How Redis writes data to disk.
 
 Persistence refers to the writing of data to durable storage, such as a solid-state disk (SSD). Redis provides a range of persistence options. 
 
-## How to use it
+## RDB
+
+By default Redis saves snapshots of the dataset on disk, in a binary file called dump.rdb. You can configure Redis to have it save the dataset every N seconds if there are at least M changes in the dataset.
+
+For example, this configuration will make Redis automatically dump the dataset to disk every 60 seconds:
+
+```
+save 60
+```
+
+This strategy is known as snapshotting.
+
+## AOF
 
 The append-only file is an alternative, fully-durable strategy for Rudis. It became available in version 1.0.0.
 
