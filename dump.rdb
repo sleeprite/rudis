@@ -1,2 +1,3 @@
-0 username "root" String -1
-0 password "riit" String -1
+0\r\nusername\r\nroot\r\nString\r\n-1
+0\r\nuser\r\n{"password": "root", "username": "root"}\r\nHash\r\n-1
+0\r\npassword\r\nroot\r\nString\r\n-1

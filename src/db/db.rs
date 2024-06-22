@@ -5,6 +5,12 @@ use crate::tools::date::current_millis;
 
 use super::db_config::RedisConfig;
 
+
+extern crate serde;
+extern crate serde_json;
+ 
+use serde::{Serialize, Deserialize};
+
 /*
  * ZsetElement 对象
  *
@@ -12,6 +18,7 @@ use super::db_config::RedisConfig;
  * @param score 分
  */
 #[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct ZsetElement {
     value: String,
     score: usize,
@@ -234,6 +241,15 @@ impl Redis {
     pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64) {
         if db_index < self.databases.len() {
             let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
+            self.databases[db_index].insert(key.clone(), redis_value);
+        } else {
+            panic!("Invalid database index");
+        }
+    }
+
+    pub fn set(&mut self, db_index: usize, key: String, value: RedisValue, ttl: i64) {
+        if db_index < self.databases.len() {
+            let redis_value = RedisData::new(value, ttl);
             self.databases[db_index].insert(key.clone(), redis_value);
         } else {
             panic!("Invalid database index");

@@ -61,7 +61,7 @@ fn main() {
     /*
      * 根据 appendfsync 配置，创建 append_only_file 实例 【always】【everysec】
      */
-    let append_only_file = Arc::new(Mutex::new(AOF::new(
+    let aof = Arc::new(Mutex::new(AOF::new(
         redis_config.clone(),
         redis.clone(),
     )));
@@ -73,13 +73,23 @@ fn main() {
 
     println_banner(port);
 
-    /*
-     * 加载本地数据
-     */
     if redis_config.appendonly {
-        match append_only_file.lock() {
+        // 执行 AOF 机制
+        match aof.lock() {
             Ok(mut file) => {
                 log::info!("Start loading appendfile");
+                file.load();
+            }
+            Err(err) => {
+                eprintln!("Failed to acquire lock: {:?}", err);
+                return;
+            }
+        }
+    } else {
+        // 执行 RDB 机制
+        match rdb.lock() {
+            Ok(mut file) => {
+                log::info!("Start loading dump.rdb");
                 file.load();
             }
             Err(err) => {
@@ -102,7 +112,6 @@ fn main() {
         }
     });
 
-
     if let Some(save_interval) = &redis_config.save {
         if let Ok(interval) = save_interval.parse::<u64>() {
             thread::spawn(move || {
@@ -120,14 +129,14 @@ fn main() {
                 let redis_clone = Arc::clone(&redis);
                 let redis_config_clone = Arc::clone(&redis_config);
                 let sessions_clone = Arc::clone(&sessions);
-                let append_only_file_clone = Arc::clone(&append_only_file);
+                let aof_clone = Arc::clone(&aof);
                 thread::spawn(|| {
                     connection(
                         stream,
                         redis_clone,
                         redis_config_clone,
                         sessions_clone,
-                        append_only_file_clone,
+                        aof_clone,
                     )
                 });
             }

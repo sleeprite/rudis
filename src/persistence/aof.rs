@@ -59,8 +59,8 @@ impl AOF {
                     use std::io::{BufRead, BufReader};
                     let line_count = BufReader::new(&file).lines().count() as u64;
                     let command_strategies = init_command_strategies();
-                    let session_id = "0.0.0.0:0";
                     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
+                    let session_id = "0.0.0.0:0";
 
                     {
                         let mut sessions_ref = sessions.lock().unwrap();
