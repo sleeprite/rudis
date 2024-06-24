@@ -62,6 +62,18 @@ Specify whether to log after each update operation. Rudis does not write data to
 
 Specify the update log file name, which defaults to appendonly.aof
 
+### Dbfilename
+
+- version: `0.0.1`
+
+Specify the local database file name, with a default value of dump.rdb.
+
+### Save
+
+- version: `0.0.1`
+
+Specify how long to synchronize data to a data file.
+
 ### Databases
 
 - version: `0.0.1`
