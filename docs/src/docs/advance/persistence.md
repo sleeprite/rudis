@@ -17,10 +17,16 @@ By default Redis saves snapshots of the dataset on disk, in a binary file called
 For example, this configuration will make Redis automatically dump the dataset to disk every 60 seconds:
 
 ```
-save 60
+save=60
 ```
 
 This strategy is known as snapshotting.
+
+```
+dbfilename=dump.rdb
+```
+
+By default, the data will be retained in the dump.rdb file in the Rudis installation directory, and you can configure and modify the location through dbfilename.
 
 ## AOF
 
