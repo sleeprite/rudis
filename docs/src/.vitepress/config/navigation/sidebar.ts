@@ -1,8 +1,8 @@
 import type { DefaultTheme } from 'vitepress'
 
 const sidebar: DefaultTheme.SidebarMulti = {
-  '/zh/docs/': zhSidebar(),
-  "/docs/": enSidebar()
+  "/docs/": enSidebar(),
+  '/zh/docs/': zhSidebar()
 }
 
 function zhSidebar(): DefaultTheme.SidebarItem[] {
@@ -15,7 +15,7 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
       text: '指南',
       items: [
         {
-          text: '介绍',
+          text: '简介',
           link: '/zh/docs/guides/introduce',
         },
         {
@@ -44,6 +44,14 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           link: '/zh/docs/commands/string',
         },
         {
+          text: '哈希',
+          link: '/zh/docs/commands/hash',
+        },
+        {
+          text: '列表',
+          link: '/zh/docs/commands/list',
+        },
+        {
           text: '集合',
           link: '/zh/docs/commands/set',
         },
@@ -51,42 +59,18 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           text: '有序集合',
           link: '/zh/docs/commands/sortedSet',
         },
-        {
-          text: '列表',
-          link: '/zh/docs/commands/list',
-        },
-        {
-          text: '哈希',
-          link: '/zh/docs/commands/hash',
-        },
       ],
     },
     {
       text: '高级',
       items: [
         {
-          text: '安全',
-          link: '/zh/docs/advance/secure',
-        },
-        {
-          text: '持久化',
+          text: '数据备份与恢复',
           link: '/zh/docs/advance/persistent',
         },
-      ],
-    }, {
-      text: "工具",
-      items: [
         {
-          text: 'Rust',
-          link: '/docs/libraries/rust',
-        },
-        {
-          text: 'PHP',
-          link: '/docs/libraries/php',
-        },
-        {
-          text: 'Java',
-          link: '/docs/libraries/java',
+          text: '安全',
+          link: '/zh/docs/advance/secure',
         },
       ],
     }
