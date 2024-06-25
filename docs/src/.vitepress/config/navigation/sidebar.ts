@@ -74,21 +74,6 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           ]
         },
         {
-          text: '哈希',
-          link: '/zh/docs/commands/hash',
-          collapsed: true,
-          items: [
-            {
-              text: 'HDEL',
-              link: '/zh/docs/commands/hash/hdel',
-            },
-            {
-              text: 'HSET',
-              link: '/zh/docs/commands/hash/hset',
-            },
-          ]
-        },
-        {
           text: '列表',
           link: '/zh/docs/commands/list',
           collapsed: true,
@@ -100,6 +85,21 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
             {
               text: 'LPOP',
               link: '/zh/docs/commands/list/lpop',
+            },
+          ]
+        },
+        {
+          text: '哈希',
+          link: '/zh/docs/commands/hash',
+          collapsed: true,
+          items: [
+            {
+              text: 'HDEL',
+              link: '/zh/docs/commands/hash/hdel',
+            },
+            {
+              text: 'HSET',
+              link: '/zh/docs/commands/hash/hset',
             },
           ]
         },
@@ -227,21 +227,6 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
           ]
         },
         {
-          text: 'Hash',
-          link: '/docs/commands/hash',
-          collapsed: true,
-          items: [
-            {
-              text: 'HDEL',
-              link: '/docs/commands/hash/hdel',
-            },
-            {
-              text: 'HSET',
-              link: '/docs/commands/hash/hset',
-            },
-          ]
-        },
-        {
           text: 'List',
           link: '/docs/commands/list',
           collapsed: true,
@@ -253,6 +238,21 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
             {
               text: 'LPOP',
               link: '/docs/commands/list/lpop',
+            },
+          ]
+        },
+        {
+          text: 'Hash',
+          link: '/docs/commands/hash',
+          collapsed: true,
+          items: [
+            {
+              text: 'HDEL',
+              link: '/docs/commands/hash/hdel',
+            },
+            {
+              text: 'HSET',
+              link: '/docs/commands/hash/hset',
             },
           ]
         },
