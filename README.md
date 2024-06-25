@@ -7,7 +7,15 @@
 [Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Wechat](./wechat.jpg) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./release/)
 
 
-Rudis的目标是成为一个高性能、可靠性和安全性的键值存储服务，同时利用Rust语言的优势来重新设计和实现Redis的核心功能，使其更适合现代应用的需求。Rudis的开发团队将持续努力，不断改进和优化这个基于Rust语言的Redis服务端，以满足用户对高性能、可靠性和安全性的需求。
+Rudis 是一个高性能内存数据库。
+
+Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势来重新实现 Redis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保持与 Redis API 的兼容。
+
+### 特性
+
+- 支持 字符串、集合、哈希、列表、有序集合数据结构。
+- 提供 rdb 与 aof 机制以支持数据备份和恢复。
+- 兼容 Redis 的命令和协议规范
 
 ## 快速入门
 
