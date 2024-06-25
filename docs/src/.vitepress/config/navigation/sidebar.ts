@@ -27,7 +27,7 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           link: '/zh/docs/guides/configuration',
         },
         {
-          text: '协议规范',
+          text: '协议',
           link: '/zh/docs/guides/protocolSpec',
         },
       ],
@@ -59,13 +59,17 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           text: '有序集合',
           link: '/zh/docs/commands/sortedSet',
         },
+        {
+          text: '通用',
+          link: '/zh/docs/commands/generic',
+        },
       ],
     },
     {
       text: '高级',
       items: [
         {
-          text: '数据备份与恢复',
+          text: '备份与恢复',
           link: '/zh/docs/advance/persistent',
         },
         {
