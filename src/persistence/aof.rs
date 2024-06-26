@@ -24,7 +24,9 @@ impl AOF {
         let mut aof_file = None;
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
-                aof_file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(filename).expect("Failed to open AOF file"));
+                let base_path = &redis_config.dir;
+                let file_path = format!("{}{}", base_path, filename);
+                aof_file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(file_path).expect("Failed to open AOF file"));
             }
         }
         AOF {
@@ -54,8 +56,10 @@ impl AOF {
      */
     pub fn load(&mut self) {
         if self.redis_config.appendonly {
-            if let Some(appendfilename) = &self.redis_config.appendfilename {
-                if let Ok(mut file) = File::open(appendfilename) {
+            if let Some(filename) = &self.redis_config.appendfilename {
+                let base_path = &self.redis_config.dir;
+                let file_path = format!("{}{}", base_path, filename);
+                if let Ok(mut file) = File::open(file_path) {
                     use std::io::{BufRead, BufReader};
                     let line_count = BufReader::new(&file).lines().count() as u64;
                     let command_strategies = init_command_strategies();

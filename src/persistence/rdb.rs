@@ -25,14 +25,12 @@ pub struct RDB {
 impl RDB {
     pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> RDB {
         let mut rdb_file = None;
-
         if let Some(filename) = &redis_config.dbfilename {
+            let base_path = &redis_config.dir;
+            let file_path = format!("{}{}", base_path, filename);
             rdb_file = Some(
-                OpenOptions::new()
-                    .create(true)
-                    .write(true)
-                    .open(filename)
-                    .expect("Failed to open AOF file"),
+                OpenOptions::new().create(true).write(true)
+                    .open(file_path).expect("Failed to open AOF file"),
             );
         }
 
@@ -44,7 +42,9 @@ impl RDB {
     }
 
     pub fn save(&mut self) {
+        
         if let Some(file) = self.rdb_file.as_mut() {
+
             if let Err(err) = file.set_len(0) {
                 eprintln!("Failed to truncate RDB file: {}", err);
                 return;
@@ -88,11 +88,11 @@ impl RDB {
     }
 
     pub fn load(&mut self) {
-
         let mut redis_ref = self.redis.lock().unwrap();
-
         if let Some(filename) = &self.redis_config.dbfilename {
-            if let Ok(mut file) = File::open(filename) {
+            let base_path = &self.redis_config.dir;
+            let file_path = format!("{}{}", base_path, filename);
+            if let Ok(mut file) = File::open(file_path) {
                 use std::io::{BufRead, BufReader};
                 let line_count = BufReader::new(&file).lines().count() as u64;
 
@@ -112,7 +112,6 @@ impl RDB {
                             let db_index = parts[0].parse::<usize>().unwrap();
                             let expire_at = parts[4].parse().unwrap();
                             let value_str = parts[2];
-                            
                             
                             let value: Option<RedisValue> = match data_type.as_str() {
                                 "List" => Some(RedisValue::ListValue(serde_json::from_str(value_str).unwrap())),

@@ -22,7 +22,8 @@ pub struct RedisConfig {
     pub hz: u64,
     pub appendfsync: Option<String>,
     pub maxclients: usize,
-    pub save: Option<String>
+    pub save: Option<String>,
+    pub dir: String
 }
 // dbfilename dump.rdb
 
@@ -42,6 +43,7 @@ impl Default for RedisConfig {
         let mut maxclients = get_maxclients_or(0);
         let mut appendfsync = get_appendfsync_or(None);
         let mut save = get_save_or(None);
+        let mut dir = get_dir_or("./".to_string());
         let config_path = get_config_path_or(None);
         
         if let Some(config) = config_path {
@@ -81,6 +83,7 @@ impl Default for RedisConfig {
             maxclients,
             bind,
             save,
+            dir,
             hz
         }
     }
@@ -213,6 +216,25 @@ fn get_bind_or(default_bind: String) -> String {
         return arg;
     } else {
         return default_bind;
+    }
+}
+
+
+/*
+ * 获取 dir 参数
+ *
+ * @param default_dir 绑定主机（None）
+ */
+fn get_dir_or(default_dir: String) -> String {
+    let mut args = env::args().skip_while(|arg| arg != "--dir").take(2);
+    if args.next().is_none() {
+        return default_dir;
+    }
+
+    if let Some(arg) = args.next() {
+        return arg;
+    } else {
+        return default_dir;
     }
 }
 

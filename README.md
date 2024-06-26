@@ -63,6 +63,7 @@ cargo build
 - save RDB 保存策略，间隔多少秒保存新的 dump.rdb, 默认：None
 - maxclients 会话上限，默认 1000
 - hz 定时任务的频率，默认 10（次/秒）
+- dir 数据持久化目录，默认 "./"
 - bind 绑定的主机地址
 
 ## 项目结构
