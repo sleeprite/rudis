@@ -52,6 +52,7 @@ impl Default for RedisConfig {
                     if let Some((key, value)) = parse_config_line(line) {
                         print!("{}",key.as_str());
                         match key.as_str() {
+                            "dir" => dir = value.to_string(),
                             "port" => port = value.parse().unwrap_or(port),
                             "bind" => bind = value.to_string(),
                             "password" => password = Some(value.to_string()),
