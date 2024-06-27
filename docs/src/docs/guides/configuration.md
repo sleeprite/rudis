@@ -6,33 +6,33 @@ description: Essential information to help you get set up with Tachiyomi.
 
 # Configuration
 
-Overview of redis.conf, the Rudis configuration file.
+Overview of Rudis.properties, the Rudis configuration file.
 
 ## Specify configuration file startup
 
 Rudis is able to start without a configuration file using a built-in default configuration, however this setup is only recommended for testing and development purposes.
 
-The proper way to configure Redis is by providing a Redis configuration file, usually called redis.properties.
+The proper way to configure Rudis is by providing a Rudis configuration file, usually called Rudis.properties.
 
 ```
 ./rudis-server rudis.properties
 ```
 
-The list of configuration directives, and their meaning and intended usage is available in the self documented example redis.conf shipped into the Redis distribution.
+The list of configuration directives, and their meaning and intended usage is available in the self documented example Rudis.conf shipped into the Rudis distribution.
 
 ## Passing arguments via the command line
 
-You can also pass Redis configuration parameters using the command line directly. This is very useful for testing purposes. The following is an example that starts a new Redis instance using port 6380 as a replica of the instance running at 127.0.0.1 port 6379.
+You can also pass Rudis configuration parameters using the command line directly. This is very useful for testing purposes. The following is an example that starts a new Rudis instance using port 6380 as a replica of the instance running at 127.0.0.1 port 6379.
 
 ```
 ./rudis-server --port 6380
 ```
 
-The format of the arguments passed via the command line is exactly the same as the one used in the redis.conf file, with the exception that the keyword is prefixed with --.
+The format of the arguments passed via the command line is exactly the same as the one used in the Rudis.conf file, with the exception that the keyword is prefixed with --.
 
-Note that internally this generates an in-memory temporary config file (possibly concatenating the config file passed by the user, if any) where arguments are translated into the format of redis.conf.
+Note that internally this generates an in-memory temporary config file (possibly concatenating the config file passed by the user, if any) where arguments are translated into the format of Rudis.conf.
 
-## Changing Redis configuration while the server is running
+## Changing Rudis configuration while the server is running
 
 <!-- TODO -->
 
@@ -42,13 +42,13 @@ Note that internally this generates an in-memory temporary config file (possibly
 
 - version: `0.0.1`
 
-After setting the password for the client to connect to the server, password verification is required for the client to connect to the Redis service, otherwise the command cannot be executed.
+After setting the password for the client to connect to the server, password verification is required for the client to connect to the Rudis service, otherwise the command cannot be executed.
 
 ### Port
 
 - version: `0.0.1`
 
-Accept connections on the specified port, default is 6379 (IANA #815344). If port 0 is specified Redis will not listen on a TCP socket.
+Accept connections on the specified port, default is 6379 (IANA #815344). If port 0 is specified Rudis will not listen on a TCP socket.
 
 ### Appendonly
 
@@ -97,4 +97,4 @@ Set the maximum number of client connections at the same time, with a default va
 
 - version: `0.0.1`
 
-By modifying the value of the hz parameter, you can adjust the frequency of Redis executing periodic tasks, thereby changing the efficiency of Redis clearing expired keys and clearing timeout connections.
+By modifying the value of the hz parameter, you can adjust the frequency of Rudis executing periodic tasks, thereby changing the efficiency of Rudis clearing expired keys and clearing timeout connections.

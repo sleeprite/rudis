@@ -6,15 +6,15 @@ description: Essential information to help you get set up with Tachiyomi.
 
 # Persistence
 
-How Redis writes data to disk.
+How Rudis writes data to disk.
 
-Persistence refers to the writing of data to durable storage, such as a solid-state disk (SSD). Redis provides a range of persistence options. 
+Persistence refers to the writing of data to durable storage, such as a solid-state disk (SSD). Rudis provides a range of persistence options. 
 
 ## RDB
 
-By default Redis saves snapshots of the dataset on disk, in a binary file called dump.rdb. You can configure Redis to have it save the dataset every N seconds if there are at least M changes in the dataset.
+By default Rudis saves snapshots of the dataset on disk, in a binary file called dump.rdb. You can configure Rudis to have it save the dataset every N seconds if there are at least M changes in the dataset.
 
-For example, this configuration will make Redis automatically dump the dataset to disk every 60 seconds:
+For example, this configuration will make Rudis automatically dump the dataset to disk every 60 seconds:
 
 ```
 save=60
