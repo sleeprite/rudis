@@ -12,11 +12,11 @@ hero:
     alt: General
   actions:
     - theme: brand
-      text: 介绍
-      link: /zh/docs/guides/introduce
+      text: Introduce
+      link: /docs/guides/introduce
     - theme: alt
-      text: 安装
-      link: /zh/docs/guides/install
+      text: Install
+      link: /docs/guides/install
 
 features:
   - title: Tracking
@@ -35,3 +35,39 @@ features:
     link: /docs/guides/getting-started
     linkText: Get started
 ---
+
+
+<!-- <script setup>
+import {
+  VPTeamPage,
+  VPTeamPageTitle,
+  VPTeamMembers
+} from 'vitepress/theme'
+
+const members = [
+  {
+    avatar: 'https://avatars.githubusercontent.com/u/96010787?v=4',
+    name: '就眠儀式',
+    title: 'Creator',
+    links: [
+      { icon: 'github', link: 'https://github.com/sleeprite/rudis' },
+      { icon: 'twitter', link: 'https://twitter.com/youyuxi' }
+    ]
+  },
+]
+</script>
+
+<VPTeamPage>
+  <VPTeamPageTitle>
+    <template #title>
+      Our Team
+    </template>
+    <template #lead>
+      The development of Rudis is guided by an international
+      team, some of whom have chosen to be featured below.
+    </template>
+  </VPTeamPageTitle>
+  <VPTeamMembers
+    :members="members"
+  />
+</VPTeamPage> -->

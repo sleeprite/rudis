@@ -35,7 +35,7 @@ export default defineConfig({
       link: "/zh/",
       themeConfig: {
         nav: [{
-          text: '教程',
+          text: 'Docs',
           link: '/zh/docs/guides/introduce',
           activeMatch: '/zh/docs/',
         }],

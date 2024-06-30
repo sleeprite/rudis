@@ -37,7 +37,7 @@ features:
 ---
 
 
-<script setup>
+<!-- <script setup>
 import {
   VPTeamPage,
   VPTeamPageTitle,
@@ -70,4 +70,4 @@ const members = [
   <VPTeamMembers
     :members="members"
   />
-</VPTeamPage>
+</VPTeamPage> -->
