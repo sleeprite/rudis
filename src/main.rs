@@ -105,6 +105,7 @@ fn main() {
     let rc = Arc::clone(&redis);
     let rcc = Arc::clone(&redis_config);
 
+    // 检测过期
     thread::spawn(move || {
         loop {
             rc.lock().unwrap().check_all_database_ttl();
@@ -112,12 +113,13 @@ fn main() {
         }
     });
 
+    // 保存策略
     if let Some(save_interval) = &redis_config.save {
         if let Ok(interval) = save_interval.parse::<u64>() {
             thread::spawn(move || {
                 loop {
                     rdb.lock().unwrap().save();
-                    thread::sleep(Duration::from_secs(interval));
+                    thread::sleep(Duration::from_secs(1));
                 }
             });      
         }

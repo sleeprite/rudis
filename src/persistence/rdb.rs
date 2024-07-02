@@ -23,6 +23,7 @@ pub struct RDB {
 }
 
 impl RDB {
+    
     pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> RDB {
         let mut rdb_file = None;
         if let Some(filename) = &redis_config.dbfilename {
@@ -42,19 +43,15 @@ impl RDB {
     }
 
     pub fn save(&mut self) {
-        
         if let Some(file) = self.rdb_file.as_mut() {
-
             if let Err(err) = file.set_len(0) {
                 eprintln!("Failed to truncate RDB file: {}", err);
                 return;
             }
-
             if let Err(err) = file.seek(SeekFrom::Start(0)) {
                 eprintln!("Failed to seek to start of RDB file: {}", err);
                 return;
             }
-
             let redis_ref = self.redis.lock().unwrap();
             let databases: &Vec<HashMap<String, RedisData>> = redis_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
@@ -95,7 +92,6 @@ impl RDB {
             if let Ok(mut file) = File::open(file_path) {
                 use std::io::{BufRead, BufReader};
                 let line_count = BufReader::new(&file).lines().count() as u64;
-
                 if let Ok(_) = file.seek(SeekFrom::Start(0)) {
                     let pb = ProgressBar::new(line_count);
                     pb.set_style(
@@ -112,7 +108,6 @@ impl RDB {
                             let db_index = parts[0].parse::<usize>().unwrap();
                             let expire_at = parts[4].parse().unwrap();
                             let value_str = parts[2];
-                            
                             let value: Option<RedisValue> = match data_type.as_str() {
                                 "List" => Some(RedisValue::ListValue(serde_json::from_str(value_str).unwrap())),
                                 "Hash" => Some(RedisValue::HashValue(serde_json::from_str(value_str).unwrap())),
@@ -129,16 +124,11 @@ impl RDB {
                                     redis_ref.set(db_index, key, redis_value, expire_at);
                                     
                                 },
-                                None => {
-                                    // Handle the case where value is None
-                                    // Example: println!("No RedisValue found.");
-                                }
+                                None => {}
                             }
-                           
                         }
                         pb.inc(1);
                     }
-
                     pb.finish();
                 }
             }
