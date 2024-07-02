@@ -119,7 +119,7 @@ fn main() {
             thread::spawn(move || {
                 loop {
                     rdb.lock().unwrap().save();
-                    thread::sleep(Duration::from_secs(1));
+                    thread::sleep(Duration::from_secs(interval));
                 }
             });      
         }
