@@ -16,7 +16,7 @@ impl RdbCount {
         self.modify_statistics += 1;
     }  
 
-    pub fn clear(&mut self) {
+    pub fn init(&mut self) {
         self.modify_statistics = 0;
     }
 }

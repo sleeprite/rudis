@@ -28,7 +28,7 @@ impl RdbScheduler {
                             let mut rdb_guard = rdb.lock().unwrap();
                             let mut rdb_count = rdb_count_clone.lock().unwrap();
                             if rdb_count.modify_statistics >= count {
-                                rdb_count.clear();
+                                rdb_count.init();
                                 rdb_guard.save();
                             }
                         }
