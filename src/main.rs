@@ -14,8 +14,10 @@ mod session;
 mod tools;
 mod command_strategies;
 
-use command_strategies::init_command_strategies;
 use persistence::rdb::RDB;
+use persistence::rdb_count::RdbCount;
+use persistence::rdb_scheduler::RdbScheduler;
+use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
 use crate::persistence::aof::AOF;
@@ -114,15 +116,10 @@ fn main() {
     });
 
     // 保存策略
+    let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
+    let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
     if let Some(save_interval) = &redis_config.save {
-        if let Ok(interval) = save_interval.parse::<u64>() {
-            thread::spawn(move || {
-                loop {
-                    rdb.lock().unwrap().save();
-                    thread::sleep(Duration::from_secs(interval));
-                }
-            });      
-        }
+        arc_rdb_scheduler.lock().unwrap().execute(save_interval, arc_rdb_count.clone());  
     }
 
     for stream in listener.incoming() {
@@ -131,6 +128,7 @@ fn main() {
                 let redis_clone = Arc::clone(&redis);
                 let redis_config_clone = Arc::clone(&redis_config);
                 let sessions_clone = Arc::clone(&sessions);
+                let rdb_counter_clone = Arc::clone(&arc_rdb_count);
                 let aof_clone = Arc::clone(&aof);
                 thread::spawn(|| {
                     connection(
@@ -139,6 +137,7 @@ fn main() {
                         redis_config_clone,
                         sessions_clone,
                         aof_clone,
+                        rdb_counter_clone
                     )
                 });
             }
@@ -156,6 +155,7 @@ fn connection(
     redis_config: Arc<RedisConfig>,
     sessions: Arc<Mutex<HashMap<String, Session>>>,
     append_only_file: Arc<Mutex<AOF>>,
+    rdb_count: Arc<Mutex<RdbCount>>,
 ) {
     /*
      * 声明变量
@@ -245,6 +245,8 @@ fn connection(
                      */
                     match strategy.command_type() {
                         CommandType::Write => {
+                            // 累计 RDB 决策 Count
+                            rdb_count.lock().unwrap().accumulation();
                             match append_only_file.lock() {
                                 Ok(mut append_only_file_ref) => {
                                     append_only_file_ref.save(&fragments.join("\\r\\n"));

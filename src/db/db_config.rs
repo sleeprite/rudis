@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, path::PathBuf};
 
 /*
  * Redis 配置
@@ -310,8 +310,14 @@ fn get_appendfsync_or(default_appendfsync: Option<String>) -> Option<String> {
 
 fn get_config_path_or(default_config_path: Option<String>) -> Option<String> {
     let mut args = env::args();
-    if let Some(config_path) = args.nth(1) {
-        return Some(config_path);
+    if let Some(config_path_arg) = args.nth(1) {
+        let config_path = PathBuf::from(&config_path_arg);
+        if config_path.is_file() {
+            return Some(config_path_arg);
+        } else {
+            // If config_path is not a file path, return default_config_path
+            return default_config_path;
+        }
     } else {
         return default_config_path;
     }

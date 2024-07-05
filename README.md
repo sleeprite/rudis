@@ -54,13 +54,13 @@ cargo build
 
 ## 启动参数
 
-- databases 数据库数量, 默认：16
 - port 端口, 默认: 6379
+- save RDB 保存策略, 默认：None
 - password 密码, 默认：None
+- databases 数据库数量, 默认：16
 - appendfilename 持久化日志路径，默认：None
 - appendonly 开启持久化，默认：false
 - dbfilename 数据文件名，默认：dump.rdb
-- save RDB 保存策略，间隔多少秒保存新的 dump.rdb, 默认：None
 - maxclients 会话上限，默认 1000
 - hz 定时任务的频率，默认 10（次/秒）
 - dir 数据持久化目录，默认 "./"
