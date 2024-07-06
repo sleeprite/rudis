@@ -4,7 +4,7 @@
 
 <br />
 
-[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./release/windows) | [Lunix](./release/lunix)
+[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Lunix](./release/lunix) | [Windows](./release/windows)
 
 
 Rudis 是一个高性能内存数据库。
