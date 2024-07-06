@@ -50,6 +50,10 @@ cargo run -- rudis.properties
 
 // 构建程序
 cargo build
+
+cargo build --release 
+
+cargo build --release --target=x86_64-unknown-linux-musl
 ```
 
 ## 启动参数
