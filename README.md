@@ -4,7 +4,7 @@
 
 <br />
 
-[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./release/)
+[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Windows](./release/windows) | [Lunix](./release/lunix)
 
 
 Rudis 是一个高性能内存数据库。
@@ -13,7 +13,7 @@ Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势�
 
 ### 特性
 
-- 跨平台，兼容 windows、mac、lunix 系统架构。
+- 跨平台，兼容 windows、lunix 系统架构。
 - 兼容 字符串、集合、哈希、列表、有序集合数据结构。
 - 提供 rdb 与 aof 机制以支持数据备份和恢复。
 - 兼容 Redis 的命令和协议规范
