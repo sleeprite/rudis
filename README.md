@@ -13,7 +13,7 @@ Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势�
 
 ### 特性
 
-- 兼容 Windows、Mac、lunix 系统平台。
+- 兼容 windows、mac、lunix 系统平台。
 - 兼容 字符串、集合、哈希、列表、有序集合数据结构。
 - 提供 rdb 与 aof 机制以支持数据备份和恢复。
 - 兼容 Redis 的命令和协议规范
