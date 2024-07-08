@@ -4,7 +4,7 @@
 
 <br />
 
-[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Lunix](./release/lunix) | [Windows](./release/windows)
+[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Linux](./release/linux) | [Windows](./release/windows)
 
 
 Rudis 是一个高性能内存数据库。
@@ -13,7 +13,7 @@ Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势�
 
 ### 特性
 
-- 跨平台，兼容 windows、lunix 系统架构。
+- 跨平台，兼容 windows、linux 系统架构。
 - 兼容 字符串、集合、哈希、列表、有序集合数据结构。
 - 提供 rdb 与 aof 机制以支持数据备份和恢复。
 - 兼容 Redis 的命令和协议规范。
@@ -52,9 +52,9 @@ cargo run -- rudis.properties
 // 构建程序
 cargo build
 
-cargo build --release --target=x86_64-unknown-linux-musl
-
 cargo build --release 
+
+cargo build --release --target=x86_64-unknown-linux-musl
 ```
 
 ## 启动参数
@@ -79,7 +79,7 @@ aof 包实现了 appendonlyfile 的核心逻辑，该包负责将操作写入和
 
 ### command
 
-command 包是一个用Rust编写的模拟Redis服务器的组件，主要负责实现Redis协议的解析、数据库操作的执行以及相关结果的响应。该包内部包含了针对不同Redis命令的实现，如SELECT、GET、SET等。其核心功能是根据Redis协议规范，解析来自客户端的命令请求，并在模拟的Redis数据库上执行相应的操作，再将结果返回给客户端。通过实现各个Redis命令处理器，实现了对Redis协议的完整支持，并提供了一个简单而有效的策略来处理不同类型的命令。
+command 包是一个用 Rust 编写的模拟Redis服务器的组件，主要负责实现Redis协议的解析、数据库操作的执行以及相关结果的响应。该包内部包含了针对不同Redis命令的实现，如SELECT、GET、SET等。其核心功能是根据Redis协议规范，解析来自客户端的命令请求，并在模拟的Redis数据库上执行相应的操作，再将结果返回给客户端。通过实现各个Redis命令处理器，实现了对Redis协议的完整支持，并提供了一个简单而有效的策略来处理不同类型的命令。
 
 ### db
 
