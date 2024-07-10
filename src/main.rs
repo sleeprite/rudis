@@ -240,7 +240,7 @@ fn connection(
                      */
                     match strategy.command_type() {
                         CommandType::Write => {
-                            rdb_count.lock().unwrap().accumulation();
+                            rdb_count.lock().unwrap().calc();
                             match aof.lock() {
                                 Ok(mut aof_ref) => {
                                     aof_ref.save(&fragments.join("\\r\\n"));

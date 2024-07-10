@@ -1,6 +1,7 @@
-use std::{ sync::{Arc, Mutex}, time::Duration};
 use std::thread;
+use std::sync::{Arc, Mutex};
 use super::{rdb::RDB, rdb_count::RdbCount};
+use tokio::time::Duration;
 
 pub struct RdbScheduler {
     pub rdb: Arc<Mutex<RDB>>,
@@ -21,7 +22,7 @@ impl RdbScheduler {
             if let (Some(interval), Some(count)) = (parts.get(i), parts.get(i + 1)) {
                 if let (Ok(interval), Ok(count)) = (interval.parse::<u64>(), count.parse::<u64>()) {
                     let rdb = Arc::clone(&self.rdb);
-                    thread::spawn(move || {
+                    tokio::spawn(async move {
                         let duration = Duration::from_secs(interval);
                         loop {
                             thread::sleep(duration);

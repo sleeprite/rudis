@@ -12,7 +12,7 @@ impl RdbCount {
         }
     }
 
-    pub fn accumulation(&mut self) {
+    pub fn calc(&mut self) {
         self.modify_statistics += 1;
     }  
 
