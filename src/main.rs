@@ -124,7 +124,7 @@ async fn main() {
                 let redis_clone = Arc::clone(&redis);
                 let redis_config_clone = Arc::clone(&redis_config);
                 let sessions_clone = Arc::clone(&sessions);
-                let rdb_counter_clone = Arc::clone(&arc_rdb_count);
+                let rdb_count_clone = Arc::clone(&arc_rdb_count);
                 let aof_clone = Arc::clone(&aof);
                 thread::spawn(|| {
                     connection(
@@ -132,8 +132,8 @@ async fn main() {
                         redis_clone,
                         redis_config_clone,
                         sessions_clone,
+                        rdb_count_clone,
                         aof_clone,
-                        rdb_counter_clone
                     )
                 });
             }
@@ -150,8 +150,8 @@ fn connection(
     redis: Arc<Mutex<Redis>>,
     redis_config: Arc<RedisConfig>,
     sessions: Arc<Mutex<HashMap<String, Session>>>,
-    append_only_file: Arc<Mutex<AOF>>,
     rdb_count: Arc<Mutex<RdbCount>>,
+    aof: Arc<Mutex<AOF>>,
 ) {
     /*
      * 声明变量
@@ -242,12 +242,12 @@ fn connection(
                     match strategy.command_type() {
                         CommandType::Write => {
                             rdb_count.lock().unwrap().accumulation();
-                            match append_only_file.lock() {
-                                Ok(mut append_only_file_ref) => {
-                                    append_only_file_ref.save(&fragments.join("\\r\\n"));
+                            match aof.lock() {
+                                Ok(mut aof_ref) => {
+                                    aof_ref.save(&fragments.join("\\r\\n"));
                                 }
                                 Err(_) => {
-                                    eprintln!("Failed to acquire lock on append_only_file");
+                                    eprintln!("Failed to acquire lock on AOF");
                                     return;
                                 }
                             };
