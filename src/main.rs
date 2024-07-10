@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
-use std::process::id;
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::process::id;
 
 use tokio::time::Duration;
 
@@ -21,11 +20,11 @@ use persistence::rdb_scheduler::RdbScheduler;
 use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
-use crate::persistence::aof::AOF;
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
+use crate::persistence::aof::AOF;
 
 #[tokio::main]
 async fn main() {
@@ -65,6 +64,7 @@ async fn main() {
         redis_config.clone(),
         redis.clone(),
     )));
+
     let rdb = Arc::new(Mutex::new(RDB::new(
         redis_config.clone(),
         redis.clone(),
@@ -125,7 +125,7 @@ async fn main() {
                 let sessions_clone = Arc::clone(&sessions);
                 let rdb_count_clone = Arc::clone(&arc_rdb_count);
                 let aof_clone = Arc::clone(&aof);
-                thread::spawn(|| {
+                tokio::spawn(async move {
                     connection(
                         stream,
                         redis_clone,
@@ -133,7 +133,7 @@ async fn main() {
                         sessions_clone,
                         rdb_count_clone,
                         aof_clone,
-                    )
+                    );
                 });
             }
             Err(e) => {
