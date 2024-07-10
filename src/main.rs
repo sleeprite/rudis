@@ -4,7 +4,8 @@ use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+
+use tokio::time::Duration;
 
 mod persistence;
 mod command;
@@ -26,8 +27,8 @@ use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 
-// Bootstrap.rs
-fn main() {
+#[tokio::main]
+async fn main() {
     
     /*
      * 初始日志框架
@@ -59,10 +60,7 @@ fn main() {
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
-    
-    /*
-     * 根据 appendfsync 配置，创建 append_only_file 实例 【always】【everysec】
-     */
+
     let aof = Arc::new(Mutex::new(AOF::new(
         redis_config.clone(),
         redis.clone(),
@@ -76,7 +74,6 @@ fn main() {
     println_banner(port);
 
     if redis_config.appendonly {
-        // 执行 AOF 机制
         match aof.lock() {
             Ok(mut file) => {
                 log::info!("Start loading appendfile");
@@ -88,7 +85,6 @@ fn main() {
             }
         }
     } else {
-        // 执行 RDB 机制
         match rdb.lock() {
             Ok(mut file) => {
                 log::info!("Start loading dump.rdb");
@@ -108,10 +104,10 @@ fn main() {
     let rcc = Arc::clone(&redis_config);
 
     // 检测过期
-    thread::spawn(move || {
+    tokio::spawn(async move {
         loop {
             rc.lock().unwrap().check_all_database_ttl();
-            thread::sleep(Duration::from_secs(1 / rcc.hz));
+            tokio::time::sleep(Duration::from_secs(1 / rcc.hz)).await;
         }
     });
 
@@ -241,11 +237,10 @@ fn connection(
 
                     /*
                      * 假定是个影响内存的命令，记录到日志，
-                     * 【备份与恢复】中的 “备份”。
+                     *【备份与恢复】中的恢复。
                      */
                     match strategy.command_type() {
                         CommandType::Write => {
-                            // 累计 RDB 决策 Count
                             rdb_count.lock().unwrap().accumulation();
                             match append_only_file.lock() {
                                 Ok(mut append_only_file_ref) => {
