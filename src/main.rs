@@ -60,12 +60,11 @@ async fn main() {
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
-
+    
     let aof = Arc::new(Mutex::new(AOF::new(
         redis_config.clone(),
         redis.clone(),
     )));
-
     let rdb = Arc::new(Mutex::new(RDB::new(
         redis_config.clone(),
         redis.clone(),

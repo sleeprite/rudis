@@ -9,14 +9,18 @@ mod test_performance {
     }
 
     #[test]
-    fn main() {
-        
+    fn test_set() {
         let mut con = setup();
-
         for i in 0..100000 {
-
             let _: () = con.set(i.to_string(), i.to_string()).unwrap();
         }
-    
+    }
+
+    #[test]
+    fn test_get() {
+        let mut con = setup();
+        for _i in 0..100000 {
+            let _: () = con.get("user").unwrap();
+        }
     }
 }
