@@ -2,12 +2,12 @@ use std::fs::File;
 use std::io::Seek;
 use std::io::Write;
 use std::{
-    collections::HashMap,
     fs::OpenOptions,
     io::SeekFrom,
     sync::{Arc, Mutex},
 };
 
+use ahash::AHashMap;
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
@@ -30,8 +30,7 @@ impl RDB {
             let base_path = &redis_config.dir;
             let file_path = format!("{}{}", base_path, filename);
             rdb_file = Some(
-                OpenOptions::new().create(true).write(true)
-                    .open(file_path).expect("Failed to open AOF file"),
+                OpenOptions::new().create(true).write(true).open(file_path).expect("Failed to open AOF file"),
             );
         }
 
@@ -53,7 +52,7 @@ impl RDB {
                 return;
             }
             let redis_ref = self.redis.lock().unwrap();
-            let databases: &Vec<HashMap<String, RedisData>> = redis_ref.get_databases();
+            let databases: &Vec<AHashMap<String, RedisData>> = redis_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
                 for (key, redis_data) in database.iter() {
                     let expire_at = redis_data.get_expire_at();

@@ -9,6 +9,7 @@ use super::db_config::RedisConfig;
 extern crate serde;
 extern crate serde_json;
  
+use ahash::AHashMap;
 use serde::{Serialize, Deserialize};
 
 /*
@@ -86,7 +87,7 @@ impl RedisData {
 }
 
 pub struct Redis {
-    pub databases: Vec<HashMap<String, RedisData>>,
+    pub databases: Vec<AHashMap<String, RedisData>>,
     pub redis_config: Arc<RedisConfig>,
 }
 
@@ -100,7 +101,7 @@ impl Redis {
     pub fn new(redis_config: Arc<RedisConfig>) -> Redis {
         let mut databases = Vec::new();
         for _ in 0..redis_config.databases {
-            databases.push(HashMap::new());
+            databases.push(AHashMap::new());
         }
 
         Redis {
@@ -114,7 +115,7 @@ impl Redis {
      *
      * @return databases
      */
-    pub fn get_databases(&self) -> &Vec<HashMap<String, RedisData>> {
+    pub fn get_databases(&self) -> &Vec<AHashMap<String, RedisData>> {
         &self.databases
     }
 
