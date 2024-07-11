@@ -1,0 +1,4 @@
+Host,Port,Password,Key,output,flag,username,timestamp
+127.0.0.1,6379,,,"['password', 'username']",,,2024-07-11 12:45:50.519948
+127.0.0.1,6379,,,"['password', 'username']",,,2024-07-11 12:45:52.199694
+127.0.0.1,6379,,,"['password', 'username']",,,2024-07-11 13:52:24.246326

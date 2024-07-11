@@ -290,6 +290,12 @@ llen 命令
 
  - percent: 100% lines: 400000/400000 time: 00:00:19
 
+## 周边工具
+
+Rudis visualizer [下载](./examples/rudis_visualizer.py)
+
+![alt text](./examples/rudis_visualizer.png)
+
 ## 开源共建
 
 Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rudis/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/rudis/graphs/contributors)。
