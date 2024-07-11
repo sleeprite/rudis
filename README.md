@@ -4,6 +4,9 @@
 
 <br />
 
+<a href="https://github.com/sleeprite/rudis"><img src="https://img.shields.io/github/stars/sleeprite/rudis?style=flat-square&logo=GitHub"></a>
+<a href="https://gitee.com/Jmysy/rudis"><img src='https://gitee.com/Jmysy/rudis/badge/star.svg?theme=dark'></a>
+
 [Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Linux](./release/linux) | [Windows](./release/windows)
 
 
