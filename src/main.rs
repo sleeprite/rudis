@@ -208,7 +208,8 @@ fn connection(
                      */
                     let sessions_ref = sessions.lock().unwrap();
                     let session = sessions_ref.get(&session_id).unwrap();
-                    if redis_config.password != None && command != "auth" {
+                    let is_not_auth = command.to_uppercase() != "AUTH";
+                    if redis_config.password != None && is_not_auth {
                         if !session.get_authenticated() {
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
