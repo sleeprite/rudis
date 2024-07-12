@@ -286,11 +286,15 @@ llen 命令
 
 ## 性能测试
 
- - percent: 100% lines: 100000/100000 time: 00:00:04
+运行环境：13th Gen Intel(R) Core(TM) i9-13900H  2.60 GHz
 
- - percent: 100% lines: 200000/200000 time: 00:00:09
+![alt text](./examples/performance_comparison.png)
 
- - percent: 100% lines: 400000/400000 time: 00:00:19
+ - 【Appendonly】percent: 100% lines: 100000/100000 time: 00:00:04
+
+ - 【Appendonly】percent: 100% lines: 200000/200000 time: 00:00:09
+
+ - 【Appendonly】percent: 100% lines: 400000/400000 time: 00:00:19
 
 ## 周边工具
 
