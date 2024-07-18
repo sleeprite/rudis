@@ -100,6 +100,7 @@ impl Redis {
      */
     pub fn new(redis_config: Arc<RedisConfig>) -> Redis {
         let mut databases = Vec::new();
+
         for _ in 0..redis_config.databases {
             databases.push(AHashMap::new());
         }
@@ -133,6 +134,14 @@ impl Redis {
         }
     }
 
+    /*
+     * 有序集合添加
+     * 
+     * @param db_index 数据库索引
+     * @param key 键
+     * @param value 值
+     * @param score 分数
+     */
     pub fn zadd(
         &mut self,
         db_index: usize,
@@ -164,12 +173,16 @@ impl Redis {
                 }
             }
         };
-
         zset.insert(ZsetElement::new(value, score));
-
         Ok(zset.len())
     }
 
+    /*
+     * 统计有序集合
+     * 
+     * @param db_index 数据库索引
+     * @param key 键 
+     */
     pub fn zcard(&self, db_index: usize, key: &str) -> Result<usize, String> {
         let db = &self.databases[db_index];
 
@@ -185,6 +198,13 @@ impl Redis {
         }
     }
 
+    /*
+     * 获取有序集合中，指定成员的分数
+     * 
+     * @param db_index 数据库索引
+     * @param key 键
+     * @param member 成员 
+     */
     pub fn zscore(&self, db_index: usize, key: &str, member: &str) -> Result<Option<usize>, String> {
         let db = &self.databases[db_index];
     
@@ -208,9 +228,16 @@ impl Redis {
         }
     }
 
+    /**
+     * 有序集合根据分数范围统计数量
+     * 
+     * @param db_index 数据库索引
+     * @param key 集合键
+     * @param min 最小值
+     * @param max 最大值
+     */
     pub fn zcount(&self, db_index: usize, key: &str, min: i64, max: i64) -> Result<usize, String> {
         let db = &self.databases[db_index];
-
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
                 RedisValue::ZsetValue(zset) => {
@@ -329,6 +356,12 @@ impl Redis {
         -2 // Key不存在或无过期时间返回-2
     }
 
+    /**
+     * 获取键值类型 
+     * 
+     * @param db_index 数据库索引
+     * @param key 键名
+     */
     pub fn key_type(&self, db_index: usize, key: String) -> String {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(&key) {
