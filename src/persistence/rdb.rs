@@ -30,7 +30,7 @@ impl Rdb {
             let base_path = &redis_config.dir;
             let file_path = format!("{}{}", base_path, filename);
             rdb_file = Some(
-                OpenOptions::new().create(true).write(true).open(file_path).expect("Failed to open AOF file"),
+                OpenOptions::new().create(true).truncate(true).write(true).open(file_path).expect("Failed to open AOF file"),
             );
         }
 
@@ -57,19 +57,19 @@ impl Rdb {
                 for (key, redis_data) in database.iter() {
                     let expire_at = redis_data.get_expire_at();
                     let protocol_line = match redis_data.get_value() {
-                        RedisValue::ListValue(list) => {
+                        RedisValue::List(list) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nList\\r\\n{}",db_index, key, list, expire_at)
                         }
-                        RedisValue::HashValue(hash) => {
+                        RedisValue::Hash(hash) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nHash\\r\\n{}", db_index, key, hash, expire_at)
                         }
-                        RedisValue::ZsetValue(zset) => {
+                        RedisValue::Zset(zset) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nZset\\r\\n{}", db_index, key, zset, expire_at)
                         }
-                        RedisValue::StringValue(value) => {
+                        RedisValue::String(value) => {
                             format!("{}\\r\\n{}\\r\\n{}\\r\\nString\\r\\n{}", db_index, key, value, expire_at)
                         }
-                        RedisValue::SetValue(set) => {
+                        RedisValue::Set(set) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nSet\\r\\n{}", db_index, key, set, expire_at)
                         }
                     };
@@ -108,11 +108,11 @@ impl Rdb {
                             let expire_at = parts[4].parse().unwrap();
                             let value_str = parts[2];
                             let value: Option<RedisValue> = match data_type.as_str() {
-                                "List" => Some(RedisValue::ListValue(serde_json::from_str(value_str).unwrap())),
-                                "Hash" => Some(RedisValue::HashValue(serde_json::from_str(value_str).unwrap())),
-                                "Zset" => Some(RedisValue::ZsetValue(serde_json::from_str(value_str).unwrap())),
-                                "String" => Some(RedisValue::StringValue(value_str.to_string())),
-                                "Set" => Some(RedisValue::SetValue(serde_json::from_str(value_str).unwrap())),
+                                "List" => Some(RedisValue::List(serde_json::from_str(value_str).unwrap())),
+                                "Hash" => Some(RedisValue::Hash(serde_json::from_str(value_str).unwrap())),
+                                "Zset" => Some(RedisValue::Zset(serde_json::from_str(value_str).unwrap())),
+                                "String" => Some(RedisValue::String(value_str.to_string())),
+                                "Set" => Some(RedisValue::Set(serde_json::from_str(value_str).unwrap())),
                                 _ => None
                             };
 

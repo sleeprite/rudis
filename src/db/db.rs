@@ -52,11 +52,11 @@ impl PartialEq for ZsetElement {
 }
 
 pub enum RedisValue {
-    StringValue(String),
-    ListValue(Vec<String>),
-    SetValue(HashSet<String>),
-    HashValue(HashMap<String, String>),
-    ZsetValue(BTreeSet<ZsetElement>),
+    String(String),
+    List(Vec<String>),
+    Set(HashSet<String>),
+    Hash(HashMap<String, String>),
+    Zset(BTreeSet<ZsetElement>),
 }
 
 pub struct RedisData {
@@ -153,7 +153,7 @@ impl Redis {
 
         let zset = match db.get_mut(&key) {
             Some(redis_data) => match &mut redis_data.value {
-                RedisValue::ZsetValue(zset) => zset,
+                RedisValue::Zset(zset) => zset,
                 _ => {
                     return Err(format!(
                         "Key {} exists in the database but is not a sorted set.",
@@ -163,10 +163,10 @@ impl Redis {
             },
             None => {
                 let zset = BTreeSet::new();
-                db.insert(key.clone(), RedisData::new(RedisValue::ZsetValue(zset), -1));
+                db.insert(key.clone(), RedisData::new(RedisValue::Zset(zset), -1));
                 match db.get_mut(&key) {
                     Some(redis_data) => match &mut redis_data.value {
-                        RedisValue::ZsetValue(zset) => zset,
+                        RedisValue::Zset(zset) => zset,
                         _ => unreachable!(),
                     },
                     None => unreachable!(),
@@ -188,7 +188,7 @@ impl Redis {
 
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
-                RedisValue::ZsetValue(zset) => Ok(zset.len()),
+                RedisValue::Zset(zset) => Ok(zset.len()),
                 _ => Err(format!(
                     "Key {} exists in the database but is not a sorted set.",
                     key
@@ -210,7 +210,7 @@ impl Redis {
     
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
-                RedisValue::ZsetValue(zset) => {
+                RedisValue::Zset(zset) => {
                     for zset_element in zset {
                         if zset_element.value == member {
                             return Ok(Some(zset_element.score));
@@ -240,7 +240,7 @@ impl Redis {
         let db = &self.databases[db_index];
         match db.get(key) {
             Some(redis_data) => match &redis_data.value {
-                RedisValue::ZsetValue(zset) => {
+                RedisValue::Zset(zset) => {
                     let count = zset
                         .iter()
                         .filter(|zset_element| {
@@ -268,7 +268,7 @@ impl Redis {
      */
     pub fn set_with_ttl(&mut self, db_index: usize, key: String, value: String, ttl: i64) {
         if db_index < self.databases.len() {
-            let redis_value = RedisData::new(RedisValue::StringValue(value.clone()), ttl);
+            let redis_value = RedisData::new(RedisValue::String(value.clone()), ttl);
             self.databases[db_index].insert(key.clone(), redis_value);
         } else {
             panic!("Invalid database index");
@@ -289,7 +289,7 @@ impl Redis {
             for (key, value) in data {
                 self.databases[db_index].insert(
                     key.clone(),
-                    RedisData::new(RedisValue::StringValue(value.clone()), -1),
+                    RedisData::new(RedisValue::String(value.clone()), -1),
                 );
             }
         } else {
@@ -307,7 +307,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(key) {
                 Some(redis_value) => match &redis_value.value {
-                    RedisValue::StringValue(s) => Ok(Some(s)),
+                    RedisValue::String(s) => Ok(Some(s)),
                     _ => Err("ERR Operation against a key holding the wrong kind of value"),
                 },
                 None => Ok(None),
@@ -366,11 +366,11 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(&key) {
                 Some(redis_value) => match &redis_value.value {
-                    RedisValue::ListValue(_) => "list".to_string(),
-                    RedisValue::StringValue(_) => "string".to_string(),
-                    RedisValue::SetValue(_) => "set".to_string(),
-                    RedisValue::ZsetValue(_) => "zset".to_string(),
-                    RedisValue::HashValue(_) => "hash".to_string(),
+                    RedisValue::List(_) => "list".to_string(),
+                    RedisValue::String(_) => "string".to_string(),
+                    RedisValue::Set(_) => "set".to_string(),
+                    RedisValue::Zset(_) => "zset".to_string(),
+                    RedisValue::Hash(_) => "hash".to_string(),
                 },
                 None => "none".to_string(),
             }
@@ -564,8 +564,8 @@ impl Redis {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key.clone())
-                .or_insert(RedisData::new(RedisValue::ListValue(vec![]), -1));
-            if let RedisValue::ListValue(ref mut current_values) = list.value {
+                .or_insert(RedisData::new(RedisValue::List(vec![]), -1));
+            if let RedisValue::List(ref mut current_values) = list.value {
                 current_values.splice(0..0, values.clone());
             }
         } else {
@@ -581,14 +581,14 @@ impl Redis {
     ) -> Result<(), &'static str> {
         if let Some(db) = self.databases.get_mut(db_index) {
             if let Some(redis_data) = db.get_mut(&key) {
-                if let RedisValue::HashValue(hash_map) = &mut redis_data.value {
+                if let RedisValue::Hash(hash_map) = &mut redis_data.value {
                     *hash_map = values;
                     return Ok(());
                 } else {
-                    return Err("Cannot use hashmap to overwrite values of non HashValue types");
+                    return Err("Cannot use hashmap to overwrite values of non Hash types");
                 }
             } else {
-                db.insert(key, RedisData::new(RedisValue::HashValue(values), -1));
+                db.insert(key, RedisData::new(RedisValue::Hash(values), -1));
                 return Ok(());
             }
         }
@@ -604,12 +604,12 @@ impl Redis {
     ) -> Result<i32, &'static str> {
         if let Some(db) = self.databases.get_mut(db_index) {
             if let Some(redis_data) = db.get_mut(&key) {
-                if let RedisValue::HashValue(hash_map) = &mut redis_data.value {
+                if let RedisValue::Hash(hash_map) = &mut redis_data.value {
                     hash_map.insert(field.clone(), value.clone());
                     return Ok(1);
                 } else {
                     return Err(
-                        "Cannot overwrite non HashValue type values with a single field value",
+                        "Cannot overwrite non Hash type values with a single field value",
                     );
                 }
             } else {
@@ -617,7 +617,7 @@ impl Redis {
                 values.insert(field.clone(), value.clone());
                 db.insert(
                     key.clone(),
-                    RedisData::new(RedisValue::HashValue(values), -1),
+                    RedisData::new(RedisValue::Hash(values), -1),
                 );
                 return Ok(1);
             }
@@ -635,8 +635,8 @@ impl Redis {
         if let Some(db) = self.databases.get(db_index) {
             // 从数据库中获取指定键
             if let Some(redis_data) = db.get(key) {
-                // 判断 Redis 数据类型是否为 HashValue
-                if let RedisValue::HashValue(hash_map) = &redis_data.value {
+                // 判断 Redis 数据类型是否为 Hash
+                if let RedisValue::Hash(hash_map) = &redis_data.value {
                     // 从哈希映射中获取指定字段的值
                     if let Some(value) = hash_map.get(field) {
                         // 返回值
@@ -646,7 +646,7 @@ impl Redis {
                         Ok(None)
                     }
                 } else {
-                    // 键存在，但不是 HashValue 类型
+                    // 键存在，但不是 Hash 类型
                     Err("WRONGTYPE Operation against a key holding the wrong kind of value")
                 }
             } else {
@@ -664,8 +664,8 @@ impl Redis {
         if let Some(db) = self.databases.get(db_index) {
             // 从数据库中获取指定键
             if let Some(redis_data) = db.get(key) {
-                // 判断 Redis 数据类型是否为 HashValue
-                if let RedisValue::HashValue(hash_map) = &redis_data.value {
+                // 判断 Redis 数据类型是否为 Hash
+                if let RedisValue::Hash(hash_map) = &redis_data.value {
                     // 检查哈希映射中是否存在指定字段
                     if hash_map.contains_key(field) {
                         // 字段存在
@@ -675,7 +675,7 @@ impl Redis {
                         Ok(false)
                     }
                 } else {
-                    // 键存在，但不是 HashValue 类型
+                    // 键存在，但不是 Hash 类型
                     Err("WRONGTYPE Operation against a key holding the wrong kind of value")
                 }
             } else {
@@ -698,8 +698,8 @@ impl Redis {
         if let Some(db) = self.databases.get_mut(db_index) {
             // 从数据库中获取指定键
             if let Some(redis_data) = db.get_mut(key) {
-                // 判断 Redis 数据类型是否为 HashValue
-                if let RedisValue::HashValue(hash_map) = &mut redis_data.value {
+                // 判断 Redis 数据类型是否为 Hash
+                if let RedisValue::Hash(hash_map) = &mut redis_data.value {
                     let mut deleted_count = 0;
                     for field in fields {
                         // 从哈希映射中删除指定字段
@@ -709,7 +709,7 @@ impl Redis {
                     }
                     Ok(deleted_count)
                 } else {
-                    // 键存在，但不是 HashValue 类型
+                    // 键存在，但不是 Hash 类型
                     Err("WRONGTYPE Operation against a key holding the wrong kind of value")
                 }
             } else {
@@ -733,8 +733,8 @@ impl Redis {
         if db_index < self.databases.len() {
             let list = self.databases[db_index]
                 .entry(key.clone())
-                .or_insert(RedisData::new(RedisValue::ListValue(vec![]), -1));
-            if let RedisValue::ListValue(ref mut current_values) = list.value {
+                .or_insert(RedisData::new(RedisValue::List(vec![]), -1));
+            if let RedisValue::List(ref mut current_values) = list.value {
                 current_values.extend(values.clone());
             }
         } else {
@@ -752,7 +752,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
                 Some(list) => {
-                    if let RedisValue::ListValue(ref mut current_values) = list.value {
+                    if let RedisValue::List(ref mut current_values) = list.value {
                         if !current_values.is_empty() {
                             let popped_value = current_values.remove(0);
 
@@ -784,7 +784,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get_mut(&key) {
                 Some(list) => {
-                    if let RedisValue::ListValue(ref mut current_values) = list.value {
+                    if let RedisValue::List(ref mut current_values) = list.value {
                         if !current_values.is_empty() {
                             let popped_value = current_values.pop();
 
@@ -818,7 +818,7 @@ impl Redis {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(&key) {
                 Some(list) => {
-                    if let RedisValue::ListValue(ref current_values) = list.value {
+                    if let RedisValue::List(ref current_values) = list.value {
                         let list_length = current_values.len() as i64;
                         let mut adjusted_start = if start < 0 {
                             list_length + start
@@ -858,7 +858,7 @@ impl Redis {
     pub fn llen(&self, db_index: usize, key: &str) -> usize {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
-                if let RedisValue::ListValue(ref array) = redis_value.value {
+                if let RedisValue::List(ref array) = redis_value.value {
                     return array.len();
                 }
             }
@@ -878,7 +878,7 @@ impl Redis {
     pub fn lindex(&self, db_index: usize, key: &str, index: i64) -> Option<String> {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
-                if let RedisValue::ListValue(ref array) = redis_value.value {
+                if let RedisValue::List(ref array) = redis_value.value {
                     let index = if index < 0 {
                         (array.len() as i64 + index) as usize
                     } else {
@@ -912,8 +912,8 @@ impl Redis {
         if db_index < self.databases.len() {
             let set = self.databases[db_index]
                 .entry(key.clone())
-                .or_insert(RedisData::new(RedisValue::SetValue(HashSet::new()), -1));
-            if let RedisValue::SetValue(ref mut current_members) = set.value {
+                .or_insert(RedisData::new(RedisValue::Set(HashSet::new()), -1));
+            if let RedisValue::Set(ref mut current_members) = set.value {
                 let mut count = 0;
                 for member in &members {
                     if current_members.insert(member.clone()) {
@@ -938,7 +938,7 @@ impl Redis {
      */
     pub fn smembers(&self, db_index: usize, key: &str) -> Option<&HashSet<String>> {
         if let Some(set) = self.databases.get(db_index)?.get(key) {
-            if let RedisValue::SetValue(members) = &set.value {
+            if let RedisValue::Set(members) = &set.value {
                 return Some(members);
             }
         }
@@ -953,7 +953,7 @@ impl Redis {
      */
     pub fn scard(&self, db_index: usize, key: &str) -> Option<usize> {
         if let Some(set) = self.databases.get(db_index)?.get(key) {
-            if let RedisValue::SetValue(members) = &set.value {
+            if let RedisValue::Set(members) = &set.value {
                 return Some(members.len());
             }
         }
@@ -975,7 +975,7 @@ impl Redis {
 
         let len = match db.get_mut(&key) {
             Some(redis_data) => {
-                if let RedisValue::StringValue(s) = &mut redis_data.value {
+                if let RedisValue::String(s) = &mut redis_data.value {
                     s.push_str(&value);
                     s.len()
                 } else {
@@ -985,7 +985,7 @@ impl Redis {
                 }
             }
             None => {
-                let redis_data = RedisData::new(RedisValue::StringValue(value.clone()), -1);
+                let redis_data = RedisData::new(RedisValue::String(value.clone()), -1);
                 db.insert(key.clone(), redis_data);
 
                 value.len()
@@ -1010,10 +1010,10 @@ impl Redis {
 
         let redis_data = database
             .entry(key.clone())
-            .or_insert_with(|| RedisData::new(RedisValue::StringValue("0".to_string()), -1));
+            .or_insert_with(|| RedisData::new(RedisValue::String("0".to_string()), -1));
 
         let result = match &mut redis_data.value {
-            RedisValue::StringValue(val) => match val.parse::<i64>() {
+            RedisValue::String(val) => match val.parse::<i64>() {
                 Ok(current_val) => current_val + increment,
                 Err(_) => return Err("ERR value is not an integer".to_string()),
             },
@@ -1024,7 +1024,7 @@ impl Redis {
             }
         };
 
-        if let RedisValue::StringValue(val) = &mut redis_data.value {
+        if let RedisValue::String(val) = &mut redis_data.value {
             *val = result.to_string();
         }
 
@@ -1046,10 +1046,10 @@ impl Redis {
 
         let redis_data = database
             .entry(key.clone())
-            .or_insert_with(|| RedisData::new(RedisValue::StringValue("0".to_string()), -1));
+            .or_insert_with(|| RedisData::new(RedisValue::String("0".to_string()), -1));
 
         let result = match &mut redis_data.value {
-            RedisValue::StringValue(val) => match val.parse::<i64>() {
+            RedisValue::String(val) => match val.parse::<i64>() {
                 Ok(current_val) => current_val - increment,
                 Err(_) => return Err("ERR value is not an integer".to_string()),
             },
@@ -1060,7 +1060,7 @@ impl Redis {
             }
         };
 
-        if let RedisValue::StringValue(val) = &mut redis_data.value {
+        if let RedisValue::String(val) = &mut redis_data.value {
             *val = result.to_string();
         }
 
