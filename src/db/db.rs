@@ -74,11 +74,11 @@ impl RedisData {
     }
 
     pub fn get_expire_at(&self) -> i64 {
-        return self.expire_at;
+        self.expire_at
     }
 
     pub fn get_value(&self) -> &RedisValue {
-        return &self.value;
+        &self.value
     }
 
     pub fn set_expire_at(&mut self, expire_at: i64) {
@@ -303,7 +303,7 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 数据键
      */
-    pub fn get(&self, db_index: usize, key: &String) -> Result<Option<&String>, &str> {
+    pub fn get(&self, db_index: usize, key: &str) -> Result<Option<&str>, &str> {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(key) {
                 Some(redis_value) => match &redis_value.value {
@@ -386,7 +386,7 @@ impl Redis {
      * @param key 数据主键
      * @return 如果删除成功返回 true，如果不存在返回 false
      */
-    pub fn del(&mut self, db_index: usize, key: &String) -> bool {
+    pub fn del(&mut self, db_index: usize, key: &str) -> bool {
         if let Some(db) = self.databases.get_mut(db_index) {
             if db.remove(key).is_some() {
                 return true;
@@ -401,7 +401,7 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 数据键
      */
-    pub fn exists(&self, db_index: usize, key: &String) -> bool {
+    pub fn exists(&self, db_index: usize, key: &str) -> bool {
         if db_index < self.databases.len() {
             self.databases[db_index].contains_key(key)
         } else {
@@ -415,7 +415,7 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 数据键
      */
-    pub fn check_ttl(&mut self, db_index: usize, key: &String) {
+    pub fn check_ttl(&mut self, db_index: usize, key: &str) {
         if db_index < self.databases.len() {
             match self.databases[db_index].get(key) {
                 Some(redis_value) => {
@@ -855,7 +855,7 @@ impl Redis {
      * @param key 列表键
      * @return 列表长度，如果键不存在或者不是列表则返回 0
      */
-    pub fn llen(&self, db_index: usize, key: &String) -> usize {
+    pub fn llen(&self, db_index: usize, key: &str) -> usize {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
                 if let RedisValue::ListValue(ref array) = redis_value.value {
@@ -875,7 +875,7 @@ impl Redis {
      * @param key 列表键
      * @param index 值索引
      */
-    pub fn lindex(&self, db_index: usize, key: &String, index: i64) -> Option<String> {
+    pub fn lindex(&self, db_index: usize, key: &str, index: i64) -> Option<String> {
         if db_index < self.databases.len() {
             if let Some(redis_value) = self.databases[db_index].get(key) {
                 if let RedisValue::ListValue(ref array) = redis_value.value {
@@ -936,7 +936,7 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 列表键
      */
-    pub fn smembers(&self, db_index: usize, key: &String) -> Option<&HashSet<String>> {
+    pub fn smembers(&self, db_index: usize, key: &str) -> Option<&HashSet<String>> {
         if let Some(set) = self.databases.get(db_index)?.get(key) {
             if let RedisValue::SetValue(members) = &set.value {
                 return Some(members);
@@ -951,7 +951,7 @@ impl Redis {
      * @param db_index 数据库索引
      * @param key 列表键
      */
-    pub fn scard(&self, db_index: usize, key: &String) -> Option<usize> {
+    pub fn scard(&self, db_index: usize, key: &str) -> Option<usize> {
         if let Some(set) = self.databases.get(db_index)?.get(key) {
             if let RedisValue::SetValue(members) = &set.value {
                 return Some(members.len());

@@ -20,11 +20,11 @@ pub trait CommandStrategy {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        fragments: &Vec<&str>,
+        fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
         redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &String,
+        session_id: &str,
     );
 
     // 命令类型

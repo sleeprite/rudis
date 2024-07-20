@@ -14,11 +14,11 @@ impl CommandStrategy for AuthCommand {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        fragments: &Vec<&str>,
+        fragments: &[&str],
         _redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &String
+        session_id: &str
     ) {
         if fragments.len() < 3 {
             if let Some(stream) = stream { 
@@ -28,7 +28,7 @@ impl CommandStrategy for AuthCommand {
             return;
         }
         let password = fragments[4];
-        match &(*_redis_config).password {
+        match &(_redis_config).password {
             Some(p) => {
                 if password != p {
                     let mut session_ref = sessions.lock().unwrap();
@@ -60,6 +60,6 @@ impl CommandStrategy for AuthCommand {
 
         
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }

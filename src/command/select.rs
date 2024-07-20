@@ -21,11 +21,11 @@ impl CommandStrategy for SelectCommand {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        fragments: &Vec<&str>,
+        fragments: &[&str],
         _redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &String
+        session_id: &str
     ) {
         /*
          * 验证语法
@@ -68,6 +68,6 @@ impl CommandStrategy for SelectCommand {
     }
 
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Write;
+        CommandType::Write
     }
 }

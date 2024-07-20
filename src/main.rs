@@ -216,7 +216,7 @@ fn connection(
                     let sessions_ref = sessions.lock().unwrap();
                     let session = sessions_ref.get(&session_id).unwrap();
                     let is_not_auth = command.to_uppercase() != "AUTH";
-                    if redis_config.password != None && is_not_auth {
+                    if redis_config.password.is_some() && is_not_auth {
                         if !session.get_authenticated() {
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
@@ -253,20 +253,17 @@ fn connection(
                      * 假定是个影响内存的命令，记录到日志，
                      *【备份与恢复】中的恢复。
                      */
-                    match strategy.command_type() {
-                        CommandType::Write => {                            
-                            rdb_count.lock().unwrap().calc();
-                            match aof.lock() {
-                                Ok(mut aof_ref) => {
-                                    aof_ref.save(&fragments.join("\\r\\n"));
-                                }
-                                Err(_) => {
-                                    eprintln!("Failed to acquire lock on AOF");
-                                    return;
-                                }
-                            };
-                        }
-                        _ => {}
+                    if let CommandType::Write = strategy.command_type() {                      
+                        rdb_count.lock().unwrap().calc();
+                        match aof.lock() {
+                            Ok(mut aof_ref) => {
+                                aof_ref.save(&fragments.join("\\r\\n"));
+                            }
+                            Err(_) => {
+                                eprintln!("Failed to acquire lock on AOF");
+                                return;
+                            }
+                        };
                     }
                 } else {
                     let response_value = "PONG".to_string();

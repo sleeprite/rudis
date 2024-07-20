@@ -12,11 +12,11 @@ impl CommandStrategy for FlushAllCommand {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        _fragments: &Vec<&str>,
+        _fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         _sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        _session_id: &String
+        _session_id: &str
     ) {
         let mut redis_ref = redis.lock().unwrap();
         
@@ -29,6 +29,6 @@ impl CommandStrategy for FlushAllCommand {
     }
         
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Write;
+        CommandType::Write
     }
 }

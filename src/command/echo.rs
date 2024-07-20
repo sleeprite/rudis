@@ -13,11 +13,11 @@ impl CommandStrategy for EchoCommand {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        fragments: &Vec<&str>,
+        fragments: &[&str],
         _redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         _sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        _session_id: &String
+        _session_id: &str
     ) {
         let keyword = fragments[4].to_string();
 
@@ -28,6 +28,6 @@ impl CommandStrategy for EchoCommand {
     }
 
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }

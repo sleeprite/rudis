@@ -17,11 +17,11 @@ impl CommandStrategy for LindexCommand {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        fragments: &Vec<&str>,
+        fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &String
+        session_id: &str
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
@@ -52,6 +52,6 @@ impl CommandStrategy for LindexCommand {
     }
 
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }

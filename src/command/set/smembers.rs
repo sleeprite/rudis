@@ -16,11 +16,11 @@ impl CommandStrategy for SmembersCommand {
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
-        fragments: &Vec<&str>,
+        fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &String
+        session_id: &str
     ) { 
         let mut redis_ref = redis.lock().unwrap();
         let db_index = {
@@ -34,7 +34,7 @@ impl CommandStrategy for SmembersCommand {
 
         if let Some(key) = fragments.get(4) {
             redis_ref.check_all_ttl(db_index);
-            if let Some(members) = redis_ref.smembers(db_index, &key.to_string()) {
+            if let Some(members) = redis_ref.smembers(db_index, key.as_ref()) {
                 if let Some(stream) = stream { 
                     let response = format!("*{}\r\n", members.len());
                     stream.write(response.as_bytes()).unwrap();
@@ -45,7 +45,7 @@ impl CommandStrategy for SmembersCommand {
                 }
             } else {
                 if let Some(stream) = stream { 
-                    let response = format!("*0\r\n");
+                    let response = "*0\r\n".to_string();
                     stream.write(response.as_bytes()).unwrap();
                 }
             }
@@ -59,6 +59,6 @@ impl CommandStrategy for SmembersCommand {
 
         
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }
