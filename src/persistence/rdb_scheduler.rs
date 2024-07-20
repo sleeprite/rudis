@@ -1,15 +1,15 @@
 use std::thread;
 use std::sync::{Arc, Mutex};
-use super::{rdb::RDB, rdb_count::RdbCount};
+use super::{rdb::Rdb, rdb_count::RdbCount};
 use tokio::time::Duration;
 
 pub struct RdbScheduler {
-    pub rdb: Arc<Mutex<RDB>>,
+    pub rdb: Arc<Mutex<Rdb>>,
 }
 
 impl RdbScheduler {
 
-    pub fn new(rdb: Arc<Mutex<RDB>>) -> RdbScheduler {
+    pub fn new(rdb: Arc<Mutex<Rdb>>) -> RdbScheduler {
         RdbScheduler {
             rdb,
         }

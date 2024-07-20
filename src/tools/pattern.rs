@@ -12,7 +12,7 @@ use regex::Regex;
 /// 返回一个布尔值，表示 `key` 是否匹配 `pattern`
 ///
 pub fn match_key(key: &str, pattern: &str) -> bool {
-    let pattern = pattern.replace("?", ".").replace("*", ".*");
+    let pattern = pattern.replace('?', ".").replace('*', ".*");
     let regex = Regex::new(&format!("^{}$", pattern)).unwrap();
     regex.is_match(key)
 }

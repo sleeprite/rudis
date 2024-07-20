@@ -14,7 +14,7 @@ mod session;
 mod tools;
 mod command_strategies;
 
-use persistence::rdb::RDB;
+use persistence::rdb::Rdb;
 use persistence::rdb_count::RdbCount;
 use persistence::rdb_scheduler::RdbScheduler;
 use command_strategies::init_command_strategies;
@@ -24,7 +24,7 @@ use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
-use crate::persistence::aof::AOF;
+use crate::persistence::aof::Aof;
 
 #[tokio::main]
 async fn main() {
@@ -60,12 +60,12 @@ async fn main() {
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
     
-    let aof = Arc::new(Mutex::new(AOF::new(
+    let aof = Arc::new(Mutex::new(Aof::new(
         redis_config.clone(),
         redis.clone(),
     )));
 
-    let rdb = Arc::new(Mutex::new(RDB::new(
+    let rdb = Arc::new(Mutex::new(Rdb::new(
         redis_config.clone(),
         redis.clone(),
     )));
@@ -150,7 +150,7 @@ fn connection(
     redis_config: Arc<RedisConfig>,
     sessions: Arc<Mutex<HashMap<String, Session>>>,
     rdb_count: Arc<Mutex<RdbCount>>,
-    aof: Arc<Mutex<AOF>>,
+    aof: Arc<Mutex<Aof>>,
 ) {
     /*
      * 声明变量

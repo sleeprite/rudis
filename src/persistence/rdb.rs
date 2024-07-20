@@ -16,15 +16,15 @@ use crate::db::{
     db_config::RedisConfig,
 };
 
-pub struct RDB {
+pub struct Rdb {
     pub redis_config: Arc<RedisConfig>,
     pub redis: Arc<Mutex<Redis>>,
     pub rdb_file: Option<std::fs::File>,
 }
 
-impl RDB {
+impl Rdb {
     
-    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> RDB {
+    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> Rdb {
         let mut rdb_file = None;
         if let Some(filename) = &redis_config.dbfilename {
             let base_path = &redis_config.dir;
@@ -34,7 +34,7 @@ impl RDB {
             );
         }
 
-        RDB {
+        Rdb {
             redis_config,
             redis,
             rdb_file,
@@ -91,7 +91,7 @@ impl RDB {
             if let Ok(mut file) = File::open(file_path) {
                 use std::io::{BufRead, BufReader};
                 let line_count = BufReader::new(&file).lines().count() as u64;
-                if let Ok(_) = file.seek(SeekFrom::Start(0)) {
+                if file.seek(SeekFrom::Start(0)).is_ok() {
                     let pb = ProgressBar::new(line_count);
                     pb.set_style(
                         ProgressStyle::default_bar()
@@ -116,14 +116,11 @@ impl RDB {
                                 _ => None
                             };
 
-                            match value {
-                                Some(redis_value) => {
-                                    // Handle the RedisValue here
-                                    let key = parts[1].to_string();
-                                    redis_ref.set(db_index, key, redis_value, expire_at);
+                            if let Some(redis_value) = value {
+                                // Handle the RedisValue here
+                                let key = parts[1].to_string();
+                                redis_ref.set(db_index, key, redis_value, expire_at);
                                     
-                                },
-                                None => {}
                             }
                         }
                         pb.inc(1);

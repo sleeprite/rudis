@@ -459,7 +459,7 @@ impl Redis {
      * 检查过期【所有库】
      */
     pub fn check_all_database_ttl(&mut self) {
-        for (_db_index, database) in self.databases.iter_mut().enumerate() {
+        for database in self.databases.iter_mut() {
             let mut expired_keys = HashSet::new();
             for (key, value) in database.iter() {
                 if value.is_expired() {

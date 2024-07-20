@@ -12,24 +12,24 @@ use crate::command_strategies::init_command_strategies;
 use crate::db::db_config::RedisConfig;
 use crate::session::session::Session;
 
-pub struct AOF {
+pub struct Aof {
     pub redis_config: Arc<RedisConfig>,
     pub redis: Arc<Mutex<Redis>>,
     pub aof_file: Option<std::fs::File>,
 }
 
-impl AOF {
+impl Aof {
     
-    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> AOF {
+    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> Aof {
         let mut aof_file = None;
         if redis_config.appendonly && redis_config.appendfilename.is_some() {
             if let Some(filename) = &redis_config.appendfilename {
                 let base_path = &redis_config.dir;
                 let file_path = format!("{}{}", base_path, filename);
-                aof_file = Some(OpenOptions::new().create(true).read(true).write(true).append(true).open(file_path).expect("Failed to open AOF file"));
+                aof_file = Some(OpenOptions::new().create(true).read(true).append(true).open(file_path).expect("Failed to open AOF file"));
             }
         }
-        AOF {
+        Aof {
             redis_config,
             redis,
             aof_file,
@@ -74,7 +74,7 @@ impl AOF {
                         sessions_ref.insert(session_id.to_string(), Session::new());
                     }
 
-                    if let Ok(_) = file.seek(SeekFrom::Start(0)) {
+                    if file.seek(SeekFrom::Start(0)).is_ok() {
                         let pb = ProgressBar::new(line_count);
                         pb.set_style(ProgressStyle::default_bar().template("[{bar:39.green/cyan}] percent: {percent}% lines: {pos}/{len}").progress_chars("=>-"));
                         let reader = BufReader::new(&mut file);
@@ -83,7 +83,7 @@ impl AOF {
                                 let fragments: Vec<&str> = operation.split("\\r\\n").collect();
                                 let command = fragments[2];
                                 if let Some(strategy) = command_strategies.get(command) {
-                                    strategy.execute(None, &fragments, &self.redis, &self.redis_config, &sessions,&session_id.to_string());
+                                    strategy.execute(None, &fragments, &self.redis, &self.redis_config, &sessions,session_id);
                                 }
                             }
                             pb.inc(1);
