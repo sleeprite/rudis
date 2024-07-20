@@ -43,17 +43,13 @@ impl CommandStrategy for SmembersCommand {
                         stream.write(response.as_bytes()).unwrap();
                     }
                 }
-            } else {
-                if let Some(stream) = stream { 
-                    let response = "*0\r\n".to_string();
-                    stream.write(response.as_bytes()).unwrap();
-                }
-            }
-        } else {
-            if let Some(stream) = stream { 
-                let response = "-ERR wrong number of arguments for 'smembers' command\r\n";
+            } else if let Some(stream) = stream { 
+                let response = "*0\r\n".to_string();
                 stream.write(response.as_bytes()).unwrap();
             }
+        } else if let Some(stream) = stream { 
+            let response = "-ERR wrong number of arguments for 'smembers' command\r\n";
+            stream.write(response.as_bytes()).unwrap();
         }
     }
 

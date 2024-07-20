@@ -212,24 +212,25 @@ fn connection(
                 {
                     /*
                      * 安全认证【前置拦截】
+                     * 
+                     * 如果配置了密码，该命令不是 auth 指令，且用户未登录
                      */
                     let sessions_ref = sessions.lock().unwrap();
                     let session = sessions_ref.get(&session_id).unwrap();
-                    let is_not_auth = command.to_uppercase() != "AUTH";
-                    if redis_config.password.is_some() && is_not_auth {
-                        if !session.get_authenticated() {
-                            let response_value = "ERR Authentication required".to_string();
-                            let response_bytes = &RespValue::Error(response_value).to_bytes();
-                            match stream.write(response_bytes){
-                                Ok(_bytes_written) => {
-                                    // END
-                                },
-                                Err(e) => {
-                                    eprintln!("Failed to write to stream: {}", e);
-                                },
-                            };
-                            continue 'main;
-                        }
+                    let is_not_auth_command = command.to_uppercase() != "AUTH";
+                    let is_not_auth = !session.get_authenticated();
+                    if redis_config.password.is_some() && is_not_auth && is_not_auth_command{
+                        let response_value = "ERR Authentication required".to_string();
+                        let response_bytes = &RespValue::Error(response_value).to_bytes();
+                        match stream.write(response_bytes){
+                            Ok(_bytes_written) => {
+                                // Response successful
+                            },
+                            Err(e) => {
+                                eprintln!("Failed to write to stream: {}", e);
+                            },
+                        };
+                        continue 'main;
                     }
                 }
 

@@ -47,11 +47,9 @@ impl CommandStrategy for ExistsCommand {
                 let response_bytes = &RespValue::Integer(1).to_bytes();
                 stream.write(response_bytes).unwrap();
             }
-        } else {
-            if let Some(stream) = stream { 
-                let response_bytes = &RespValue::Integer(0).to_bytes();
-                stream.write(response_bytes).unwrap();
-            }
+        } else if let Some(stream) = stream { 
+            let response_bytes = &RespValue::Integer(0).to_bytes();
+            stream.write(response_bytes).unwrap();
         }
     }
 

@@ -43,11 +43,9 @@ impl CommandStrategy for ScardCommand {
                 let response_value = RespValue::Integer(cardinality as i64).to_bytes();
                 stream.write(&response_value).unwrap();
             }
-        } else {
-            if let Some(stream) = stream { 
-                let response_value = RespValue::Integer(0).to_bytes();
-                stream.write(&response_value).unwrap();
-            }
+        } else if let Some(stream) = stream { 
+            let response_value = RespValue::Integer(0).to_bytes();
+            stream.write(&response_value).unwrap();
         }
     }
 
