@@ -40,6 +40,6 @@ impl CommandStrategy for TypeCommand {
 
     
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }

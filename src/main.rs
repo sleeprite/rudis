@@ -177,7 +177,14 @@ fn connection(
         } else {
             let err = "ERR max number of clients reached".to_string();
             let resp_value = RespValue::Error(err).to_bytes();
-            stream.write(&resp_value).unwrap();
+            match stream.write(&resp_value) {
+                Ok(_bytes_written) => {
+                    // END
+                },
+                Err(e) => {
+                    eprintln!("Failed to write to stream: {}", e);
+                },
+            }
             return;
         }
     }
@@ -213,7 +220,14 @@ fn connection(
                         if !session.get_authenticated() {
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
-                            stream.write(response_bytes).unwrap();
+                            match stream.write(response_bytes){
+                                Ok(_bytes_written) => {
+                                    // END
+                                },
+                                Err(e) => {
+                                    eprintln!("Failed to write to stream: {}", e);
+                                },
+                            };
                             continue 'main;
                         }
                     }
@@ -240,7 +254,7 @@ fn connection(
                      *【备份与恢复】中的恢复。
                      */
                     match strategy.command_type() {
-                        CommandType::Write => {
+                        CommandType::Write => {                            
                             rdb_count.lock().unwrap().calc();
                             match aof.lock() {
                                 Ok(mut aof_ref) => {
@@ -257,7 +271,14 @@ fn connection(
                 } else {
                     let response_value = "PONG".to_string();
                     let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
-                    stream.write(response_bytes).unwrap();
+                    match stream.write(response_bytes) {
+                        Ok(_bytes_written) => {
+                            // END
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    }
                 }
             }
             Err(_e) => {

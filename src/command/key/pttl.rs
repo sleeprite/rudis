@@ -39,6 +39,6 @@ impl CommandStrategy for PttlCommand {
     }
 
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }

@@ -111,9 +111,9 @@ fn get_appendonly_or(default: bool) -> bool {
     }
 
     if let Some(arg) = args.next() {
-        return arg.parse().expect("'--appendonly' must have a value");
+        arg.parse().expect("'--appendonly' must have a value")
     } else {
-        return default;
+        default
     }
 }
 
@@ -129,9 +129,9 @@ fn get_port_or(default: u16) -> u16 {
     }
 
     if let Some(arg) = args.next() {
-        return arg.parse().expect("'--port' must have a value");
+        arg.parse().expect("'--port' must have a value")
     } else {
-        return default;
+        default
     }
 }
 
@@ -142,9 +142,9 @@ fn get_hz_or(default: u64) -> u64 {
     }
 
     if let Some(arg) = args.next() {
-        return arg.parse().expect("'--hz' must have a value");
+        arg.parse().expect("'--hz' must have a value")
     } else {
-        return default;
+        default
     }
 }
 
@@ -160,9 +160,9 @@ fn get_maxclients_or(default: usize) -> usize {
     }
 
     if let Some(arg) = args.next() {
-        return arg.parse().expect("'--maxclients' must have a value");
+        arg.parse().expect("'--maxclients' must have a value")
     } else {
-        return default;
+        default
     }
 }
 
@@ -178,9 +178,9 @@ fn get_databases_or(default: usize) -> usize {
     }
 
     if let Some(arg) = args.next() {
-        return arg.parse().expect("'--databases' must have a value");
+        arg.parse().expect("'--databases' must have a value")
     } else {
-        return default;
+        default
     }
 }
 
@@ -196,9 +196,9 @@ fn get_password_or(default_password: Option<String>) -> Option<String> {
     }
 
     if let Some(arg) = args.next() {
-        return Some(arg);
+        Some(arg)
     } else {
-        return default_password;
+        default_password
     }
 }
 
@@ -214,9 +214,9 @@ fn get_bind_or(default_bind: String) -> String {
     }
 
     if let Some(arg) = args.next() {
-        return arg;
+        arg
     } else {
-        return default_bind;
+        default_bind
     }
 }
 
@@ -233,9 +233,9 @@ fn get_dir_or(default_dir: String) -> String {
     }
 
     if let Some(arg) = args.next() {
-        return arg;
+        arg
     } else {
-        return default_dir;
+        default_dir
     }
 }
 
@@ -251,9 +251,9 @@ fn get_dbfilename_or(default_dbfilename: Option<String>) -> Option<String >{
     }
 
     if let Some(arg) = args.next() {
-        return Some(arg);
+        Some(arg)
     } else {
-        return default_dbfilename;
+        default_dbfilename
     }
 }
 
@@ -269,9 +269,9 @@ fn get_save_or(default_save: Option<String>) -> Option<String >{
     }
 
     if let Some(arg) = args.next() {
-        return Some(arg);
+        Some(arg)
     } else {
-        return default_save;
+        default_save
     }
 }
 
@@ -286,9 +286,9 @@ fn get_appendfilename_or(default_appendfilename: Option<String>) -> Option<Strin
     }
 
     if let Some(arg) = args.next() {
-        return Some(arg);
+        Some(arg)
     } else {
-        return default_appendfilename;
+        default_appendfilename
     }
 }
 
@@ -302,9 +302,9 @@ fn get_appendfsync_or(default_appendfsync: Option<String>) -> Option<String> {
     }
 
     if let Some(arg) = args.next() {
-        return Some(arg);
+        Some(arg)
     } else {
-        return default_appendfsync;
+        default_appendfsync
     }
 }
 
@@ -313,12 +313,8 @@ fn get_config_path_or(default_config_path: Option<String>) -> Option<String> {
     if let Some(config_path_arg) = args.nth(1) {
         let config_path = PathBuf::from(&config_path_arg);
         if config_path.is_file() {
-            return Some(config_path_arg);
-        } else {
-            // If config_path is not a file path, return default_config_path
-            return default_config_path;
-        }
-    } else {
-        return default_config_path;
-    }
+            return Some(config_path_arg)
+        } 
+    } 
+    default_config_path
 }

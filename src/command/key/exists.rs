@@ -56,6 +56,6 @@ impl CommandStrategy for ExistsCommand {
     }
 
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Read;
+        CommandType::Read
     }
 }

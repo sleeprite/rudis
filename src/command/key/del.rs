@@ -51,6 +51,6 @@ impl CommandStrategy for DelCommand {
     }
 
     fn command_type(&self) -> crate::interface::command_type::CommandType {
-        return CommandType::Write;
+        CommandType::Write
     }
 }

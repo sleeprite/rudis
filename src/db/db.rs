@@ -640,24 +640,22 @@ impl Redis {
                     // 从哈希映射中获取指定字段的值
                     if let Some(value) = hash_map.get(field) {
                         // 返回值
-                        return Ok(Some(value.clone()));
+                        Ok(Some(value.clone()))
                     } else {
                         // 字段不存在
-                        return Ok(None);
+                        Ok(None)
                     }
                 } else {
                     // 键存在，但不是 HashValue 类型
-                    return Err(
-                        "WRONGTYPE Operation against a key holding the wrong kind of value",
-                    );
+                    Err("WRONGTYPE Operation against a key holding the wrong kind of value")
                 }
             } else {
                 // 键不存在
-                return Ok(None);
+                Ok(None)
             }
         } else {
             // 数据库索引不存在
-            return Err("数据库索引不存在");
+            Err("数据库索引不存在")
         }
     }
 
@@ -671,24 +669,22 @@ impl Redis {
                     // 检查哈希映射中是否存在指定字段
                     if hash_map.contains_key(field) {
                         // 字段存在
-                        return Ok(true);
+                        Ok(true)
                     } else {
                         // 字段不存在
-                        return Ok(false);
+                        Ok(false)
                     }
                 } else {
                     // 键存在，但不是 HashValue 类型
-                    return Err(
-                        "WRONGTYPE Operation against a key holding the wrong kind of value",
-                    );
+                    Err("WRONGTYPE Operation against a key holding the wrong kind of value")
                 }
             } else {
                 // 键不存在
-                return Ok(false);
+                Ok(false)
             }
         } else {
             // 数据库索引不存在
-            return Err("数据库索引不存在");
+            Err("数据库索引不存在")
         }
     }
 
@@ -711,20 +707,18 @@ impl Redis {
                             deleted_count += 1;
                         }
                     }
-                    return Ok(deleted_count);
+                    Ok(deleted_count)
                 } else {
                     // 键存在，但不是 HashValue 类型
-                    return Err(
-                        "WRONGTYPE Operation against a key holding the wrong kind of value",
-                    );
+                    Err("WRONGTYPE Operation against a key holding the wrong kind of value")
                 }
             } else {
                 // 键不存在
-                return Ok(0);
+                Ok(0)
             }
         } else {
             // 数据库索引不存在
-            return Err("数据库索引不存在");
+            Err("数据库索引不存在")
         }
     }
 

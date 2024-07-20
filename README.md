@@ -57,6 +57,9 @@ cargo build
 cargo build --release 
 
 cargo build --release --target=x86_64-unknown-linux-musl
+
+// 代码检测
+cargo clippy
 ```
 
 ## 启动参数
