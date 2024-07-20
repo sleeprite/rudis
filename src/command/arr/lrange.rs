@@ -7,7 +7,7 @@ use std::{
 
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
-use crate::{db::db::Redis, RedisConfig};
+use crate::{database::db::Redis, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct LrangeCommand {}

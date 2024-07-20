@@ -8,7 +8,7 @@ use tokio::time::Duration;
 
 mod persistence;
 mod command;
-mod db;
+mod database;
 mod interface;
 mod session;
 mod tools;
@@ -20,8 +20,8 @@ use persistence::rdb_scheduler::RdbScheduler;
 use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
-use crate::db::db::Redis;
-use crate::db::db_config::RedisConfig;
+use crate::database::db::Redis;
+use crate::database::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::persistence::aof::Aof;

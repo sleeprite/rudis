@@ -8,7 +8,7 @@ use std::{
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
-use crate::{db::db::Redis, RedisConfig};
+use crate::{database::db::Redis, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct ScardCommand {}

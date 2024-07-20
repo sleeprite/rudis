@@ -11,7 +11,7 @@ use ahash::AHashMap;
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
-use crate::db::{
+use crate::database::{
     db::{Redis, RedisData, RedisValue},
     db_config::RedisConfig,
 };

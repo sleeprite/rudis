@@ -1,7 +1,7 @@
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::{
-    db::db::Redis, session::session::Session, RedisConfig,
+    database::db::Redis, session::session::Session, RedisConfig,
 };
 use crate::interface::command_strategy::CommandStrategy;
 use std::io::Write;

@@ -4,7 +4,7 @@ use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::session::session::Session;
-use crate::{db::db::Redis, RedisConfig};
+use crate::{database::db::Redis, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 pub struct HgetCommand {}
 
