@@ -47,7 +47,14 @@ impl CommandStrategy for LindexCommand {
         };
 
         if let Some(stream) = stream {
-            stream.write(&response_bytes).unwrap();
+            match stream.write(&response_bytes) {
+                Ok(_bytes_written) => {
+                    // Response successful
+                },
+                Err(e) => {
+                    eprintln!("Failed to write to stream: {}", e);
+                },
+            };
         }
     }
 

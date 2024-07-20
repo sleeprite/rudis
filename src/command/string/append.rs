@@ -42,7 +42,14 @@ impl CommandStrategy for AppendCommand {
             Err(err) => {
                 if let Some(stream) = stream { 
                     let response_value = RespValue::Error(err).to_bytes();
-                    stream.write(&response_value).unwrap();
+                    match stream.write(&response_value) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                 }
                 return;
             }
@@ -50,7 +57,14 @@ impl CommandStrategy for AppendCommand {
 
         if let Some(stream) = stream { 
             let response_value = RespValue::Integer(len).to_bytes();
-            stream.write(&response_value).unwrap();
+            match stream.write(&response_value) {
+                Ok(_bytes_written) => {
+                    // Response successful
+                },
+                Err(e) => {
+                    eprintln!("Failed to write to stream: {}", e);
+                },
+            };
         }
     }
 

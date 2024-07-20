@@ -47,13 +47,27 @@ impl CommandStrategy for ZaddCommand {
             Ok(result) => {
                 if let Some(stream) = stream {
                     let response_bytes = &RespValue::Integer(result as i64).to_bytes();
-                    stream.write(response_bytes).unwrap();
+                    match stream.write(response_bytes) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                 }
             }
             Err(err_msg) => {
                 if let Some(stream) = stream {
                     let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
-                    stream.write(response_bytes).unwrap();
+                    match stream.write(response_bytes) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                 }
             }
         }

@@ -23,7 +23,14 @@ impl CommandStrategy for AuthCommand {
         if fragments.len() < 3 {
             if let Some(stream) = stream { 
                 let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'auth' command".to_string()).to_bytes();
-                stream.write(response_bytes).unwrap();
+                match stream.write(response_bytes) {
+                    Ok(_bytes_written) => {
+                        // Response successful
+                    },
+                    Err(e) => {
+                        eprintln!("Failed to write to stream: {}", e);
+                    },
+                };
             }
             return;
         }
@@ -37,7 +44,14 @@ impl CommandStrategy for AuthCommand {
                     }
                     if let Some(stream) = stream { 
                         let response_bytes = &RespValue::Error("ERR invalid password".to_string()).to_bytes();
-                        stream.write(response_bytes).unwrap();
+                        match stream.write(response_bytes) {
+                            Ok(_bytes_written) => {
+                                // Response successful
+                            },
+                            Err(e) => {
+                                eprintln!("Failed to write to stream: {}", e);
+                            },
+                        };
                     }
                     return;
                 }
@@ -54,7 +68,14 @@ impl CommandStrategy for AuthCommand {
         
         if let Some(stream) = stream { 
             let response_bytes = &RespValue::Ok.to_bytes();
-            stream.write(response_bytes).unwrap();
+            match stream.write(response_bytes) {
+                Ok(_bytes_written) => {
+                    // Response successful
+                },
+                Err(e) => {
+                    eprintln!("Failed to write to stream: {}", e);
+                },
+            };
         }
     }
 

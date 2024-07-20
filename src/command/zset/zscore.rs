@@ -46,17 +46,38 @@ impl CommandStrategy for ZscoreCommand {
                 if let Some(stream) = stream {
                     if let Some(card) = card {
                         let resp_value = RespValue::BulkString(card.to_string()).to_bytes();
-                        stream.write(&resp_value).unwrap();
+                        match stream.write(&resp_value) {
+                            Ok(_bytes_written) => {
+                                // Response successful
+                            },
+                            Err(e) => {
+                                eprintln!("Failed to write to stream: {}", e);
+                            },
+                        };
                     } else {
                         let resp_value = RespValue::Null.to_bytes();
-                        stream.write(&resp_value).unwrap();
+                        match stream.write(&resp_value) {
+                            Ok(_bytes_written) => {
+                                // Response successful
+                            },
+                            Err(e) => {
+                                eprintln!("Failed to write to stream: {}", e);
+                            },
+                        };
                     }
                 }
             }
             Err(err) => {
                 if let Some(stream) = stream {
                     let resp_value = &RespValue::Error(err).to_bytes();
-                    stream.write(resp_value).unwrap();
+                    match stream.write(resp_value) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                 }
             }
         }

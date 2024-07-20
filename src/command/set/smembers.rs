@@ -37,19 +37,47 @@ impl CommandStrategy for SmembersCommand {
             if let Some(members) = redis_ref.smembers(db_index, key.as_ref()) {
                 if let Some(stream) = stream { 
                     let response = format!("*{}\r\n", members.len());
-                    stream.write(response.as_bytes()).unwrap();
+                    match stream.write(response.as_bytes()) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                     for member in members {
                         let response = format!("${}\r\n{}\r\n", member.len(), member);
-                        stream.write(response.as_bytes()).unwrap();
+                        match stream.write(response.as_bytes()) {
+                            Ok(_bytes_written) => {
+                                // Response successful
+                            },
+                            Err(e) => {
+                                eprintln!("Failed to write to stream: {}", e);
+                            },
+                        };
                     }
                 }
             } else if let Some(stream) = stream { 
                 let response = "*0\r\n".to_string();
-                stream.write(response.as_bytes()).unwrap();
+                match stream.write(response.as_bytes()) {
+                    Ok(_bytes_written) => {
+                        // Response successful
+                    },
+                    Err(e) => {
+                        eprintln!("Failed to write to stream: {}", e);
+                    },
+                };
             }
         } else if let Some(stream) = stream { 
             let response = "-ERR wrong number of arguments for 'smembers' command\r\n";
-            stream.write(response.as_bytes()).unwrap();
+            match stream.write(response.as_bytes()) {
+                Ok(_bytes_written) => {
+                    // Response successful
+                },
+                Err(e) => {
+                    eprintln!("Failed to write to stream: {}", e);
+                },
+            };
         }
     }
 

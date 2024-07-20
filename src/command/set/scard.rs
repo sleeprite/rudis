@@ -41,11 +41,25 @@ impl CommandStrategy for ScardCommand {
         if let Some(cardinality) = redis_ref.scard(db_index, &key.to_string()) {
             if let Some(stream) = stream { 
                 let response_value = RespValue::Integer(cardinality as i64).to_bytes();
-                stream.write(&response_value).unwrap();
+                match stream.write(&response_value) {
+                    Ok(_bytes_written) => {
+                        // Response successful
+                    },
+                    Err(e) => {
+                        eprintln!("Failed to write to stream: {}", e);
+                    },
+                };
             }
         } else if let Some(stream) = stream { 
             let response_value = RespValue::Integer(0).to_bytes();
-            stream.write(&response_value).unwrap();
+            match stream.write(&response_value) {
+                Ok(_bytes_written) => {
+                    // Response successful
+                },
+                Err(e) => {
+                    eprintln!("Failed to write to stream: {}", e);
+                },
+            };
         }
     }
 

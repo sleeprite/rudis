@@ -45,13 +45,27 @@ impl CommandStrategy for ZcountCommand {
             Ok(card) => {
                 if let Some(stream) = stream {
                     let resp_value = &RespValue::Integer(card as i64).to_bytes();
-                    stream.write(resp_value).unwrap();
+                    match stream.write(resp_value) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                 }
             }
             Err(err) => {
                 if let Some(stream) = stream {
                     let resp_value = &RespValue::Error(err).to_bytes();
-                    stream.write(resp_value).unwrap();
+                    match stream.write(resp_value) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
                 }
             }
         }
