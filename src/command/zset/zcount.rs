@@ -9,7 +9,7 @@ use crate::interface::command_strategy::CommandStrategy;
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
-use crate::{database::db::Redis, RedisConfig};
+use crate::{db::db::Redis, RedisConfig};
 
 pub struct ZcountCommand {}
 

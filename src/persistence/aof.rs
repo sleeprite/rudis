@@ -7,9 +7,9 @@ use std::{fs::OpenOptions, sync::Arc};
 
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::database::db::Redis;
+use crate::db::db::Redis;
 use crate::command_strategies::init_command_strategies;
-use crate::database::db_config::RedisConfig;
+use crate::db::db_config::RedisConfig;
 use crate::session::session::Session;
 
 pub struct Aof {
