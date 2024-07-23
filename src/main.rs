@@ -1,34 +1,33 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
-use std::sync::{Arc, Mutex};
 use std::process::id;
+use std::sync::{Arc, Mutex};
 
 use tokio::time::Duration;
 
-mod persistence;
 mod command;
+mod command_strategies;
 mod db;
 mod interface;
+mod persistence;
 mod session;
 mod tools;
-mod command_strategies;
 
+use command_strategies::init_command_strategies;
 use persistence::rdb::Rdb;
 use persistence::rdb_count::RdbCount;
 use persistence::rdb_scheduler::RdbScheduler;
-use command_strategies::init_command_strategies;
 use tools::resp::RespValue;
 
 use crate::db::db::Redis;
 use crate::db::db_config::RedisConfig;
 use crate::interface::command_type::CommandType;
-use crate::session::session::Session;
 use crate::persistence::aof::Aof;
+use crate::session::session::Session;
 
 #[tokio::main]
 async fn main() {
-    
     /*
      * 初始日志框架
      *
@@ -59,16 +58,9 @@ async fn main() {
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
     let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
-    
-    let aof = Arc::new(Mutex::new(Aof::new(
-        redis_config.clone(),
-        redis.clone(),
-    )));
 
-    let rdb = Arc::new(Mutex::new(Rdb::new(
-        redis_config.clone(),
-        redis.clone(),
-    )));
+    let aof = Arc::new(Mutex::new(Aof::new(redis_config.clone(), redis.clone())));
+    let rdb = Arc::new(Mutex::new(Rdb::new(redis_config.clone(), redis.clone())));
 
     println_banner(port);
 
@@ -114,7 +106,10 @@ async fn main() {
     let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
     let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
     if let Some(save_interval) = &redis_config.save {
-        arc_rdb_scheduler.lock().unwrap().execute(save_interval, arc_rdb_count.clone());  
+        arc_rdb_scheduler
+            .lock()
+            .unwrap()
+            .execute(save_interval, arc_rdb_count.clone());
     }
 
     for stream in listener.incoming() {
@@ -157,11 +152,15 @@ fn connection(
      *
      * @param command_strategies 命令集合
      * @param session_id 会话编号
-     * @param buff 消息容器
+     * @param buff 缓冲区
+     * @param buff_list 消息列表
+     * @param read_size 读取长度
      */
     let command_strategies = init_command_strategies();
     let session_id = stream.peer_addr().unwrap().to_string();
     let mut buff = [0; 512];
+    let mut buff_list = Vec::new();
+    let mut read_size = 0;
 
     {
         /*
@@ -180,10 +179,10 @@ fn connection(
             match stream.write(&resp_value) {
                 Ok(_bytes_written) => {
                     // END
-                },
+                }
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
-                },
+                }
             }
             return;
         }
@@ -196,87 +195,104 @@ fn connection(
                     break 'main;
                 }
 
-                /*
-                 * 解析命令
-                 *
-                 * body: 消息体
-                 * fragments: 消息片段
-                 * command: 命令
-                 */
+                buff_list.extend_from_slice(&buff[..size]);
+                read_size += size;
 
-                let bytes = &buff[..size];
-                let body = std::str::from_utf8(bytes).unwrap();
-                let fragments: Vec<&str> = body.split("\r\n").collect();
-                let command = fragments[2];
+                if size < 512 {
 
-                {
+
                     /*
-                     * 安全认证【前置拦截】
-                     * 
-                     * 如果配置了密码，该命令不是 auth 指令，且用户未登录
+                     * 解析命令
+                     *
+                     * body: 消息体
+                     * fragments: 消息片段
+                     * command: 命令
                      */
-                    let sessions_ref = sessions.lock().unwrap();
-                    let session = sessions_ref.get(&session_id).unwrap();
-                    let is_not_auth_command = command.to_uppercase() != "AUTH";
-                    let is_not_auth = !session.get_authenticated();
-                    if redis_config.password.is_some() && is_not_auth && is_not_auth_command{
-                        let response_value = "ERR Authentication required".to_string();
-                        let response_bytes = &RespValue::Error(response_value).to_bytes();
-                        match stream.write(response_bytes){
+
+                    let bytes = &buff_list[..read_size];
+                    let body = std::str::from_utf8(bytes).unwrap();
+                    let fragments: Vec<&str> = body.split("\r\n").collect();
+                    let command = fragments[2]; 
+
+                    {
+                        /*
+                         * 安全认证【前置拦截】
+                         *
+                         * 如果配置了密码，该命令不是 auth 指令，且用户未登录
+                         */
+                        let sessions_ref = sessions.lock().unwrap();
+                        let session = sessions_ref.get(&session_id).unwrap();
+                        let is_not_auth_command = command.to_uppercase() != "AUTH";
+                        let is_not_auth = !session.get_authenticated();
+                        if redis_config.password.is_some() && is_not_auth && is_not_auth_command {
+                            let response_value = "ERR Authentication required".to_string();
+                            let response_bytes = &RespValue::Error(response_value).to_bytes();
+                            match stream.write(response_bytes) {
+                                Ok(_bytes_written) => {
+                                    // Response successful
+                                }
+                                Err(e) => {
+                                    eprintln!("Failed to write to stream: {}", e);
+                                }
+                            };
+                            continue 'main;
+                        }
+                    }
+
+                    /*
+                     * 执行命令
+                     *
+                     * 利用策略模式，根据 command 获取具体实现，
+                     * 否则响应 PONG 内容。
+                     */
+                    if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str())
+                    {
+                        strategy.execute(
+                            Some(&mut stream),
+                            &fragments,
+                            &redis,
+                            &redis_config,
+                            &sessions,
+                            &session_id,
+                        );
+
+                        /*
+                         * 假定是个影响内存的命令，记录到日志，
+                         *【备份与恢复】中的恢复。
+                         */
+                        if let CommandType::Write = strategy.command_type() {
+                            rdb_count.lock().unwrap().calc();
+                            match aof.lock() {
+                                Ok(mut aof_ref) => {
+                                    aof_ref.save(&fragments.join("\\r\\n"));
+                                }
+                                Err(_) => {
+                                    eprintln!("Failed to acquire lock on AOF");
+                                    return;
+                                }
+                            };
+                        }
+                    } else {
+                        let response_value = "PONG".to_string();
+                        let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
+                        match stream.write(response_bytes) {
                             Ok(_bytes_written) => {
-                                // Response successful
-                            },
+                                // END
+                            }
                             Err(e) => {
                                 eprintln!("Failed to write to stream: {}", e);
-                            },
-                        };
-                        continue 'main;
+                            }
+                        }
                     }
-                }
-
-                /*
-                 * 执行命令
-                 *
-                 * 利用策略模式，根据 command 获取具体实现，
-                 * 否则响应 PONG 内容。
-                 */
-                if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str()) {
-                    strategy.execute(
-                        Some(&mut stream),
-                        &fragments,
-                        &redis,
-                        &redis_config,
-                        &sessions,
-                        &session_id,
-                    );
 
                     /*
-                     * 假定是个影响内存的命令，记录到日志，
-                     *【备份与恢复】中的恢复。
+                     * 完成命令的执行后
+                     * 
+                     * buff_list.shrink_to_fit(); 释放内存
                      */
-                    if let CommandType::Write = strategy.command_type() {                      
-                        rdb_count.lock().unwrap().calc();
-                        match aof.lock() {
-                            Ok(mut aof_ref) => {
-                                aof_ref.save(&fragments.join("\\r\\n"));
-                            }
-                            Err(_) => {
-                                eprintln!("Failed to acquire lock on AOF");
-                                return;
-                            }
-                        };
-                    }
-                } else {
-                    let response_value = "PONG".to_string();
-                    let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
-                    match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {
-                            // END
-                        },
-                        Err(e) => {
-                            eprintln!("Failed to write to stream: {}", e);
-                        },
-                    }
+                    buff_list.clear();
+                    buff_list.shrink_to_fit();
+                    read_size = 0;
                 }
             }
             Err(_e) => {
@@ -299,7 +315,7 @@ fn connection(
 fn println_banner(port: u16) {
     let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
-    r#"
+        r#"
          /\_____/\
         /  o   o  \          Rudis {}
        ( ==  ^  == )          
@@ -307,6 +323,10 @@ fn println_banner(port: u16) {
        (           )          
       ( (  )   (  ) )        
      (__(__)___(__)__)
-    "#,version, port, id());
+    "#,
+        version,
+        port,
+        id()
+    );
     println!("{}", pattern);
 }
