@@ -4,14 +4,14 @@ on:
     workflow_dispatch: {}
     push:
         branches:
-            - main
+            - master
 
 jobs:
     deploy:
         runs-on: ubuntu-latest
         defaults:
           run:
-            working-directory: "website"
+            working-directory: "docs"
 
         permissions:
             contents: read
