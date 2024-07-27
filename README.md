@@ -54,9 +54,9 @@ cargo run -- rudis.properties
 // 构建程序
 cargo build
 
-cargo build --release 
-
 cargo build --release --target=x86_64-unknown-linux-musl
+
+cargo build --release 
 
 // 代码检测
 cargo clippy
