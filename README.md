@@ -1,17 +1,20 @@
-## 项目介绍
+<br />
 
 <img src="./logo/logo.png" height="80"/>
 
 <br />
 
-[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Discord](https://discord.gg/38tMsRc3) | [Linux](./release/linux) | [Windows](./release/windows)
+[Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Download](./release)
 
+Rudis 是 一 个 高 性 能 内 存 数 据 库
+
+**[🔶 Explore the docs »](https://sleeprite.github.io/rudis)**
+
+<a href='https://gitee.com/Jmysy/rudis/stargazers'><img src='https://gitee.com/Jmysy/rudis/badge/star.svg?theme=gvp' alt='star'></img></a>
 <a href="https://github.com/sleeprite/rudis"><img src="https://img.shields.io/github/stars/sleeprite/rudis?style=flat-square&logo=GitHub"></a>
-<a href="https://gitee.com/Jmysy/rudis"><img src='https://gitee.com/Jmysy/rudis/badge/star.svg?theme=dark'></a>
+<a href="https://github.com/sleeprite/rudis/blob/master/LICENSE"><img src="https://img.shields.io/github/license/sleeprite/rudis.svg?style=flat-square"></a>
 
-Rudis 是一个高性能内存数据库。
-
-Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势来重新实现 Redis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保持与 Redis API 的兼容。
+Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势来重新实现 Redis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保持与 Redis 相同 API 的兼容。
 
 ### 特性
 
