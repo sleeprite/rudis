@@ -257,9 +257,6 @@ OK
 | pexpire | ✅    | ⚪         | ⛔       | ⛔       |
 | mset    | ✅    | ✅         | ⛔       | ⛔       |
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=sleeprite/rudis&type=Date)](https://star-history.com/#sleeprite/rudis&Date)
 
 ## 开源共建
 
