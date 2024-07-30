@@ -8,7 +8,7 @@
 
 [Github](https://github.com/sleeprite/rudis) | [Gitee](https://gitee.com/Jmysy/rudis) | [Packages](./release)
 
-<a href='https://gitee.com/Jmysy/rudis/stargazers'><img src='https://gitee.com/Jmysy/rudis/badge/star.svg?theme=gvp' alt='star'></img></a>
+<a href='https://gitee.com/rudis/rudis/stargazers'><img src='https://gitee.com/rudis/rudis/badge/star.svg?theme=gvp' alt='star'></img></a>
 <a href="https://github.com/sleeprite/rudis"><img src="https://img.shields.io/github/stars/sleeprite/rudis?style=flat-square&logo=GitHub"></a>
 <a href="https://github.com/sleeprite/rudis/blob/master/LICENSE"><img src="https://img.shields.io/github/license/sleeprite/rudis.svg?style=flat-square"></a>
 
@@ -29,7 +29,7 @@ Rudis 是采用 Rust 语言开发的项目，旨在利用 Rust 语言的优势�
 - 提供 rdb 与 aof 机制以支持数据备份和恢复。
 - 兼容 Redis 的命令和协议规范。
 
-### 快速入门
+## 快速入门
 
 ```
      /\_____/\
