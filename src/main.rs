@@ -4,6 +4,7 @@ use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::{Arc, Mutex};
 
+use clap::Parser;
 use tokio::time::Duration;
 
 mod command;
@@ -28,19 +29,24 @@ use crate::session::session::Session;
 
 #[tokio::main]
 async fn main() {
+    // parse args
+    let cli = crate::tools::cli::Cli::parse();
+
     /*
      * 初始日志框架
      *
      * (1) 日志级别
      * (2) 框架加载
      */
-    std::env::set_var("RUST_LOG", "info");
+    std::env::set_var("RUST_LOG", cli.log_level.as_str().to_lowercase());
     env_logger::init();
 
     /*
      * 创建默认配置
      */
-    let redis_config = Arc::new(RedisConfig::default());
+    // get config from cli
+    let redis_config: Arc<RedisConfig> = Arc::new(cli.into());
+    // let redis_config = Arc::new(RedisConfig::default());
 
     /*
      * 创建通讯服务
@@ -199,8 +205,6 @@ fn connection(
                 read_size += size;
 
                 if size < 512 {
-
-
                     /*
                      * 解析命令
                      *
@@ -212,7 +216,7 @@ fn connection(
                     let bytes = &buff_list[..read_size];
                     let body = std::str::from_utf8(bytes).unwrap();
                     let fragments: Vec<&str> = body.split("\r\n").collect();
-                    let command = fragments[2]; 
+                    let command = fragments[2];
 
                     {
                         /*
@@ -287,7 +291,7 @@ fn connection(
 
                     /*
                      * 完成命令的执行后
-                     * 
+                     *
                      * buff_list.shrink_to_fit(); 释放内存
                      */
                     buff_list.clear();
@@ -318,10 +322,10 @@ fn println_banner(port: u16) {
         r#"
          /\_____/\
         /  o   o  \          Rudis {}
-       ( ==  ^  == )          
-        )         (          Bind: {} PID: {} 
-       (           )          
-      ( (  )   (  ) )        
+       ( ==  ^  == )
+        )         (          Bind: {} PID: {}
+       (           )
+      ( (  )   (  ) )
      (__(__)___(__)__)
     "#,
         version,
@@ -329,4 +333,89 @@ fn println_banner(port: u16) {
         id()
     );
     println!("{}", pattern);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::db::db_config::RedisConfig;
+    use crate::tools::cli;
+    use clap::Parser;
+    #[test]
+    fn test_config_file() {
+        let port = 42800;
+        let config_file_path = "./release/linux/rudis-server.properties";
+        let arg_string = format!(
+            "rudis-server \
+            -p {} \
+            --config {}",
+            port, config_file_path
+        );
+        let args: Vec<&str> = arg_string.split(' ').collect();
+        let cli = cli::Cli::parse_from(args);
+        let config: RedisConfig = cli.into();
+        assert_eq!(config.port, port);
+        assert_eq!(config.maxclients, 1000);
+        assert_eq!(config.password, None);
+    }
+    #[test]
+    fn test_cli() {
+        let bind = "192.168.1.2";
+        let port = 6379;
+        let password = "123456";
+        let databases = 1;
+        let dbfilename = "123.rdb";
+        let appendfilename = "321.aof";
+        let appendonly = "false";
+        let hz = 2;
+        let appendfsync = "asd";
+        let maxclients = 100;
+        let dir = "/home/rudis";
+        let save_1 = "60/3";
+        let save_2 = "20/1";
+        let save = "60 3 20 1";
+        let arg_string = format!(
+            "rudis-server \
+            --bind {} \
+            -p {} \
+            --password {} \
+            --databases {} \
+            --dbfilename {} \
+            --appendfilename {} \
+            --hz {} \
+            --appendfsync {} \
+            --maxclients {} \
+            --dir {} \
+            --save {} \
+            --save {} \
+            --appendonly {}",
+            bind,
+            port,
+            password,
+            databases,
+            dbfilename,
+            appendfilename,
+            hz,
+            appendfsync,
+            maxclients,
+            dir,
+            save_1,
+            save_2,
+            appendonly
+        );
+
+        let args: Vec<&str> = arg_string.split(' ').collect();
+        let cli = cli::Cli::parse_from(args);
+        let config: RedisConfig = cli.into();
+        assert_eq!(config.bind, bind.to_string());
+        assert_eq!(config.port, port);
+        assert_eq!(config.password, Some(password.to_string()));
+        assert_eq!(config.databases, databases);
+        assert_eq!(config.dbfilename, Some(dbfilename.to_string()));
+        assert_eq!(config.appendfilename, Some(appendfilename.to_string()));
+        assert_eq!(config.appendonly.to_string(), appendonly);
+        assert_eq!(config.appendfsync, Some(appendfsync.to_string()));
+        assert_eq!(config.maxclients, maxclients);
+        assert_eq!(config.dir, dir.to_string());
+        assert_eq!(config.save, Some(save.to_string()))
+    }
 }

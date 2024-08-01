@@ -12,7 +12,7 @@
 <a href="https://github.com/sleeprite/rudis"><img src="https://img.shields.io/github/stars/sleeprite/rudis?style=flat-square&logo=GitHub"></a>
 <a href="https://github.com/sleeprite/rudis/blob/master/LICENSE"><img src="https://img.shields.io/github/license/sleeprite/rudis.svg?style=flat-square"></a>
 
-<h4>高 性 能 内 存 数 据 库 </h4> 
+<h4>高 性 能 内 存 数 据 库 </h4>
 
 **[🔶 Explore the docs »](https://sleeprite.github.io/rudis)**
 
@@ -38,11 +38,11 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
    ( ==  ^  == )
     )         (          Bind: 127.0.0.1:6379
    (           )
-  ( (  )   (  ) )        
+  ( (  )   (  ) )
  (__(__)___(__)__)
-    
+
 [2024-04-30T02:00:55Z INFO  rudis_server] Start loading appendfile
-[=======================================] percent: 100% lines: 6/6 
+[=======================================] percent: 100% lines: 6/6
 [2024-04-30T02:00:55Z INFO  rudis_server] Server initialized
 [2024-04-30T02:00:55Z INFO  rudis_server] Ready to accept connections
 ```
@@ -55,16 +55,17 @@ cargo run
 
 // 带参启动
 cargo run -- --port 8848
+cargo run -- --save 20/1 60/2
 
 // 指定配置
-cargo run -- rudis.properties
+cargo run -- --config rudis.properties
 
 // 构建程序
 cargo build
 
 cargo build --release --target=x86_64-unknown-linux-musl
 
-cargo build --release 
+cargo build --release
 
 // 代码检测
 cargo clippy
@@ -213,7 +214,7 @@ OK
 
 ## 命令列表
 
-| Command | Supprt | Appendfile | Test case | Document | 
+| Command | Supprt | Appendfile | Test case | Document |
 | ------- | ------ | ---------- | --------- |--------- |
 | set     | ✅    | ✅         | ✅       | ✅       |
 | get     | ✅    | ⚪         | ✅       | ✅       |
