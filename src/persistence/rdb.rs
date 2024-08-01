@@ -30,7 +30,7 @@ impl Rdb {
             let base_path = &redis_config.dir;
             let file_path = format!("{}{}", base_path, filename);
             rdb_file = Some(
-                OpenOptions::new().create(true).truncate(true).write(true).open(file_path).expect("Failed to open AOF file"),
+                OpenOptions::new().create(true).write(true).open(file_path).expect("Failed to open AOF file"),
             );
         }
 
