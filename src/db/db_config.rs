@@ -262,14 +262,14 @@ fn get_dbfilename_or(default_dbfilename: Option<String>) -> Option<String >{
  *
  * @param default_save
  */
-fn get_save_or(default_save: Option<String>) -> Option<String >{
-    let mut args = env::args().skip_while(|arg| arg != "--save").take(2);
+fn get_save_or(default_save: Option<String>) -> Option<String> {
+    let mut args = env::args().skip_while(|arg| arg != "--save").take(3); // 获取三位
     if args.next().is_none() {
         return default_save;
     }
 
-    if let Some(arg) = args.next() {
-        Some(arg)
+    if let (Some(i), Some(c)) = (args.next(), args.next()) {
+        Some(format!("{} {}", i, c))
     } else {
         default_save
     }
