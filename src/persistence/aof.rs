@@ -82,7 +82,7 @@ impl Aof {
                             if let Ok(operation) = line {
                                 let fragments: Vec<&str> = operation.split("\\r\\n").collect();
                                 let command = fragments[2];
-                                if let Some(strategy) = command_strategies.get(command) {
+                                if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str()) {
                                     strategy.execute(None, &fragments, &self.redis, &self.redis_config, &sessions,session_id);
                                 }
                             }
