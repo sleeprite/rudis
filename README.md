@@ -292,7 +292,5 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
       </picture>
     </a>
   </td>
-  <td></td>
-  <td></td>
 </tr>
 </table>
