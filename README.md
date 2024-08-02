@@ -274,7 +274,7 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
       </picture>
     </a>
   </td>
-  <td rowspan="2">
+  <td colspan="1">
     <a href="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors?limit=30&repo_id=788849401" target="_blank" style="display: block" align="center">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?limit=30&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
@@ -283,11 +283,8 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
     </a>
   </td>
 </tr>
-</table>
-
-<table>
 <tr>
-  <td>
+  <td colspan="2">
     <a href="https://next.ossinsight.io/widgets/official/compose-contributors?limit=200&repo_id=788849401" target="_blank" style="display: block" align="center">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-contributors/thumbnail.png?limit=200&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
@@ -295,5 +292,7 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
       </picture>
     </a>
   </td>
+  <td></td>
+  <td></td>
 </tr>
 </table>
