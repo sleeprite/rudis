@@ -285,10 +285,11 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
 </tr>
 <tr>
   <td colspan="2">
-    </br>
+    <br />
     <a href="https://github.com/sleeprite/rudis/graphs/contributors">
       <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />
     </a>
+    <br />
   </td>
 </tr>
 </table>
