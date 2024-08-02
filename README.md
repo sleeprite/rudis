@@ -14,15 +14,14 @@
 
 <h4>高 性 能 内 存 数 据 库 </h4>
 
+Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在利用 Rust 语言的优势来重新复现 Rudis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保证与 Rudis API 的兼容。
+
 **[🔶 Explore the docs »](https://sleeprite.github.io/rudis)**
 
 </div>
 
-## 项目介绍
 
-Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在利用 Rust 语言的优势来重新复现 Rudis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保证与 Rudis API 的兼容。
-
-### 特性
+## 项目特性
 
 - 跨平台，兼容 windows、linux 系统架构。
 - 兼容 字符串、集合、哈希、列表、有序集合数据结构。
@@ -31,6 +30,7 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 - 兼容 Rudis 的命令和协议规范。
 
 ## 快速入门
+
 
 ```
      /\_____/\
@@ -264,6 +264,36 @@ OK
 
 Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rudis/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/rudis/graphs/contributors)。
 
-<a href="https://github.com/sleeprite/rudis/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />
-</a>
+<table>
+<tr>
+  <td>
+    <a href="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors?repo_id=788849401" target="_blank" style="display: block" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors/thumbnail.png?repo_id=788849401&image_size=auto&color_scheme=dark" width="373" height="auto">
+        <img alt="Top Contributors of sleeprite/rudis - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors/thumbnail.png?repo_id=788849401&image_size=auto&color_scheme=light" width="373" height="auto">
+      </picture>
+    </a>
+  </td>
+  <td rowspan="2">
+    <a href="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors?limit=30&repo_id=788849401" target="_blank" style="display: block" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?limit=30&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
+        <img alt="Active Contributors of sleeprite/rudis - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?limit=30&repo_id=788849401&image_size=auto&color_scheme=light" width="655" height="auto">
+      </picture>
+    </a>
+  </td>
+</tr>
+</table>
+
+<table>
+<tr>
+  <td>
+    <a href="https://next.ossinsight.io/widgets/official/compose-contributors?limit=200&repo_id=788849401" target="_blank" style="display: block" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-contributors/thumbnail.png?limit=200&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
+        <img alt="Contributors of sleeprite/rudis" src="https://next.ossinsight.io/widgets/official/compose-contributors/thumbnail.png?limit=200&repo_id=788849401&image_size=auto&color_scheme=light" width="655" height="auto">
+      </picture>
+    </a>
+  </td>
+</tr>
+</table>
