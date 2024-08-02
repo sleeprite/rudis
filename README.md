@@ -285,11 +285,8 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
 </tr>
 <tr>
   <td colspan="2">
-    <a href="https://next.ossinsight.io/widgets/official/compose-contributors?limit=200&repo_id=788849401" target="_blank" style="display: block" align="center">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-contributors/thumbnail.png?limit=200&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
-        <img alt="Contributors of sleeprite/rudis" src="https://next.ossinsight.io/widgets/official/compose-contributors/thumbnail.png?limit=200&repo_id=788849401&image_size=auto&color_scheme=light" width="655" height="auto">
-      </picture>
+    <a href="https://github.com/sleeprite/rudis/graphs/contributors">
+      <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />
     </a>
   </td>
 </tr>
