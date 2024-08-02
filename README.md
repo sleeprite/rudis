@@ -14,14 +14,15 @@
 
 <h4>高 性 能 内 存 数 据 库 </h4>
 
-Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在利用 Rust 语言的优势来重新复现 Rudis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保证与 Rudis API 的兼容。
-
 **[🔶 Explore the docs »](https://sleeprite.github.io/rudis)**
 
 </div>
 
+## 项目介绍
 
-## 项目特性
+Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在利用 Rust 语言的优势来重新复现 Rudis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保证与 Rudis API 的兼容。
+
+### 特性
 
 - 跨平台，兼容 windows、linux 系统架构。
 - 兼容 字符串、集合、哈希、列表、有序集合数据结构。
@@ -274,7 +275,7 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
       </picture>
     </a>
   </td>
-  <td colspan="1">
+  <td>
     <a href="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors?limit=30&repo_id=788849401" target="_blank" style="display: block" align="center">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?limit=30&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
@@ -283,11 +284,8 @@ Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rud
     </a>
   </td>
 </tr>
-<tr>
-  <td colspan="2">
-    <a href="https://github.com/sleeprite/rudis/graphs/contributors">
-      <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />
-    </a>
-  </td>
-</tr>
 </table>
+
+<a href="https://github.com/sleeprite/rudis/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />
+</a>
