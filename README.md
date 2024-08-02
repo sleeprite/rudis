@@ -71,12 +71,11 @@ cargo build --release
 cargo clippy
 ```
 
-## 启动参数
+## 配置说明
 
 - 配置文件 (config): 指定Rudis配置文件路径。
-- 端口 (port): Rudis服务器监听端口，默认6379。
 - 绑定的主机地址 (bind): 指定Rudis服务器绑定地址。
-- RDB保存策略 (save): 设置RDB自动保存条件。
+- 端口 (port): Rudis服务器监听端口，默认6379。
 - 密码 (password): 设置Rudis访问密码。
 - 数据库数量 (databases): Rudis数据库数量，默认16。
 - 数据持久化目录 (dir): RDB和AOF文件存储目录，默认"./"。
@@ -85,6 +84,7 @@ cargo clippy
 - 数据文件名 (dbfilename): RDB持久化文件名，默认"dump.rdb"。
 - 会话上限 (maxclients): 最大客户端连接数，默认1000。
 - 定时任务频率 (hz): 定时任务执行频率，默认10次/秒。
+- RDB保存策略 (save): 设置RDB自动保存条件。
 
 ## 项目结构
 
