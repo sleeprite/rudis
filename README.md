@@ -73,17 +73,18 @@ cargo clippy
 
 ## 启动参数
 
-- port 端口, 默认: 6379
-- save RDB 保存策略, 默认：None
-- password 密码, 默认：None
-- databases 数据库数量, 默认：16
-- appendfilename 持久化日志路径，默认：None
-- appendonly 开启持久化，默认：false
-- dbfilename 数据文件名，默认：dump.rdb
-- maxclients 会话上限，默认 1000
-- hz 定时任务的频率，默认 10（次/秒）
-- dir 数据持久化目录，默认 "./"
-- bind 绑定的主机地址
+- 配置文件 (config): 指定Redis配置文件路径。
+- 端口 (port): Redis服务器监听端口，默认6379。
+- RDB保存策略 (save): 设置RDB自动保存条件。
+- 密码 (password): 设置Redis访问密码。
+- 数据库数量 (databases): Redis数据库数量，默认16。
+- 持久化日志路径 (appendfilename): AOF日志文件存储路径。
+- 开启持久化 (appendonly): 是否开启AOF持久化。
+- 数据文件名 (dbfilename): RDB持久化文件名，默认"dump.rdb"。
+- 会话上限 (maxclients): 最大客户端连接数，默认1000。
+- 定时任务频率 (hz): 定时任务执行频率，默认10次/秒。
+- 数据持久化目录 (dir): RDB和AOF文件存储目录，默认"./"。
+- 绑定的主机地址 (bind): 指定Redis服务器绑定地址。
 
 ## 项目结构
 
