@@ -39,7 +39,41 @@ impl CommandStrategy for SetCommand {
             }
         };
 
-        let key = fragments[4].to_string();
+        let key = match fragments.get(4) {
+            Some(fragment) => fragment.to_string(),
+            None => {
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'set' command".to_string()).to_bytes();
+                    match stream.write(response_bytes) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
+                }
+                return;
+            },
+        };
+
+        let value = match fragments.get(6) {
+            Some(fragment) => fragment.to_string(),
+            None => {
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'set' command".to_string()).to_bytes();
+                    match stream.write(response_bytes) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
+                }
+                return;
+            },
+        };
 
         if fragments.contains(&"NX") {
             let is_exists = redis_ref.exists(db_index, &key);
@@ -101,7 +135,6 @@ impl CommandStrategy for SetCommand {
             }
         }
 
-        let value = fragments[6].to_string();
         redis_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
 
         if let Some(stream) = stream { 

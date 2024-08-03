@@ -31,7 +31,24 @@ impl CommandStrategy for GetCommand {
             }
         };
 
-        let key = fragments[4].to_string();
+        let key = match fragments.get(4) {
+            Some(fragment) => fragment.to_string(),
+            None => {
+                if let Some(stream) = stream { 
+                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'get' command".to_string()).to_bytes();
+                    match stream.write(response_bytes) {
+                        Ok(_bytes_written) => {
+                            // Response successful
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to write to stream: {}", e);
+                        },
+                    };
+                }
+                return;
+            },
+        };
+
         redis_ref.check_ttl(db_index, &key);
 
         match redis_ref.get(db_index, &key) {
