@@ -115,7 +115,7 @@ async fn main() {
         arc_rdb_scheduler
             .lock()
             .unwrap()
-            .execute(save_interval, arc_rdb_count.clone());
+            .execute(save_interval.clone(), arc_rdb_count.clone());
     }
 
     for stream in listener.incoming() {
@@ -356,6 +356,7 @@ mod tests {
         assert_eq!(config.port, port);
         assert_eq!(config.maxclients, 1000);
         assert_eq!(config.password, None);
+        assert_eq!(config.save.unwrap().iter().map(|x| format!("{}/{}",x.0,x.1)).collect::<Vec<String>>().join(" "), "60/1 20/2");
     }
     #[test]
     fn test_cli() {
@@ -370,9 +371,9 @@ mod tests {
         let appendfsync = "asd";
         let maxclients = 100;
         let dir = "/home/rudis";
-        let save_1 = "60/3";
-        let save_2 = "20/1";
-        let save = "60 3 20 1";
+        let save_1 = "60/1";
+        let save_2 = "20/2";
+        let save = "60/1 20/2";
         let arg_string = format!(
             "rudis-server \
             --bind {} \
@@ -416,6 +417,7 @@ mod tests {
         assert_eq!(config.appendfsync, Some(appendfsync.to_string()));
         assert_eq!(config.maxclients, maxclients);
         assert_eq!(config.dir, dir.to_string());
-        assert_eq!(config.save, Some(save.to_string()))
+        assert!(config.save.is_some());
+        assert_eq!(config.save.unwrap().iter().map(|x| format!("{}/{}",x.0,x.1)).collect::<Vec<String>>().join(" "), save);
     }
 }
