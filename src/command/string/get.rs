@@ -37,9 +37,7 @@ impl CommandStrategy for GetCommand {
                 if let Some(stream) = stream { 
                     let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'get' command".to_string()).to_bytes();
                     match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
@@ -56,9 +54,7 @@ impl CommandStrategy for GetCommand {
                 if let Some(stream) = stream { 
                     let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
                     match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
@@ -69,9 +65,7 @@ impl CommandStrategy for GetCommand {
                 if let Some(stream) = stream { 
                     let response_bytes = &RespValue::Null.to_bytes();
                     match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
@@ -82,9 +76,7 @@ impl CommandStrategy for GetCommand {
                 if let Some(stream) = stream { 
                     let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
                     match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
