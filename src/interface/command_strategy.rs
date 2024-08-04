@@ -29,4 +29,5 @@ pub trait CommandStrategy {
 
     // 命令类型
     fn command_type(&self) -> CommandType; 
+    
 }
