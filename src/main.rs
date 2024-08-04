@@ -29,6 +29,7 @@ use crate::session::session::Session;
 
 #[tokio::main]
 async fn main() {
+    
     // parse args
     let cli = crate::tools::cli::Cli::parse();
 
@@ -44,9 +45,7 @@ async fn main() {
     /*
      * 创建默认配置
      */
-    // get config from cli
     let redis_config: Arc<RedisConfig> = Arc::new(cli.into());
-    // let redis_config = Arc::new(RedisConfig::default());
 
     /*
      * 创建通讯服务
@@ -156,11 +155,11 @@ fn connection(
     /*
      * 声明变量
      *
-     * @param command_strategies 命令集合
      * @param session_id 会话编号
-     * @param buff 缓冲区
+     * @param command_strategies 命令集
      * @param buff_list 消息列表
      * @param read_size 读取长度
+     * @param buff 缓冲区
      */
     let command_strategies = init_command_strategies();
     let session_id = stream.peer_addr().unwrap().to_string();
@@ -183,9 +182,7 @@ fn connection(
             let err = "ERR max number of clients reached".to_string();
             let resp_value = RespValue::Error(err).to_bytes();
             match stream.write(&resp_value) {
-                Ok(_bytes_written) => {
-                    // END
-                }
+                Ok(_bytes_written) => {}
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 }
@@ -205,6 +202,7 @@ fn connection(
                 read_size += size;
 
                 if size < 512 {
+                    
                     /*
                      * 解析命令
                      *
@@ -212,7 +210,6 @@ fn connection(
                      * fragments: 消息片段
                      * command: 命令
                      */
-
                     let bytes = &buff_list[..read_size];
                     let body = std::str::from_utf8(bytes).unwrap();
                     let fragments: Vec<&str> = body.split("\r\n").collect();
@@ -232,9 +229,7 @@ fn connection(
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
                             match stream.write(response_bytes) {
-                                Ok(_bytes_written) => {
-                                    // Response successful
-                                }
+                                Ok(_bytes_written) => {}
                                 Err(e) => {
                                     eprintln!("Failed to write to stream: {}", e);
                                 }
@@ -244,13 +239,15 @@ fn connection(
                     }
 
                     /*
-                     * 执行命令
+                     * 匹配命令
                      *
                      * 利用策略模式，根据 command 获取具体实现，
                      * 否则响应 PONG 内容。
                      */
-                    if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str())
+                    let uppercase_command = command.to_uppercase();
+                    if let Some(strategy) = command_strategies.get(uppercase_command.as_str())
                     {
+                        // 执行命令
                         strategy.execute(
                             Some(&mut stream),
                             &fragments,
@@ -280,9 +277,7 @@ fn connection(
                         let response_value = "PONG".to_string();
                         let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
                         match stream.write(response_bytes) {
-                            Ok(_bytes_written) => {
-                                // END
-                            }
+                            Ok(_bytes_written) => {}
                             Err(e) => {
                                 eprintln!("Failed to write to stream: {}", e);
                             }
