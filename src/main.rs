@@ -29,7 +29,6 @@ use crate::session::session::Session;
 
 #[tokio::main]
 async fn main() {
-    
     // parse args
     let cli = crate::tools::cli::Cli::parse();
 
@@ -202,7 +201,6 @@ fn connection(
                 read_size += size;
 
                 if size < 512 {
-                    
                     /*
                      * 解析命令
                      *
@@ -245,33 +243,39 @@ fn connection(
                      * 否则响应 PONG 内容。
                      */
                     let uppercase_command = command.to_uppercase();
-                    if let Some(strategy) = command_strategies.get(uppercase_command.as_str())
-                    {
-                        // 执行命令
-                        strategy.execute(
-                            Some(&mut stream),
-                            &fragments,
-                            &redis,
-                            &redis_config,
-                            &sessions,
-                            &session_id,
-                        );
+                    if let Some(strategy) = command_strategies.get(uppercase_command.as_str()) {
+                        match strategy.parse(Some(&mut stream), &fragments) {
+                            Ok(_) => {
 
-                        /*
-                         * 假定是个影响内存的命令，记录到日志，
-                         *【备份与恢复】中的恢复。
-                         */
-                        if let CommandType::Write = strategy.command_type() {
-                            rdb_count.lock().unwrap().calc();
-                            match aof.lock() {
-                                Ok(mut aof_ref) => {
-                                    aof_ref.save(&fragments.join("\\r\\n"));
+                                strategy.execute(
+                                    Some(&mut stream),
+                                    &fragments,
+                                    &redis,
+                                    &redis_config,
+                                    &sessions,
+                                    &session_id,
+                                );
+
+                                /*
+                                 * 假定是个影响内存的命令，记录到日志，
+                                 *【备份与恢复】中的恢复。
+                                 */
+                                if let CommandType::Write = strategy.command_type() {
+                                    rdb_count.lock().unwrap().calc();
+                                    match aof.lock() {
+                                        Ok(mut aof_ref) => {
+                                            aof_ref.save(&fragments.join("\\r\\n"));
+                                        }
+                                        Err(_) => {
+                                            eprintln!("Failed to acquire lock on AOF");
+                                            return;
+                                        }
+                                    };
                                 }
-                                Err(_) => {
-                                    eprintln!("Failed to acquire lock on AOF");
-                                    return;
-                                }
-                            };
+                            }
+                            Err(_error) => {
+                                // 响应 Error 消息
+                            }
                         }
                     } else {
                         let response_value = "PONG".to_string();
@@ -351,7 +355,16 @@ mod tests {
         assert_eq!(config.port, port);
         assert_eq!(config.maxclients, 1000);
         assert_eq!(config.password, None);
-        assert_eq!(config.save.unwrap().iter().map(|x| format!("{}/{}",x.0,x.1)).collect::<Vec<String>>().join(" "), "60/1 20/2");
+        assert_eq!(
+            config
+                .save
+                .unwrap()
+                .iter()
+                .map(|x| format!("{}/{}", x.0, x.1))
+                .collect::<Vec<String>>()
+                .join(" "),
+            "60/1 20/2"
+        );
     }
     #[test]
     fn test_cli() {
@@ -413,6 +426,15 @@ mod tests {
         assert_eq!(config.maxclients, maxclients);
         assert_eq!(config.dir, dir.to_string());
         assert!(config.save.is_some());
-        assert_eq!(config.save.unwrap().iter().map(|x| format!("{}/{}",x.0,x.1)).collect::<Vec<String>>().join(" "), save);
+        assert_eq!(
+            config
+                .save
+                .unwrap()
+                .iter()
+                .map(|x| format!("{}/{}", x.0, x.1))
+                .collect::<Vec<String>>()
+                .join(" "),
+            save
+        );
     }
 }
