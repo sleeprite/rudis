@@ -5,15 +5,20 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
-use crate::{ db::db::Redis, RedisConfig };
+use crate::{db::db::Redis, RedisConfig};
 
 pub struct LindexCommand {}
 
 impl CommandStrategy for LindexCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
@@ -21,7 +26,7 @@ impl CommandStrategy for LindexCommand {
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &str
+        session_id: &str,
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
@@ -35,10 +40,10 @@ impl CommandStrategy for LindexCommand {
         };
 
         let key = fragments[4].to_string();
-        let index: usize = fragments[6].parse().unwrap_or_default(); 
-        
+        let index: usize = fragments[6].parse().unwrap_or_default();
+
         redis_ref.check_ttl(db_index, &key);
-        
+
         let result = redis_ref.lindex(db_index, &key.clone(), index as i64);
 
         let response_bytes = match result {
@@ -50,10 +55,10 @@ impl CommandStrategy for LindexCommand {
             match stream.write(&response_bytes) {
                 Ok(_bytes_written) => {
                     // Response successful
-                },
+                }
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
-                },
+                }
             };
         }
     }

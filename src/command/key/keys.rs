@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::pattern::match_key, RedisConfig};
+use crate::{db::db::Redis, interface::{command_strategy::ParseError, command_type::CommandType}, session::session::Session, tools::pattern::match_key, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 /*
  * Keys 命令
@@ -10,6 +10,12 @@ use crate::interface::command_strategy::CommandStrategy;
 pub struct KeysCommand {}
 
 impl CommandStrategy for KeysCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

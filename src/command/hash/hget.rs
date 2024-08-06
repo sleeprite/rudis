@@ -5,10 +5,16 @@ use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::session::session::Session;
 use crate::{db::db::Redis, RedisConfig};
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 pub struct HgetCommand {}
 
 impl CommandStrategy for HgetCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

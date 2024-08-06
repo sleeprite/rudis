@@ -5,15 +5,19 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
 use crate::{db::db::Redis, RedisConfig};
-use crate::interface::command_strategy::CommandStrategy;
 
 pub struct LpopCommand {}
 
 impl CommandStrategy for LpopCommand {
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
@@ -21,7 +25,7 @@ impl CommandStrategy for LpopCommand {
         redis: &Arc<Mutex<Redis>>,
         _redis_config: &Arc<RedisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
-        session_id: &str
+        session_id: &str,
     ) {
         let mut redis_ref = redis.lock().unwrap();
 
@@ -35,12 +39,12 @@ impl CommandStrategy for LpopCommand {
         };
 
         let key = fragments[4].to_string();
-        
+
         redis_ref.check_ttl(db_index, &key);
-        
+
         let value = match redis_ref.lpop(db_index, key.clone()) {
             Some(v) => v,
-            None => return
+            None => return,
         };
 
         if let Some(stream) = stream {
@@ -48,10 +52,10 @@ impl CommandStrategy for LpopCommand {
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {
                     // Response successful
-                },
+                }
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
-                },
+                }
             };
         }
     }

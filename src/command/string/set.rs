@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::{
@@ -19,6 +19,11 @@ use crate::{
 pub struct SetCommand {}
 
 impl CommandStrategy for SetCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

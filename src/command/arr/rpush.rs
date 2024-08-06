@@ -9,11 +9,17 @@ use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
 use crate::{db::db::Redis, RedisConfig};
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 
 pub struct RpushCommand {}
 
 impl CommandStrategy for RpushCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

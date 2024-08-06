@@ -3,7 +3,7 @@ use crate::tools::resp::RespValue;
 use crate::{
     db::db::Redis, session::session::Session, RedisConfig,
 };
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 use std::io::Write;
 use std::{
     collections::HashMap,
@@ -17,6 +17,11 @@ use std::{
 pub struct ExistsCommand {}
 
 impl CommandStrategy for ExistsCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

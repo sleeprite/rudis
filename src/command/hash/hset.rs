@@ -1,14 +1,10 @@
 use std::{
-    collections::HashMap,
-    io::Write,
-    net::TcpStream,
-    sync::{Arc, Mutex},
+    collections::HashMap, io::Write, net::TcpStream, sync::{Arc, Mutex}
 };
 
 use crate::{
     db::db::Redis,
-    interface::command_strategy::CommandStrategy,
-    interface::command_type::CommandType,
+    interface::{command_strategy::{CommandStrategy, ParseError}, command_type::CommandType},
     session::session::Session,
     tools::resp::RespValue,
     RedisConfig,
@@ -17,6 +13,12 @@ use crate::{
 pub struct HsetCommand {}
 
 impl CommandStrategy for HsetCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

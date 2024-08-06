@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
@@ -14,6 +14,16 @@ use crate::{db::db::Redis, RedisConfig};
 pub struct LlenCommand {}
 
 impl CommandStrategy for LlenCommand {
+
+    fn parse(
+        &self,
+        stream: Option<&mut TcpStream>,
+        fragments: &[&str],
+    ) -> Result<(), ParseError> {
+
+    Ok(())
+}
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

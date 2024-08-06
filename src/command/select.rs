@@ -7,7 +7,7 @@ use std::{
 
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
-use crate::interface::command_strategy::CommandStrategy;
+use crate::interface::command_strategy::{CommandStrategy, ParseError};
 use crate::{
     db::db::Redis, session::session::Session, RedisConfig,
 };
@@ -18,6 +18,11 @@ use crate::{
 pub struct SelectCommand {}
 
 impl CommandStrategy for SelectCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,

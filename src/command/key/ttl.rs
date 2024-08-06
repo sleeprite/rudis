@@ -1,11 +1,17 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RedisConfig};
+use crate::{db::db::Redis, interface::{command_strategy::ParseError, command_type::CommandType}, session::session::Session, tools::resp::RespValue, RedisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct TtlCommand {}
 
 impl CommandStrategy for TtlCommand {
+
+    fn parse(&self, stream: Option<&mut TcpStream>, fragments: &[&str]) -> Result<(), ParseError> {
+        Ok(())
+    }
+
+
     fn execute(
         &self,
         stream: Option<&mut TcpStream>,
