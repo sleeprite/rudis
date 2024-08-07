@@ -109,7 +109,7 @@ impl From<crate::tools::cli::Cli> for RedisConfig {
 impl Default for RedisConfig {
     fn default() -> Self {
         Self {
-            bind: "127.0.0.1".to_string(),
+            bind: "0.0.0.0".to_string(),
             port: 6379,
             password: None,
             databases: 16,
@@ -141,12 +141,12 @@ fn parse_config_line(line: &str) -> Option<(&str, &str)> {
 fn parse_save(value: &str) -> Option<Vec<(u64, u64)>> {
     let mut vec = Vec::new();
     let parts = value.split_whitespace();
-    for part in parts  {
+    for part in parts {
         if let Some(pos) = part.find('/') {
-            if let (Ok(i),Ok(c)) = (part[..pos].parse(), part[pos + 1..].parse()) {
-                vec.push((i,c));
+            if let (Ok(i), Ok(c)) = (part[..pos].parse(), part[pos + 1..].parse()) {
+                vec.push((i, c));
             }
-        }else {
+        } else {
             return None;
         }
     }
