@@ -5,6 +5,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use log::logger;
+
 use crate::interface::command_strategy::CommandStrategy;
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
@@ -71,45 +73,57 @@ impl CommandStrategy for SetCommand {
             },
         };
 
-        if fragments.contains(&"NX") {
-            let is_exists = redis_ref.exists(db_index, &key);
-            if is_exists{
-                if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Null.to_bytes();
-                    match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {},
-                        Err(e) => {
-                            eprintln!("Failed to write to stream: {}", e);
-                        },
-                    };
-                    return;
+        for (index, fragment) in fragments.iter().enumerate() {
+            if fragment.to_uppercase() == "NX" {
+                if index != 4 && index != 6 {
+                    let is_exists = redis_ref.exists(db_index, &key);
+                    if is_exists {
+                        if let Some(stream) = stream {
+                            let response_bytes = &RespValue::Null.to_bytes();
+                            match stream.write(response_bytes) {
+                                Ok(_bytes_written) => {},
+                                Err(e) => {
+                                    eprintln!("Failed to write to stream: {}", e);
+                                },
+                            };
+                            return;
+                        }
+                    }
                 }
             }
         }
 
-        if fragments.contains(&"XX") {
-            let is_exists = redis_ref.exists(db_index, &key);
-            if !is_exists{
-                if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Null.to_bytes();
-                    match stream.write(response_bytes) {
-                        Ok(_bytes_written) => {},
-                        Err(e) => {
-                            eprintln!("Failed to write to stream: {}", e);
-                        },
-                    };
-                    return;
+        for (index, fragment) in fragments.iter().enumerate() {
+            if fragment.to_uppercase() == "XX" {
+                if index != 4 && index != 6 {
+                    let is_exists = redis_ref.exists(db_index, &key);
+                    if !is_exists{
+                        if let Some(stream) = stream { 
+                            let response_bytes = &RespValue::Null.to_bytes();
+                            match stream.write(response_bytes) {
+                                Ok(_bytes_written) => {},
+                                Err(e) => {
+                                    eprintln!("Failed to write to stream: {}", e);
+                                },
+                            };
+                            return;
+                        }
+                    }
                 }
             }
         }
 
         let mut ttl_index = None;
         let mut ttl_unit = None;
+
         for (index, f) in fragments.iter().enumerate().rev() {
-            if f.eq_ignore_ascii_case("PX") || f.eq_ignore_ascii_case("EX") {
-                ttl_index = Some(index);
-                ttl_unit = Some(fragments[index].to_uppercase());
-                break;
+            if index > 6 {
+                if f.to_uppercase().eq_ignore_ascii_case("PX") || 
+                   f.to_uppercase().eq_ignore_ascii_case("EX") {
+                        ttl_index = Some(index);
+                        ttl_unit = Some(fragments[index].to_uppercase());
+                        break;
+                }
             }
         }
 
@@ -121,7 +135,6 @@ impl CommandStrategy for SetCommand {
                         "EX" => ttl * 1000,
                         _ => ttl
                     };
-        
                     expire_at = current_millis() + ttl_millis;
                 }
             }
