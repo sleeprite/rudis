@@ -5,8 +5,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use log::logger;
-
 use crate::interface::command_strategy::CommandStrategy;
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
