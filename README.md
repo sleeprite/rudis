@@ -53,7 +53,7 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 
 ### 普通安装
 
-根据系统环境要求，下载匹配的 Rudis 版本。
+根据系统环境要求，[下载](./release) 匹配的 Rudis 版本。
 
 通过常规系统命令启动服务。
 
@@ -77,6 +77,9 @@ start rudis-server.exe --config rudis.properties
 ```sh 
 // docker 常规启动
 docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
+
+// docker 指定参数启动
+docker run -p 6379:8848 ghcr.io/sleeprite/rudis:latest --port 8848
 ```
 
 ## 🔧 配置说明
