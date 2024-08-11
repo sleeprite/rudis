@@ -20,20 +20,20 @@
 
 </div>
 
-## 项目介绍
+## 🌱 项目介绍
 
 Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在利用 Rust 语言的优势来重新复现 Rudis 的核心功能，以满足用户对高性能、可靠性和安全性的需求，同时保证与 Rudis API 的兼容。
 
-### 特性
+### 🌟 特性
 
 - 跨平台，兼容 windows、linux 系统架构。
 - 兼容 字符串、集合、哈希、列表、有序集合数据结构。
 - 提供 rdb 与 aof 机制以支持数据备份和恢复。
 - 拥有卓越的处理速度和即时响应能力。
-- 兼容 Rudis 的命令和协议规范。
+- 兼容 Redis 的命令和协议规范。
 - 提供 Docker 部署方式。
 
-## 快速入门
+## 🚀 快速入门
 
 
 ```
@@ -79,7 +79,7 @@ start rudis-server.exe --config rudis.properties
 docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
 ```
 
-## 配置说明
+## 🔧 配置说明
 
 - 配置文件 (config): 指定Rudis配置文件路径。
 - 绑定的主机地址 (bind): 指定Rudis服务器绑定地址。
@@ -94,7 +94,7 @@ docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
 - 定时任务频率 (hz): 定时任务执行频率，默认10次/秒。
 - RDB保存策略 (save): 设置RDB自动保存条件。
 
-## 项目结构
+## 📖 项目结构
 
 ### command
 
@@ -113,7 +113,7 @@ persistence 模块提供了 AOF（Append-Only File）和 RDB（Rudis Database）
 
 session 模块的设计目的是提供一个简单的会话管理功能，用于跟踪用户的操作状态，例如用户所选的数据库索引以及用户是否已认证等信息。这对于需要进行用户认证或者跟踪用户操作状态的系统是非常有用的。
 
-## 常用命令
+## 💻 常用命令
 
 echo 命令
 ```
@@ -221,7 +221,7 @@ flushall 命令
 OK
 ```
 
-## 构建源码
+## 🔨 构建源码
 
 如果你希望通过构建源码的方式，得到发行包。
 
@@ -249,7 +249,7 @@ cargo build --release
 cargo clippy
 ```
 
-## 开源共建
+## 🤝 开源共建
 
 Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rudis/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/rudis/graphs/contributors)。
 
