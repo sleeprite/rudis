@@ -10,7 +10,7 @@ This is the latest released rusdis Docker image.
 
 ### `ghcr.io/sleeprite/rudis:<version>`
 
-Rudis Docker image will be builded on each release.
+Rudis Docker image will be builded on each release, [view the package page](https://github.com/sleeprite/rudis/pkgs/container/rudis).
 
 ## How to use this image
 
