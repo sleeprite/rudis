@@ -1,7 +1,8 @@
 use std::fs;
 
 /*
- * Redis 配置
+ * Rudis 配置对象
+ * 
  * @param bind 地址
  * @param port 端口
  * @param password 密码
@@ -25,7 +26,6 @@ pub struct RudisConfig {
     pub dir: String,
 }
 
-// dbfilename dump.rdb
 impl From<crate::tools::cli::Cli> for RudisConfig {
     fn from(value: crate::tools::cli::Cli) -> Self {
         let mut rudis_config = RudisConfig::default();
@@ -35,30 +35,17 @@ impl From<crate::tools::cli::Cli> for RudisConfig {
                     if let Some((key, value)) = parse_config_line(line) {
                         match key {
                             "dir" => rudis_config.dir = value.to_string(),
-                            "port" => {
-                                rudis_config.port = value.parse().unwrap_or(rudis_config.port)
-                            }
                             "bind" => rudis_config.bind = value.to_string(),
                             "password" => rudis_config.password = Some(value.to_string()),
                             "dbfilename" => rudis_config.dbfilename = Some(value.to_string()),
-                            "databases" => {
-                                rudis_config.databases =
-                                    value.parse().unwrap_or(rudis_config.databases)
-                            }
-                            "maxclients" => {
-                                rudis_config.maxclients =
-                                    value.parse().unwrap_or(rudis_config.maxclients)
-                            }
-                            "appendonly" => {
-                                rudis_config.appendonly =
-                                    value.parse().unwrap_or(rudis_config.appendonly)
-                            }
-                            "appendfilename" => {
-                                rudis_config.appendfilename = Some(value.to_string())
-                            }
+                            "port" => rudis_config.port = value.parse().unwrap_or(rudis_config.port),
+                            "databases" => rudis_config.databases = value.parse().unwrap_or(rudis_config.databases),
+                            "maxclients" => rudis_config.maxclients = value.parse().unwrap_or(rudis_config.maxclients),
+                            "appendonly" => rudis_config.appendonly = value.parse().unwrap_or(rudis_config.appendonly),
+                            "appendfilename" => rudis_config.appendfilename = Some(value.to_string()),
                             "appendfsync" => rudis_config.appendfsync = Some(value.to_string()),
-                            "save" => rudis_config.save = parse_save(value),
                             "hz" => rudis_config.hz = value.parse().unwrap_or(rudis_config.hz),
+                            "save" => rudis_config.save = parse_save(value),
                             _ => {}
                         }
                     }
