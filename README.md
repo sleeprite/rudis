@@ -51,28 +51,32 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 [2024-04-30T02:00:55Z INFO  rudis_server] Ready to accept connections
 ```
 
-- Cargo 命令
+### 普通安装
 
+根据系统环境要求，下载匹配的 Rudis 版本。
+
+通过常规系统命令启动服务。
+
+```sh 
+// windows 常规启动
+start rudis-server.exe
+
+// windows 指定参数启动
+start rudis-server.exe --port 6379
+
+// windows 指定配置文件启动
+start rudis-server.exe --config rudis.properties
 ```
-// 普通启动
-cargo run
 
-// 带参启动
-cargo run -- --port 8848
-cargo run -- --save 20/1 60/2
+### 容器安装
 
-// 指定配置
-cargo run -- --config rudis.properties
+通过 docker 容器启动 Rudis 服务
 
-// 构建程序
-cargo build
+更多安装教程，请前往 [docker/README.md](./docker/README.md) 查阅
 
-cargo build --release --target=x86_64-unknown-linux-musl
-
-cargo build --release
-
-// 代码检测
-cargo clippy
+```sh 
+// docker 常规启动
+docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
 ```
 
 ## 配置说明
@@ -217,52 +221,33 @@ flushall 命令
 OK
 ```
 
-## 命令列表
+## 构建源码
 
-| Command | Supprt | Appendfile | Test case | Document |
-| ------- | ------ | ---------- | --------- |--------- |
-| set     | ✅    | ✅         | ✅       | ✅       |
-| get     | ✅    | ⚪         | ✅       | ✅       |
-| del     | ✅    | ✅         | ✅       | ✅       |
-| echo    | ✅    | ⚪         | ⚪       | ⛔       |
-| flushdb | ✅    | ✅         | ⛔       | ⛔       |
-| flushall| ✅    | ✅         | ⛔       | ⛔       |
-| dbsize  | ✅    | ⚪         | ⛔       | ⛔       |
-| auth    | ✅    | ⚪         | ⛔       | ⛔       |
-| select  | ✅    | ✅         | ⛔       | ⛔       |
-| llen    | ✅    | ⚪         | ✅       | ⛔       |
-| exists  | ✅    | ⚪         | ✅       | ⛔       |
-| expire  | ✅    | ✅         | ✅       | ⛔       |
-| rename  | ✅    | ✅         | ✅       | ⛔       |
-| move    | ✅    | ✅         | ⛔       | ⛔       |
-| lpush   | ✅    | ✅         | ✅       | ⛔       |
-| rpush   | ✅    | ✅         | ✅       | ⛔       |
-| append  | ✅    | ✅         | ✅       | ⛔       |
-| incr    | ✅    | ✅         | ⛔       | ⛔       |
-| decr    | ✅    | ✅         | ⛔       | ⛔       |
-| lindex  | ✅    | ⚪         | ✅       | ⛔       |
-| lpop    | ✅    | ✅         | ⛔       | ⛔       |
-| rpop    | ✅    | ✅         | ⛔       | ⛔       |
-| lrange  | ✅    | ⚪         | ⛔       | ⛔       |
-| ttl     | ✅    | ⚪         | ⛔       | ⛔       |
-| pttl    | ✅    | ⚪         | ⛔       | ⛔       |
-| type    | ✅    | ⚪         | ⛔       | ⛔       |
-| sadd    | ✅    | ✅         | ✅       | ⛔       |
-| smembers| ✅    | ⚪         | ✅       | ⛔       |
-| scard   | ✅    | ⚪         | ✅       | ⛔       |
-| hmset   | ✅    | ✅         | ✅       | ⛔       |
-| hget    | ✅    | ⚪         | ✅       | ⛔       |
-| hdel    | ✅    | ✅         | ✅       | ⛔       |
-| hexists | ✅    | ⚪         | ✅       | ⛔       |
-| hset    | ✅    | ✅         | ✅       | ⛔       |
-| keys    | ✅    | ⚪         | ✅       | ⛔       |
-| zadd    | ✅    | ✅         | ⛔       | ⛔       |
-| zscore  | ✅    | ⚪         | ⛔       | ⛔       |
-| zcard   | ✅    | ⚪         | ⛔       | ⛔       |
-| zcount  | ✅    | ⚪         | ⛔       | ⛔       |
-| pexpire | ✅    | ⚪         | ⛔       | ⛔       |
-| mset    | ✅    | ✅         | ⛔       | ⛔       |
+如果你希望通过构建源码的方式，得到发行包。
 
+请使用 cargo 常用命令。
+
+```
+// 普通启动
+cargo run
+
+// 带参启动
+cargo run -- --port 8848
+cargo run -- --save 20/1 60/2
+
+// 指定配置
+cargo run -- --config rudis.properties
+
+// 构建程序
+cargo build
+
+cargo build --release --target=x86_64-unknown-linux-musl
+
+cargo build --release
+
+// 代码检测
+cargo clippy
+```
 
 ## 开源共建
 
