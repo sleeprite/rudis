@@ -22,7 +22,7 @@ use persistence::rdb_scheduler::RdbScheduler;
 use tools::resp::RespValue;
 
 use crate::db::db::Redis;
-use crate::db::db_config::RedisConfig;
+use crate::db::db_config::RudisConfig;
 use crate::interface::command_type::CommandType;
 use crate::persistence::aof::Aof;
 use crate::session::session::Session;
@@ -45,13 +45,13 @@ async fn main() {
     /*
      * 创建默认配置
      */
-    let redis_config: Arc<RedisConfig> = Arc::new(cli.into());
+    let rudis_config: Arc<RudisConfig> = Arc::new(cli.into());
 
     /*
      * 创建通讯服务
      */
-    let port: u16 = redis_config.port;
-    let string_addr = format!("{}:{}", redis_config.bind, port);
+    let port: u16 = rudis_config.port;
+    let string_addr = format!("{}:{}", rudis_config.bind, port);
     let socket_addr = match string_addr.to_socket_addrs() {
         Ok(mut addr_iter) => addr_iter.next().unwrap(),
         Err(e) => {
@@ -61,15 +61,15 @@ async fn main() {
     };
     let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
-    let redis = Arc::new(Mutex::new(Redis::new(redis_config.clone())));
+    let redis = Arc::new(Mutex::new(Redis::new(rudis_config.clone())));
     let listener = TcpListener::bind(address).unwrap();
 
-    let aof = Arc::new(Mutex::new(Aof::new(redis_config.clone(), redis.clone())));
-    let rdb = Arc::new(Mutex::new(Rdb::new(redis_config.clone(), redis.clone())));
+    let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), redis.clone())));
+    let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), redis.clone())));
 
     println_banner(port);
 
-    if redis_config.appendonly {
+    if rudis_config.appendonly {
         match aof.lock() {
             Ok(mut file) => {
                 log::info!("Start loading appendfile");
@@ -97,7 +97,7 @@ async fn main() {
     log::info!("Ready to accept connections");
 
     let rc = Arc::clone(&redis);
-    let rcc = Arc::clone(&redis_config);
+    let rcc = Arc::clone(&rudis_config);
 
     // 检测过期
     tokio::spawn(async move {
@@ -110,7 +110,7 @@ async fn main() {
     // 保存策略
     let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
     let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
-    if let Some(save_interval) = &redis_config.save {
+    if let Some(save_interval) = &rudis_config.save {
         arc_rdb_scheduler
             .lock()
             .unwrap()
@@ -121,7 +121,7 @@ async fn main() {
         match stream {
             Ok(stream) => {
                 let redis_clone = Arc::clone(&redis);
-                let redis_config_clone = Arc::clone(&redis_config);
+                let rudis_config_clone = Arc::clone(&rudis_config);
                 let sessions_clone = Arc::clone(&sessions);
                 let rdb_count_clone = Arc::clone(&arc_rdb_count);
                 let aof_clone = Arc::clone(&aof);
@@ -129,7 +129,7 @@ async fn main() {
                     connection(
                         stream,
                         redis_clone,
-                        redis_config_clone,
+                        rudis_config_clone,
                         sessions_clone,
                         rdb_count_clone,
                         aof_clone,
@@ -147,7 +147,7 @@ async fn main() {
 fn connection(
     mut stream: TcpStream,
     redis: Arc<Mutex<Redis>>,
-    redis_config: Arc<RedisConfig>,
+    rudis_config: Arc<RudisConfig>,
     sessions: Arc<Mutex<HashMap<String, Session>>>,
     rdb_count: Arc<Mutex<RdbCount>>,
     aof: Arc<Mutex<Aof>>,
@@ -176,7 +176,7 @@ fn connection(
          * （3）否则：创建 session 会话
          */
         let mut sessions_ref = sessions.lock().unwrap();
-        if redis_config.maxclients == 0 || sessions_ref.len() < redis_config.maxclients {
+        if rudis_config.maxclients == 0 || sessions_ref.len() < rudis_config.maxclients {
             sessions_ref.insert(session_id.clone(), Session::new());
         } else {
             let err = "ERR max number of clients reached".to_string();
@@ -225,7 +225,7 @@ fn connection(
                         let session = sessions_ref.get(&session_id).unwrap();
                         let is_not_auth_command = command.to_uppercase() != "AUTH";
                         let is_not_auth = !session.get_authenticated();
-                        if redis_config.password.is_some() && is_not_auth && is_not_auth_command {
+                        if rudis_config.password.is_some() && is_not_auth && is_not_auth_command {
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
                             match stream.write(response_bytes) {
@@ -252,7 +252,7 @@ fn connection(
                             Some(&mut stream),
                             &fragments,
                             &redis,
-                            &redis_config,
+                            &rudis_config,
                             &sessions,
                             &session_id,
                         );
@@ -332,7 +332,7 @@ fn println_banner(port: u16) {
 
 #[cfg(test)]
 mod tests {
-    use crate::db::db_config::RedisConfig;
+    use crate::db::db_config::RudisConfig;
     use crate::tools::cli;
     use clap::Parser;
     #[test]
@@ -347,7 +347,7 @@ mod tests {
         );
         let args: Vec<&str> = arg_string.split(' ').collect();
         let cli = cli::Cli::parse_from(args);
-        let config: RedisConfig = cli.into();
+        let config: RudisConfig = cli.into();
         assert_eq!(config.port, port);
         assert_eq!(config.maxclients, 1000);
         assert_eq!(config.password, None);
@@ -401,7 +401,7 @@ mod tests {
 
         let args: Vec<&str> = arg_string.split(' ').collect();
         let cli = cli::Cli::parse_from(args);
-        let config: RedisConfig = cli.into();
+        let config: RudisConfig = cli.into();
         assert_eq!(config.bind, bind.to_string());
         assert_eq!(config.port, port);
         assert_eq!(config.password, Some(password.to_string()));

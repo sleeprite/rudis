@@ -4,7 +4,7 @@ use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::session::session::Session;
-use crate::{db::db::Redis, RedisConfig};
+use crate::{db::db::Redis, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct HdelCommand {}
@@ -15,7 +15,7 @@ impl CommandStrategy for HdelCommand {
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
-        _redis_config: &Arc<RedisConfig>,
+        _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {

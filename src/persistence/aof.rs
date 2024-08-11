@@ -9,28 +9,28 @@ use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::db::db::Redis;
 use crate::command_strategies::init_command_strategies;
-use crate::db::db_config::RedisConfig;
+use crate::db::db_config::RudisConfig;
 use crate::session::session::Session;
 
 pub struct Aof {
-    pub redis_config: Arc<RedisConfig>,
+    pub rudis_config: Arc<RudisConfig>,
     pub redis: Arc<Mutex<Redis>>,
     pub aof_file: Option<std::fs::File>,
 }
 
 impl Aof {
     
-    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> Aof {
+    pub fn new(rudis_config: Arc<RudisConfig>, redis: Arc<Mutex<Redis>>) -> Aof {
         let mut aof_file = None;
-        if redis_config.appendonly && redis_config.appendfilename.is_some() {
-            if let Some(filename) = &redis_config.appendfilename {
-                let base_path = &redis_config.dir;
+        if rudis_config.appendonly && rudis_config.appendfilename.is_some() {
+            if let Some(filename) = &rudis_config.appendfilename {
+                let base_path = &rudis_config.dir;
                 let file_path = format!("{}{}", base_path, filename);
                 aof_file = Some(OpenOptions::new().create(true).read(true).append(true).open(file_path).expect("Failed to open AOF file"));
             }
         }
         Aof {
-            redis_config,
+            rudis_config,
             redis,
             aof_file,
         }
@@ -55,9 +55,9 @@ impl Aof {
      * 调用时机：项目启动
      */
     pub fn load(&mut self) {
-        if self.redis_config.appendonly {
-            if let Some(filename) = &self.redis_config.appendfilename {
-                let base_path = &self.redis_config.dir;
+        if self.rudis_config.appendonly {
+            if let Some(filename) = &self.rudis_config.appendfilename {
+                let base_path = &self.rudis_config.dir;
                 let file_path = format!("{}{}", base_path, filename);
                 if let Ok(mut file) = File::open(file_path) {
                     use std::io::{BufRead, BufReader};
@@ -83,7 +83,7 @@ impl Aof {
                                 let fragments: Vec<&str> = operation.split("\\r\\n").collect();
                                 let command = fragments[2];
                                 if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str()) {
-                                    strategy.execute(None, &fragments, &self.redis, &self.redis_config, &sessions,session_id);
+                                    strategy.execute(None, &fragments, &self.redis, &self.rudis_config, &sessions,session_id);
                                 }
                             }
                             pb.inc(1);

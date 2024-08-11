@@ -10,7 +10,7 @@ use std::fs;
  * @param appendfilename 命令持久化文件
  * @param appendonly 是否开启持久化
  */
-pub struct RedisConfig {
+pub struct RudisConfig {
     pub bind: String,
     pub port: u16,
     pub password: Option<String>,
@@ -24,41 +24,41 @@ pub struct RedisConfig {
     pub save: Option<Vec<(u64, u64)>>,
     pub dir: String,
 }
-// dbfilename dump.rdb
 
-impl From<crate::tools::cli::Cli> for RedisConfig {
+// dbfilename dump.rdb
+impl From<crate::tools::cli::Cli> for RudisConfig {
     fn from(value: crate::tools::cli::Cli) -> Self {
-        let mut redis_config = RedisConfig::default();
+        let mut rudis_config = RudisConfig::default();
         if let Some(config) = value.config {
             if let Ok(content) = fs::read_to_string(config) {
                 for line in content.lines() {
                     if let Some((key, value)) = parse_config_line(line) {
                         match key {
-                            "dir" => redis_config.dir = value.to_string(),
+                            "dir" => rudis_config.dir = value.to_string(),
                             "port" => {
-                                redis_config.port = value.parse().unwrap_or(redis_config.port)
+                                rudis_config.port = value.parse().unwrap_or(rudis_config.port)
                             }
-                            "bind" => redis_config.bind = value.to_string(),
-                            "password" => redis_config.password = Some(value.to_string()),
-                            "dbfilename" => redis_config.dbfilename = Some(value.to_string()),
+                            "bind" => rudis_config.bind = value.to_string(),
+                            "password" => rudis_config.password = Some(value.to_string()),
+                            "dbfilename" => rudis_config.dbfilename = Some(value.to_string()),
                             "databases" => {
-                                redis_config.databases =
-                                    value.parse().unwrap_or(redis_config.databases)
+                                rudis_config.databases =
+                                    value.parse().unwrap_or(rudis_config.databases)
                             }
                             "maxclients" => {
-                                redis_config.maxclients =
-                                    value.parse().unwrap_or(redis_config.maxclients)
+                                rudis_config.maxclients =
+                                    value.parse().unwrap_or(rudis_config.maxclients)
                             }
                             "appendonly" => {
-                                redis_config.appendonly =
-                                    value.parse().unwrap_or(redis_config.appendonly)
+                                rudis_config.appendonly =
+                                    value.parse().unwrap_or(rudis_config.appendonly)
                             }
                             "appendfilename" => {
-                                redis_config.appendfilename = Some(value.to_string())
+                                rudis_config.appendfilename = Some(value.to_string())
                             }
-                            "appendfsync" => redis_config.appendfsync = Some(value.to_string()),
-                            "save" => redis_config.save = parse_save(value),
-                            "hz" => redis_config.hz = value.parse().unwrap_or(redis_config.hz),
+                            "appendfsync" => rudis_config.appendfsync = Some(value.to_string()),
+                            "save" => rudis_config.save = parse_save(value),
+                            "hz" => rudis_config.hz = value.parse().unwrap_or(rudis_config.hz),
                             _ => {}
                         }
                     }
@@ -67,46 +67,46 @@ impl From<crate::tools::cli::Cli> for RedisConfig {
         }
 
         if let Some(bind) = value.bind {
-            redis_config.bind = bind;
+            rudis_config.bind = bind;
         }
         if let Some(port) = value.port {
-            redis_config.port = port;
+            rudis_config.port = port;
         }
         if let Some(password) = value.password {
-            redis_config.password = Some(password);
+            rudis_config.password = Some(password);
         }
         if let Some(databases) = value.databases {
-            redis_config.databases = databases;
+            rudis_config.databases = databases;
         }
         if let Some(dbfilename) = value.dbfilename {
-            redis_config.dbfilename = Some(dbfilename);
+            rudis_config.dbfilename = Some(dbfilename);
         }
         if let Some(appendfilename) = value.appendfilename {
-            redis_config.appendfilename = Some(appendfilename);
+            rudis_config.appendfilename = Some(appendfilename);
         }
         if let Some(appendonly) = value.appendonly {
-            redis_config.appendonly = appendonly == "true";
+            rudis_config.appendonly = appendonly == "true";
         }
         if let Some(hz) = value.hz {
-            redis_config.hz = hz;
+            rudis_config.hz = hz;
         }
         if let Some(appendfsync) = value.appendfsync {
-            redis_config.appendfsync = Some(appendfsync);
+            rudis_config.appendfsync = Some(appendfsync);
         }
         if let Some(maxclients) = value.maxclients {
-            redis_config.maxclients = maxclients;
+            rudis_config.maxclients = maxclients;
         }
         if !value.save.is_empty() {
-            redis_config.save = Some(value.save);
+            rudis_config.save = Some(value.save);
         }
         if let Some(dir) = value.dir {
-            redis_config.dir = dir.to_str().unwrap().to_string();
+            rudis_config.dir = dir.to_str().unwrap().to_string();
         }
-        redis_config
+        rudis_config
     }
 }
 
-impl Default for RedisConfig {
+impl Default for RudisConfig {
     fn default() -> Self {
         Self {
             bind: "0.0.0.0".to_string(),

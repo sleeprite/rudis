@@ -13,21 +13,21 @@ use indicatif::ProgressStyle;
 
 use crate::db::{
     db::{Redis, RedisData, RedisValue},
-    db_config::RedisConfig,
+    db_config::RudisConfig,
 };
 
 pub struct Rdb {
-    pub redis_config: Arc<RedisConfig>,
+    pub rudis_config: Arc<RudisConfig>,
     pub redis: Arc<Mutex<Redis>>,
     pub rdb_file: Option<std::fs::File>,
 }
 
 impl Rdb {
     
-    pub fn new(redis_config: Arc<RedisConfig>, redis: Arc<Mutex<Redis>>) -> Rdb {
+    pub fn new(rudis_config: Arc<RudisConfig>, redis: Arc<Mutex<Redis>>) -> Rdb {
         let mut rdb_file = None;
-        if let Some(filename) = &redis_config.dbfilename {
-            let base_path = &redis_config.dir;
+        if let Some(filename) = &rudis_config.dbfilename {
+            let base_path = &rudis_config.dir;
             let file_path = format!("{}{}", base_path, filename);
             rdb_file = Some(
                 OpenOptions::new().create(true).write(true).open(file_path).expect("Failed to open AOF file"),
@@ -35,7 +35,7 @@ impl Rdb {
         }
 
         Rdb {
-            redis_config,
+            rudis_config,
             redis,
             rdb_file,
         }
@@ -85,8 +85,8 @@ impl Rdb {
 
     pub fn load(&mut self) {
         let mut redis_ref = self.redis.lock().unwrap();
-        if let Some(filename) = &self.redis_config.dbfilename {
-            let base_path = &self.redis_config.dir;
+        if let Some(filename) = &self.rudis_config.dbfilename {
+            let base_path = &self.rudis_config.dir;
             let file_path = format!("{}{}", base_path, filename);
             if let Ok(mut file) = File::open(file_path) {
                 use std::io::{BufRead, BufReader};

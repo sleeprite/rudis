@@ -11,7 +11,7 @@ use crate::{
     interface::command_type::CommandType,
     session::session::Session,
     tools::resp::RespValue,
-    RedisConfig,
+    RudisConfig,
 };
 
 pub struct HsetCommand {}
@@ -22,7 +22,7 @@ impl CommandStrategy for HsetCommand {
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
-        _redis_config: &Arc<RedisConfig>,
+        _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str,
     ) {

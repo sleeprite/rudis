@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 
-use crate::{db::db_config::RedisConfig, session::session::Session};
+use crate::{db::db_config::RudisConfig, session::session::Session};
 use crate::db::db::Redis;
 
 use super::command_type::CommandType;
@@ -11,7 +11,7 @@ use super::command_type::CommandType;
  * @param stream 通讯流
  * @param fragments 消息内容
  * @param redis 数据库实例
- * @param redis_config 数据库配置
+ * @param rudis_config 数据库配置
  * @param sessions 会话列表
  */
 pub trait CommandStrategy {
@@ -22,7 +22,7 @@ pub trait CommandStrategy {
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
-        redis_config: &Arc<RedisConfig>,
+        rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str,
     );

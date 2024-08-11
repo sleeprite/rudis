@@ -1,7 +1,7 @@
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::{
-    db::db::Redis, session::session::Session, RedisConfig,
+    db::db::Redis, session::session::Session, RudisConfig,
 };
 use crate::interface::command_strategy::CommandStrategy;
 use std::io::Write;
@@ -22,7 +22,7 @@ impl CommandStrategy for ExistsCommand {
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
         redis: &Arc<Mutex<Redis>>,
-        _redis_config: &Arc<RedisConfig>,
+        _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {

@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RedisConfig};
+use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 /*
@@ -16,7 +16,7 @@ impl CommandStrategy for AuthCommand {
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
         _redis: &Arc<Mutex<Redis>>,
-        _redis_config: &Arc<RedisConfig>,
+        _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
@@ -35,7 +35,7 @@ impl CommandStrategy for AuthCommand {
             return;
         }
         let password = fragments[4];
-        match &(_redis_config).password {
+        match &(_rudis_config).password {
             Some(p) => {
                 if password != p {
                     let mut session_ref = sessions.lock().unwrap();

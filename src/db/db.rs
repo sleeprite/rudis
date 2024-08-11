@@ -3,8 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::tools::date::current_millis;
 
-use super::db_config::RedisConfig;
-
+use super::db_config::RudisConfig;
 
 extern crate serde;
 extern crate serde_json;
@@ -88,7 +87,7 @@ impl RedisData {
 
 pub struct Redis {
     pub databases: Vec<AHashMap<String, RedisData>>,
-    pub redis_config: Arc<RedisConfig>,
+    pub rudis_config: Arc<RudisConfig>,
 }
 
 impl Redis {
@@ -96,18 +95,18 @@ impl Redis {
     /*
      * Redis 构造函数
      *
-     * @param redis_config 配置文件
+     * @param rudis_config 配置文件
      */
-    pub fn new(redis_config: Arc<RedisConfig>) -> Redis {
+    pub fn new(rudis_config: Arc<RudisConfig>) -> Redis {
         let mut databases = Vec::new();
 
-        for _ in 0..redis_config.databases {
+        for _ in 0..rudis_config.databases {
             databases.push(AHashMap::new());
         }
 
         Redis {
             databases,
-            redis_config,
+            rudis_config,
         }
     }
 
