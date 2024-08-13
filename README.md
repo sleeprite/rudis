@@ -53,9 +53,9 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 
 ### 普通安装
 
-根据系统环境要求，[下载](./release) 匹配的 Rudis 版本。
+根据系统环境要求，[下载](./release) 匹配的 Rudis 版本
 
-通过常规系统命令启动服务。
+通过系统常规命令启动 Rudis 服务
 
 ```sh 
 // windows 常规启动
@@ -72,7 +72,7 @@ start rudis-server.exe --config rudis.properties
 
 通过 docker 容器启动 Rudis 服务
 
-更多安装教程，请前往 [docker/README.md](./docker/README.md) 查阅
+如需更多安装命令，请前往 [docker/README.md](./docker/README.md) 查看
 
 ```sh 
 // docker 常规启动
@@ -133,14 +133,6 @@ PONG
 set 命令
 ```
 127.0.0.1:6379> set user bailiang
-OK
-```
-
-set 命令 [过期]
-```
-127.0.0.1:6379> set user bailiang px 10000
-OK
-127.0.0.1:6379> set user bailiang ex 10
 OK
 ```
 
@@ -209,18 +201,6 @@ OK
 rename 命令
 ```
 127.0.0.1:6379> rename username new_username
-OK
-```
-
-flushdb 命令
-```
-127.0.0.1:6379> flushdb
-OK
-```
-
-flushall 命令
-```
-127.0.0.1:6379> flushall
 OK
 ```
 
