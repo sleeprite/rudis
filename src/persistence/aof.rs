@@ -71,7 +71,7 @@ impl Aof {
                         let mut session = Session::new();
                         session.set_selected_database(0);
                         session.set_authenticated(true);
-                        sessions_ref.insert(session_id.to_string(), Session::new());
+                        sessions_ref.insert(session_id.to_string(), session);
                     }
 
                     if file.seek(SeekFrom::Start(0)).is_ok() {
