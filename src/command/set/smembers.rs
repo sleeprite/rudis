@@ -7,7 +7,7 @@ use std::{
 
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
-use crate::{db::db::Redis, RudisConfig};
+use crate::{db::db::Db, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct SmembersCommand {}
@@ -17,12 +17,12 @@ impl CommandStrategy for SmembersCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) { 
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
             if let Some(session) = sessions_ref.get(session_id) {
@@ -33,8 +33,8 @@ impl CommandStrategy for SmembersCommand {
         };
 
         if let Some(key) = fragments.get(4) {
-            redis_ref.check_all_ttl(db_index);
-            if let Some(members) = redis_ref.smembers(db_index, key.as_ref()) {
+            db_ref.check_all_ttl(db_index);
+            if let Some(members) = db_ref.smembers(db_index, key.as_ref()) {
                 if let Some(stream) = stream { 
                     let response = format!("*{}\r\n", members.len());
                     match stream.write(response.as_bytes()) {

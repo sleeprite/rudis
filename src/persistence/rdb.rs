@@ -12,19 +12,19 @@ use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
 use crate::db::{
-    db::{Redis, RedisData, RedisValue},
+    db::{Db, RedisData, RedisValue},
     db_config::RudisConfig,
 };
 
 pub struct Rdb {
     pub rudis_config: Arc<RudisConfig>,
-    pub redis: Arc<Mutex<Redis>>,
+    pub redis: Arc<Mutex<Db>>,
     pub rdb_file: Option<std::fs::File>,
 }
 
 impl Rdb {
     
-    pub fn new(rudis_config: Arc<RudisConfig>, redis: Arc<Mutex<Redis>>) -> Rdb {
+    pub fn new(rudis_config: Arc<RudisConfig>, redis: Arc<Mutex<Db>>) -> Rdb {
         let mut rdb_file = None;
         if let Some(filename) = &rudis_config.dbfilename {
             let base_path = &rudis_config.dir;
@@ -51,8 +51,8 @@ impl Rdb {
                 eprintln!("Failed to seek to start of RDB file: {}", err);
                 return;
             }
-            let redis_ref = self.redis.lock().unwrap();
-            let databases: &Vec<AHashMap<String, RedisData>> = redis_ref.get_databases();
+            let db_ref = self.redis.lock().unwrap();
+            let databases: &Vec<AHashMap<String, RedisData>> = db_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
                 for (key, redis_data) in database.iter() {
                     let expire_at = redis_data.get_expire_at();
@@ -84,7 +84,7 @@ impl Rdb {
     }
 
     pub fn load(&mut self) {
-        let mut redis_ref = self.redis.lock().unwrap();
+        let mut db_ref = self.redis.lock().unwrap();
         if let Some(filename) = &self.rudis_config.dbfilename {
             let base_path = &self.rudis_config.dir;
             let file_path = format!("{}{}", base_path, filename);
@@ -119,7 +119,7 @@ impl Rdb {
                             if let Some(redis_value) = value {
                                 // Handle the RedisValue here
                                 let key = parts[1].to_string();
-                                redis_ref.set(db_index, key, redis_value, expire_at);
+                                db_ref.set(db_index, key, redis_value, expire_at);
                                     
                             }
                         }

@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
+use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 /*
@@ -15,12 +15,12 @@ impl CommandStrategy for DelCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -34,11 +34,11 @@ impl CommandStrategy for DelCommand {
         let del_index = 4;
         let mut del_count = 0;
 
-        redis_ref.check_all_ttl(db_index);
+        db_ref.check_all_ttl(db_index);
 
         for key in fragments.iter().skip(del_index).step_by(2) {
             let key_string = key.to_string();
-            let is_del = redis_ref.del(db_index, &key_string);
+            let is_del = db_ref.del(db_index, &key_string);
             if is_del {
                 del_count += 1;
             }

@@ -7,20 +7,20 @@ use std::{fs::OpenOptions, sync::Arc};
 
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::db::db::Redis;
+use crate::db::db::Db;
 use crate::command_strategies::init_command_strategies;
 use crate::db::db_config::RudisConfig;
 use crate::session::session::Session;
 
 pub struct Aof {
     pub rudis_config: Arc<RudisConfig>,
-    pub redis: Arc<Mutex<Redis>>,
+    pub db: Arc<Mutex<Db>>,
     pub aof_file: Option<std::fs::File>,
 }
 
 impl Aof {
     
-    pub fn new(rudis_config: Arc<RudisConfig>, redis: Arc<Mutex<Redis>>) -> Aof {
+    pub fn new(rudis_config: Arc<RudisConfig>, db: Arc<Mutex<Db>>) -> Aof {
         let mut aof_file = None;
         if rudis_config.appendonly && rudis_config.appendfilename.is_some() {
             if let Some(filename) = &rudis_config.appendfilename {
@@ -31,7 +31,7 @@ impl Aof {
         }
         Aof {
             rudis_config,
-            redis,
+            db,
             aof_file,
         }
     }
@@ -83,7 +83,7 @@ impl Aof {
                                 let fragments: Vec<&str> = operation.split("\\r\\n").collect();
                                 let command = fragments[2];
                                 if let Some(strategy) = command_strategies.get(command.to_uppercase().as_str()) {
-                                    strategy.execute(None, &fragments, &self.redis, &self.rudis_config, &sessions,session_id);
+                                    strategy.execute(None, &fragments, &self.db, &self.rudis_config, &sessions,session_id);
                                 }
                             }
                             pb.inc(1);

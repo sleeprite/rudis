@@ -1,7 +1,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
+use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 /*
@@ -14,7 +14,7 @@ impl CommandStrategy for EchoCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        _redis: &Arc<Mutex<Redis>>,
+        _db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         _sessions: &Arc<Mutex<HashMap<String, Session>>>,
         _session_id: &str

@@ -85,26 +85,26 @@ impl RedisData {
     }
 }
 
-pub struct Redis {
+pub struct Db {
     pub databases: Vec<AHashMap<String, RedisData>>,
     pub rudis_config: Arc<RudisConfig>,
 }
 
-impl Redis {
+impl Db {
 
     /*
      * Redis 构造函数
      *
      * @param rudis_config 配置文件
      */
-    pub fn new(rudis_config: Arc<RudisConfig>) -> Redis {
+    pub fn new(rudis_config: Arc<RudisConfig>) -> Db {
         let mut databases = Vec::new();
 
         for _ in 0..rudis_config.databases {
             databases.push(AHashMap::new());
         }
 
-        Redis {
+        Db {
             databases,
             rudis_config,
         }

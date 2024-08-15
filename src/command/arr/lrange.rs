@@ -7,7 +7,7 @@ use std::{
 
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
-use crate::{db::db::Redis, RudisConfig};
+use crate::{db::db::Db, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct LrangeCommand {}
@@ -17,12 +17,12 @@ impl CommandStrategy for LrangeCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -37,9 +37,9 @@ impl CommandStrategy for LrangeCommand {
         let start: i64 = fragments[6].parse().unwrap();
         let end: i64 = fragments[8].parse().unwrap();
         
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
 
-        let values = redis_ref.lrange(db_index, key.clone(), start, end);
+        let values = db_ref.lrange(db_index, key.clone(), start, end);
 
         if let Some(stream) = stream {
             let response = format!("*{}\r\n", values.len());

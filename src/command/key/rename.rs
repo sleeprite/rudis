@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
+use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 /*
@@ -13,12 +13,12 @@ impl CommandStrategy for RenameCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -32,9 +32,9 @@ impl CommandStrategy for RenameCommand {
         let old_key = fragments[4].to_string();
         let new_key = fragments[6].to_string();
 
-        redis_ref.check_ttl(db_index, &old_key);
+        db_ref.check_ttl(db_index, &old_key);
         
-        match redis_ref.rename(db_index, &old_key, &new_key) {
+        match db_ref.rename(db_index, &old_key, &new_key) {
             Ok(_) => {
                 if let Some(stream) = stream { 
                     let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();

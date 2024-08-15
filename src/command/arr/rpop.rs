@@ -8,7 +8,7 @@ use std::{
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
-use crate::{db::db::Redis, RudisConfig};
+use crate::{db::db::Db, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct RpopCommand {}
@@ -18,12 +18,12 @@ impl CommandStrategy for RpopCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -36,9 +36,9 @@ impl CommandStrategy for RpopCommand {
 
         let key = fragments[4].to_string();
         
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
         
-        let value = match redis_ref.rpop(db_index, key.clone()) {
+        let value = match db_ref.rpop(db_index, key.clone()) {
             Some(v) => v,
             None => return
         };

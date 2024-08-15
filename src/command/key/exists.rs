@@ -1,7 +1,7 @@
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::{
-    db::db::Redis, session::session::Session, RudisConfig,
+    db::db::Db, session::session::Session, RudisConfig,
 };
 use crate::interface::command_strategy::CommandStrategy;
 use std::io::Write;
@@ -21,12 +21,12 @@ impl CommandStrategy for ExistsCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -39,9 +39,9 @@ impl CommandStrategy for ExistsCommand {
 
         let key = fragments[4].to_string();
 
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
         
-        let is_exists = redis_ref.exists(db_index, &key);
+        let is_exists = db_ref.exists(db_index, &key);
         if is_exists {
             if let Some(stream) = stream {
                 let response_bytes = &RespValue::Integer(1).to_bytes();

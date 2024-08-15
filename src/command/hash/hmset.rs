@@ -8,7 +8,7 @@ use std::{
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
 use crate::session::session::Session;
-use crate::{db::db::Redis, RudisConfig};
+use crate::{db::db::Db, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 pub struct HmsetCommand {}
@@ -18,12 +18,12 @@ impl CommandStrategy for HmsetCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -43,7 +43,7 @@ impl CommandStrategy for HmsetCommand {
             values.insert(field, value);
         }
 
-        match redis_ref.hmset(db_index, key.clone(), values) {
+        match db_ref.hmset(db_index, key.clone(), values) {
             Ok(()) => {
                 if let Some(stream) = stream {
                     let response_bytes = &RespValue::Ok.to_bytes();

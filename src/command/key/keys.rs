@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::pattern::match_key, RudisConfig};
+use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::pattern::match_key, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 /*
  * Keys 命令
@@ -14,12 +14,12 @@ impl CommandStrategy for KeysCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -30,9 +30,9 @@ impl CommandStrategy for KeysCommand {
             }
         };
 
-        redis_ref.check_all_ttl(db_index);
+        db_ref.check_all_ttl(db_index);
         let mut keys_list: Vec<String> = Vec::new();
-        for key in redis_ref.databases[db_index].keys() {
+        for key in db_ref.databases[db_index].keys() {
             if match_key(key, fragments[4]) {
                 keys_list.push(key.clone());
             }

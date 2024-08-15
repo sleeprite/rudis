@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    db::db::Redis,
+    db::db::Db,
     interface::command_strategy::CommandStrategy,
     interface::command_type::CommandType,
     session::session::Session,
@@ -21,12 +21,12 @@ impl CommandStrategy for ZaddCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str,
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -41,9 +41,9 @@ impl CommandStrategy for ZaddCommand {
         let score: usize = fragments[6].parse().unwrap();
         let value = fragments[8].to_string();
         
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
         
-        match redis_ref.zadd(db_index, key.clone(), value, score) {
+        match db_ref.zadd(db_index, key.clone(), value, score) {
             Ok(result) => {
                 if let Some(stream) = stream {
                     let response_bytes = &RespValue::Integer(result as i64).to_bytes();

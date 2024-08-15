@@ -2,7 +2,7 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
 
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
+use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 
 /*
@@ -15,12 +15,12 @@ impl CommandStrategy for AppendCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -35,9 +35,9 @@ impl CommandStrategy for AppendCommand {
         let value = fragments[6].to_string();
 
         // 检测是否过期
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
 
-        let len = match redis_ref.append(db_index, key, value) {
+        let len = match db_ref.append(db_index, key, value) {
             Ok(len) => len as i64,
             Err(err) => {
                 if let Some(stream) = stream { 

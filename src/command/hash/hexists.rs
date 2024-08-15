@@ -9,7 +9,7 @@ use crate::interface::command_strategy::CommandStrategy;
 use crate::interface::command_type::CommandType;
 use crate::session::session::Session;
 use crate::tools::resp::RespValue;
-use crate::{db::db::Redis, RudisConfig};
+use crate::{db::db::Db, RudisConfig};
 
 pub struct HexistsCommand {}
 
@@ -18,12 +18,12 @@ impl CommandStrategy for HexistsCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str,
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
         
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -37,9 +37,9 @@ impl CommandStrategy for HexistsCommand {
         let key = fragments[4].to_string();
         let field = fragments[6].to_string();
 
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
 
-        match redis_ref.hexists(db_index, &key, &field) {
+        match db_ref.hexists(db_index, &key, &field) {
             Ok(exists) => {
                 if let Some(stream) = stream {
                     if exists {

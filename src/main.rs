@@ -21,7 +21,7 @@ use persistence::rdb_count::RdbCount;
 use persistence::rdb_scheduler::RdbScheduler;
 use tools::resp::RespValue;
 
-use crate::db::db::Redis;
+use crate::db::db::Db;
 use crate::db::db_config::RudisConfig;
 use crate::interface::command_type::CommandType;
 use crate::persistence::aof::Aof;
@@ -30,7 +30,7 @@ use crate::session::session::Session;
 #[tokio::main]
 async fn main() {
     
-    // parse args
+    // 启动参数解析
     let cli = crate::tools::cli::Cli::parse();
 
     /*
@@ -61,11 +61,10 @@ async fn main() {
     };
     let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
     let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
-    let redis = Arc::new(Mutex::new(Redis::new(rudis_config.clone())));
+    let db = Arc::new(Mutex::new(Db::new(rudis_config.clone())));
+    let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), db.clone())));
+    let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), db.clone())));
     let listener = TcpListener::bind(address).unwrap();
-
-    let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), redis.clone())));
-    let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), redis.clone())));
 
     println_banner(port);
 
@@ -96,7 +95,7 @@ async fn main() {
     log::info!("Server initialized");
     log::info!("Ready to accept connections");
 
-    let rc = Arc::clone(&redis);
+    let rc = Arc::clone(&db);
     let rcc = Arc::clone(&rudis_config);
 
     // 检测过期
@@ -111,16 +110,20 @@ async fn main() {
     let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
     let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
     if let Some(save_interval) = &rudis_config.save {
-        arc_rdb_scheduler
-            .lock()
-            .unwrap()
-            .execute(save_interval.clone(), arc_rdb_count.clone());
+        match arc_rdb_scheduler.lock() {
+            Ok(mut scheduler) => {
+                scheduler.execute(save_interval.clone(), arc_rdb_count.clone());
+            },
+            Err(poisoned_err) => {
+                eprintln!("Lock is poisoned: {:?}", poisoned_err);
+            }
+        }
     }
 
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                let redis_clone = Arc::clone(&redis);
+                let db_clone = Arc::clone(&db);
                 let rudis_config_clone = Arc::clone(&rudis_config);
                 let sessions_clone = Arc::clone(&sessions);
                 let rdb_count_clone = Arc::clone(&arc_rdb_count);
@@ -128,12 +131,12 @@ async fn main() {
                 tokio::spawn(async move {
                     connection(
                         stream,
-                        redis_clone,
+                        db_clone,
                         rudis_config_clone,
                         sessions_clone,
                         rdb_count_clone,
                         aof_clone,
-                    );
+                    ).await;
                 });
             }
             Err(e) => {
@@ -144,9 +147,9 @@ async fn main() {
 }
 
 // 处理 Tcp 链接
-fn connection(
+async fn connection(
     mut stream: TcpStream,
-    redis: Arc<Mutex<Redis>>,
+    db: Arc<Mutex<Db>>,
     rudis_config: Arc<RudisConfig>,
     sessions: Arc<Mutex<HashMap<String, Session>>>,
     rdb_count: Arc<Mutex<RdbCount>>,
@@ -251,7 +254,7 @@ fn connection(
                         strategy.execute(
                             Some(&mut stream),
                             &fragments,
-                            &redis,
+                            &db,
                             &rudis_config,
                             &sessions,
                             &session_id,

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
 use std::io::Write;
-use crate::{db::db::Redis, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
+use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
 use crate::interface::command_strategy::CommandStrategy;
 /*
  * Move 命令
@@ -12,12 +12,12 @@ impl CommandStrategy for MoveCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Redis>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut redis_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock().unwrap();
 
         let db_index = {
             let sessions_ref = sessions.lock().unwrap();
@@ -31,9 +31,9 @@ impl CommandStrategy for MoveCommand {
         let key = fragments[4].to_string();
         let dest_db_index: usize = fragments[6].parse().unwrap();
 
-        redis_ref.check_ttl(db_index, &key);
+        db_ref.check_ttl(db_index, &key);
 
-        let move_result = redis_ref.move_key(db_index, &key, dest_db_index);
+        let move_result = db_ref.move_key(db_index, &key, dest_db_index);
 
         if move_result {
             if let Some(stream) = stream {  
