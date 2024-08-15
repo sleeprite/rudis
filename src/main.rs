@@ -136,11 +136,7 @@ async fn connection(
     /*
      * 声明变量
      *
-     * @param session_id 会话编号
-     * @param command_strategies 命令集
-     * @param buff_list 消息列表
-     * @param read_size 读取长度
-     * @param buff 缓冲区
+     * command_strategies 命令集，session_id 会话编号，buff 消息，buff_list 完整消息，read_size 总读取长度
      */
     let command_strategies = init_command_strategies();
     let session_id = stream.peer_addr().unwrap().to_string();
