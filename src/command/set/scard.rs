@@ -42,9 +42,7 @@ impl CommandStrategy for ScardCommand {
             if let Some(stream) = stream { 
                 let response_value = RespValue::Integer(cardinality as i64).to_bytes();
                 match stream.write(&response_value) {
-                    Ok(_bytes_written) => {
-                        // Response successful
-                    },
+                    Ok(_bytes_written) => {},
                     Err(e) => {
                         eprintln!("Failed to write to stream: {}", e);
                     },
@@ -53,9 +51,7 @@ impl CommandStrategy for ScardCommand {
         } else if let Some(stream) = stream { 
             let response_value = RespValue::Integer(0).to_bytes();
             match stream.write(&response_value) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },

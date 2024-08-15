@@ -36,9 +36,7 @@ impl CommandStrategy for PexpireCommand {
             if let Some(stream) = stream { 
                 let response_bytes = &RespValue::Integer(1).to_bytes();
                 match stream.write(response_bytes) {
-                    Ok(_bytes_written) => {
-                        // Response successful
-                    },
+                    Ok(_bytes_written) => {},
                     Err(e) => {
                         eprintln!("Failed to write to stream: {}", e);
                     },
@@ -47,9 +45,7 @@ impl CommandStrategy for PexpireCommand {
         } else if let Some(stream) = stream { 
             let response_bytes = &RespValue::Integer(0).to_bytes();
             match stream.write(response_bytes) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },

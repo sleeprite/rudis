@@ -44,18 +44,14 @@ impl CommandStrategy for HexistsCommand {
                 if let Some(stream) = stream {
                     if exists {
                         match stream.write(b":1\r\n") {
-                            Ok(_bytes_written) => {
-                                // Response successful
-                            },
+                            Ok(_bytes_written) => {},
                             Err(e) => {
                                 eprintln!("Failed to write to stream: {}", e);
                             },
                         };
                     } else {
                         match stream.write(b":0\r\n") {
-                            Ok(_bytes_written) => {
-                                // Response successful
-                            },
+                            Ok(_bytes_written) => {},
                             Err(e) => {
                                 eprintln!("Failed to write to stream: {}", e);
                             },

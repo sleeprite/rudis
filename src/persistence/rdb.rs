@@ -18,13 +18,13 @@ use crate::db::{
 
 pub struct Rdb {
     pub rudis_config: Arc<RudisConfig>,
-    pub redis: Arc<Mutex<Db>>,
+    pub db: Arc<Mutex<Db>>,
     pub rdb_file: Option<std::fs::File>,
 }
 
 impl Rdb {
     
-    pub fn new(rudis_config: Arc<RudisConfig>, redis: Arc<Mutex<Db>>) -> Rdb {
+    pub fn new(rudis_config: Arc<RudisConfig>, db: Arc<Mutex<Db>>) -> Rdb {
         let mut rdb_file = None;
         if let Some(filename) = &rudis_config.dbfilename {
             let base_path = &rudis_config.dir;
@@ -36,7 +36,7 @@ impl Rdb {
 
         Rdb {
             rudis_config,
-            redis,
+            db,
             rdb_file,
         }
     }
@@ -51,7 +51,7 @@ impl Rdb {
                 eprintln!("Failed to seek to start of RDB file: {}", err);
                 return;
             }
-            let db_ref = self.redis.lock().unwrap();
+            let db_ref = self.db.lock().unwrap();
             let databases: &Vec<AHashMap<String, RedisData>> = db_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
                 for (key, redis_data) in database.iter() {
@@ -84,7 +84,7 @@ impl Rdb {
     }
 
     pub fn load(&mut self) {
-        let mut db_ref = self.redis.lock().unwrap();
+        let mut db_ref = self.db.lock().unwrap();
         if let Some(filename) = &self.rudis_config.dbfilename {
             let base_path = &self.rudis_config.dir;
             let file_path = format!("{}{}", base_path, filename);

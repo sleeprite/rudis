@@ -41,9 +41,7 @@ impl CommandStrategy for KeysCommand {
         if let Some(stream) = stream { 
             let response = format!("*{}\r\n", keys_list.len());
             match stream.write(response.as_bytes()) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },
@@ -51,9 +49,7 @@ impl CommandStrategy for KeysCommand {
             for key in keys_list {
                 let response = format!("${}\r\n{}\r\n", key.len(), key);
                 match stream.write(response.as_bytes()) {
-                    Ok(_bytes_written) => {
-                        // Response successful
-                    },
+                    Ok(_bytes_written) => {},
                     Err(e) => {
                         eprintln!("Failed to write to stream: {}", e);
                     },

@@ -38,9 +38,7 @@ impl CommandStrategy for SmembersCommand {
                 if let Some(stream) = stream { 
                     let response = format!("*{}\r\n", members.len());
                     match stream.write(response.as_bytes()) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
@@ -48,9 +46,7 @@ impl CommandStrategy for SmembersCommand {
                     for member in members {
                         let response = format!("${}\r\n{}\r\n", member.len(), member);
                         match stream.write(response.as_bytes()) {
-                            Ok(_bytes_written) => {
-                                // Response successful
-                            },
+                            Ok(_bytes_written) => {},
                             Err(e) => {
                                 eprintln!("Failed to write to stream: {}", e);
                             },
@@ -60,9 +56,7 @@ impl CommandStrategy for SmembersCommand {
             } else if let Some(stream) = stream { 
                 let response = "*0\r\n".to_string();
                 match stream.write(response.as_bytes()) {
-                    Ok(_bytes_written) => {
-                        // Response successful
-                    },
+                    Ok(_bytes_written) => {},
                     Err(e) => {
                         eprintln!("Failed to write to stream: {}", e);
                     },
@@ -71,9 +65,7 @@ impl CommandStrategy for SmembersCommand {
         } else if let Some(stream) = stream { 
             let response = "-ERR wrong number of arguments for 'smembers' command\r\n";
             match stream.write(response.as_bytes()) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },

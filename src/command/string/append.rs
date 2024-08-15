@@ -43,9 +43,7 @@ impl CommandStrategy for AppendCommand {
                 if let Some(stream) = stream { 
                     let response_value = RespValue::Error(err).to_bytes();
                     match stream.write(&response_value) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },

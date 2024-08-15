@@ -44,9 +44,7 @@ impl CommandStrategy for ZcardCommand {
                 if let Some(stream) = stream {
                     let resp_value = &RespValue::Integer(card as i64).to_bytes();
                     match stream.write(resp_value) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
@@ -57,9 +55,7 @@ impl CommandStrategy for ZcardCommand {
                 if let Some(stream) = stream {
                     let resp_value = &RespValue::Error(err).to_bytes();
                     match stream.write(resp_value) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },

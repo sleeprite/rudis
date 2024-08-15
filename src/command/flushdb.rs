@@ -33,9 +33,7 @@ impl CommandStrategy for FlushDbCommand {
         if let Some(stream) = stream { 
             let response_bytes = &RespValue::Ok.to_bytes();
             match stream.write(response_bytes) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },

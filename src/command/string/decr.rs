@@ -41,9 +41,7 @@ impl CommandStrategy for DecrCommand {
                 if let Some(stream) = stream { 
                     let response_value = RespValue::Integer(result).to_bytes();
                     match stream.write(&response_value) {
-                        Ok(_bytes_written) => {
-                            // Response successful
-                        },
+                        Ok(_bytes_written) => {},
                         Err(e) => {
                             eprintln!("Failed to write to stream: {}", e);
                         },
