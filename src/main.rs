@@ -70,8 +70,10 @@ async fn main() {
     println_banner(port);
 
     if rudis_config.appendonly {
+        log::info!("Start performing AOF recovery");
         aof.lock().load();
     } else {
+        log::info!("Start performing RDB recovery");
         rdb.lock().load();
     }
 
