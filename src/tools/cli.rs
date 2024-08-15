@@ -67,3 +67,108 @@ fn parse_rdb_save(s: &str) -> Result<(u64, u64), Box<dyn Error + Send + Sync + '
         .ok_or_else(|| format!("invalid M/N : no '/' found in '{s}'"))?;
     Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::db::db_config::RudisConfig;
+    use crate::tools::cli;
+    use clap::Parser;
+    #[test]
+    fn test_config_file() {
+        let port = 42800;
+        let config_file_path = "./release/linux/rudis-server.properties";
+        let arg_string = format!(
+            "rudis-server \
+            -p {} \
+            --config {}",
+            port, config_file_path
+        );
+        let args: Vec<&str> = arg_string.split(' ').collect();
+        let cli = cli::Cli::parse_from(args);
+        let config: RudisConfig = cli.into();
+        assert_eq!(config.port, port);
+        assert_eq!(config.maxclients, 1000);
+        assert_eq!(config.password, None);
+        assert_eq!(
+            config
+                .save
+                .unwrap()
+                .iter()
+                .map(|x| format!("{}/{}", x.0, x.1))
+                .collect::<Vec<String>>()
+                .join(" "),
+            "60/1 20/2"
+        );
+    }
+    #[test]
+    fn test_cli() {
+        let bind = "192.168.1.2";
+        let port = 6379;
+        let password = "123456";
+        let databases = 1;
+        let dbfilename = "123.rdb";
+        let appendfilename = "321.aof";
+        let appendonly = "false";
+        let hz = 2;
+        let appendfsync = "asd";
+        let maxclients = 100;
+        let dir = "/home/rudis";
+        let save_1 = "60/1";
+        let save_2 = "20/2";
+        let save = "60/1 20/2";
+        let arg_string = format!(
+            "rudis-server \
+            --bind {} \
+            -p {} \
+            --password {} \
+            --databases {} \
+            --dbfilename {} \
+            --appendfilename {} \
+            --hz {} \
+            --appendfsync {} \
+            --maxclients {} \
+            --dir {} \
+            --save {} \
+            --save {} \
+            --appendonly {}",
+            bind,
+            port,
+            password,
+            databases,
+            dbfilename,
+            appendfilename,
+            hz,
+            appendfsync,
+            maxclients,
+            dir,
+            save_1,
+            save_2,
+            appendonly
+        );
+
+        let args: Vec<&str> = arg_string.split(' ').collect();
+        let cli = cli::Cli::parse_from(args);
+        let config: RudisConfig = cli.into();
+        assert_eq!(config.bind, bind.to_string());
+        assert_eq!(config.port, port);
+        assert_eq!(config.password, Some(password.to_string()));
+        assert_eq!(config.databases, databases);
+        assert_eq!(config.dbfilename, Some(dbfilename.to_string()));
+        assert_eq!(config.appendfilename, Some(appendfilename.to_string()));
+        assert_eq!(config.appendonly.to_string(), appendonly);
+        assert_eq!(config.appendfsync, Some(appendfsync.to_string()));
+        assert_eq!(config.maxclients, maxclients);
+        assert_eq!(config.dir, dir.to_string());
+        assert!(config.save.is_some());
+        assert_eq!(
+            config
+                .save
+                .unwrap()
+                .iter()
+                .map(|x| format!("{}/{}", x.0, x.1))
+                .collect::<Vec<String>>()
+                .join(" "),
+            save
+        );
+    }
+}
