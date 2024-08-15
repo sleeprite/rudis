@@ -4,8 +4,10 @@ use std::io::Write;
 use std::{
     fs::OpenOptions,
     io::SeekFrom,
-    sync::{Arc, Mutex},
+    sync::Arc
 };
+
+use parking_lot::Mutex;
 
 use ahash::AHashMap;
 use indicatif::ProgressBar;
@@ -51,7 +53,7 @@ impl Rdb {
                 eprintln!("Failed to seek to start of RDB file: {}", err);
                 return;
             }
-            let db_ref = self.db.lock().unwrap();
+            let db_ref = self.db.lock();
             let databases: &Vec<AHashMap<String, RedisData>> = db_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
                 for (key, redis_data) in database.iter() {
@@ -84,7 +86,7 @@ impl Rdb {
     }
 
     pub fn load(&mut self) {
-        let mut db_ref = self.db.lock().unwrap();
+        let mut db_ref = self.db.lock();
         if let Some(filename) = &self.rudis_config.dbfilename {
             let base_path = &self.rudis_config.dir;
             let file_path = format!("{}{}", base_path, filename);

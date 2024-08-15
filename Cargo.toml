@@ -18,3 +18,4 @@ regex = "1"
 redis = "0.21.4"
 log = "0.4"
 clap = { version = "4.5.13", features = ["derive"] }
+parking_lot = "0.12.3"

@@ -1,4 +1,6 @@
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
+use std::{collections::HashMap, net::TcpStream, sync::Arc};
+
+use parking_lot::Mutex;
 
 use crate::{db::db_config::RudisConfig, session::session::Session};
 use crate::db::db::Db;

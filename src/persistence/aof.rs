@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Seek;
 use std::io::{SeekFrom, Write};
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use std::{fs::OpenOptions, sync::Arc};
 
 use indicatif::{ProgressBar, ProgressStyle};
@@ -67,7 +67,7 @@ impl Aof {
                     let session_id = "0.0.0.0:0";
 
                     {
-                        let mut sessions_ref = sessions.lock().unwrap();
+                        let mut sessions_ref = sessions.lock();
                         let mut session = Session::new();
                         session.set_selected_database(0);
                         session.set_authenticated(true);

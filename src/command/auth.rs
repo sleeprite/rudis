@@ -1,5 +1,6 @@
 
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
+use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use parking_lot::Mutex;
 use std::io::Write;
 
 use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
@@ -36,7 +37,7 @@ impl CommandStrategy for AuthCommand {
         match &(_rudis_config).password {
             Some(p) => {
                 if password != p {
-                    let mut session_ref = sessions.lock().unwrap();
+                    let mut session_ref = sessions.lock();
                     if let Some(session) = session_ref.get_mut(session_id) {
                         session.set_authenticated(false);
                     }
@@ -56,7 +57,7 @@ impl CommandStrategy for AuthCommand {
                 println!("No password set.");
             }
         }
-        let mut session_ref = sessions.lock().unwrap();
+        let mut session_ref = sessions.lock();
         
         if let Some(session) = session_ref.get_mut(session_id) {
             session.set_authenticated(true);

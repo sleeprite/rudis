@@ -2,8 +2,10 @@ use std::io::Write;
 use std::{
     collections::HashMap,
     net::TcpStream,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
+
+use parking_lot::Mutex;
 
 use crate::interface::command_type::CommandType;
 use crate::tools::resp::RespValue;
@@ -65,7 +67,7 @@ impl CommandStrategy for SelectCommand {
         };
 
         {
-            let mut session_ref = sessions.lock().unwrap();
+            let mut session_ref = sessions.lock();
             if let Some(session) = session_ref.get_mut(session_id) {
                 session.set_selected_database(db_index)
             }

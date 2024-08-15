@@ -538,6 +538,7 @@ dependencies = [
  "env_logger",
  "indicatif",
  "log",
+ "parking_lot",
  "redis",
  "regex",
  "serde",

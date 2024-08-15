@@ -1,5 +1,6 @@
 use std::thread;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use parking_lot::Mutex;
 use super::{rdb::Rdb, rdb_count::RdbCount};
 use tokio::time::Duration;
 
@@ -23,8 +24,8 @@ impl RdbScheduler {
                 let duration = Duration::from_secs(interval);
                 loop {
                     thread::sleep(duration);
-                    let mut rdb_guard = rdb.lock().unwrap();
-                    let mut rdb_count = rdb_count_clone.lock().unwrap();
+                    let mut rdb_guard = rdb.lock();
+                    let mut rdb_count = rdb_count_clone.lock();
                     if rdb_count.modify_statistics >= count {
                         rdb_count.init();
                         rdb_guard.save();

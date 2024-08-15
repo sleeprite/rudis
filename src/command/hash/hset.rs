@@ -2,8 +2,10 @@ use std::{
     collections::HashMap,
     io::Write,
     net::TcpStream,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
+
+use parking_lot::Mutex;
 
 use crate::{
     db::db::Db,
@@ -21,15 +23,15 @@ impl CommandStrategy for HsetCommand {
         &self,
         stream: Option<&mut TcpStream>,
         fragments: &[&str],
-        redis: &Arc<Mutex<Db>>,
+        db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str,
     ) {
-        let mut db_ref = redis.lock().unwrap();
+        let mut db_ref = db.lock();
 
         let db_index = {
-            let sessions_ref = sessions.lock().unwrap();
+            let sessions_ref = sessions.lock();
             if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {

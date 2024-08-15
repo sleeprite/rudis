@@ -1,5 +1,6 @@
 
-use std::{collections::HashMap, net::TcpStream, sync::{Arc, Mutex}};
+use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use parking_lot::Mutex;
 use std::io::Write;
 
 use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::resp::RespValue, RudisConfig};
@@ -20,10 +21,10 @@ impl CommandStrategy for AppendCommand {
         sessions: &Arc<Mutex<HashMap<String, Session>>>,
         session_id: &str
     ) {
-        let mut db_ref = db.lock().unwrap();
+        let mut db_ref = db.lock();
 
         let db_index = {
-            let sessions_ref = sessions.lock().unwrap();
+            let sessions_ref = sessions.lock();
             if let Some(session) = sessions_ref.get(session_id) {
                 session.get_selected_database()
             } else {

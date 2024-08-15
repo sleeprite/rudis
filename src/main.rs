@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use parking_lot::Mutex;
 
 use clap::Parser;
 use tokio::time::Duration;
@@ -69,27 +70,9 @@ async fn main() {
     println_banner(port);
 
     if rudis_config.appendonly {
-        match aof.lock() {
-            Ok(mut file) => {
-                log::info!("Start loading appendfile");
-                file.load();
-            }
-            Err(err) => {
-                eprintln!("Failed to acquire lock: {:?}", err);
-                return;
-            }
-        }
+        aof.lock().load();
     } else {
-        match rdb.lock() {
-            Ok(mut file) => {
-                log::info!("Start loading dump.rdb");
-                file.load();
-            }
-            Err(err) => {
-                eprintln!("Failed to acquire lock: {:?}", err);
-                return;
-            }
-        }
+        rdb.lock().load();
     }
 
     log::info!("Server initialized");
@@ -101,7 +84,7 @@ async fn main() {
     // 检测过期
     tokio::spawn(async move {
         loop {
-            rc.lock().unwrap().check_all_database_ttl();
+            rc.lock().check_all_database_ttl();
             tokio::time::sleep(Duration::from_secs(1 / rcc.hz)).await;
         }
     });
@@ -110,14 +93,7 @@ async fn main() {
     let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
     let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
     if let Some(save_interval) = &rudis_config.save {
-        match arc_rdb_scheduler.lock() {
-            Ok(mut scheduler) => {
-                scheduler.execute(save_interval.clone(), arc_rdb_count.clone());
-            },
-            Err(poisoned_err) => {
-                eprintln!("Lock is poisoned: {:?}", poisoned_err);
-            }
-        }
+        arc_rdb_scheduler.lock().execute(save_interval.clone(), arc_rdb_count.clone());
     }
 
     for stream in listener.incoming() {
@@ -178,7 +154,7 @@ async fn connection(
          * （2）满足：响应 ERR max number of clients reached 错误
          * （3）否则：创建 session 会话
          */
-        let mut sessions_ref = sessions.lock().unwrap();
+        let mut sessions_ref = sessions.lock();
         if rudis_config.maxclients == 0 || sessions_ref.len() < rudis_config.maxclients {
             sessions_ref.insert(session_id.clone(), Session::new());
         } else {
@@ -224,7 +200,7 @@ async fn connection(
                          *
                          * 如果配置了密码，该命令不是 auth 指令，且用户未登录
                          */
-                        let sessions_ref = sessions.lock().unwrap();
+                        let sessions_ref = sessions.lock();
                         let session = sessions_ref.get(&session_id).unwrap();
                         let is_not_auth_command = command.to_uppercase() != "AUTH";
                         let is_not_auth = !session.get_authenticated();
@@ -265,16 +241,8 @@ async fn connection(
                          *【备份与恢复】中的恢复。
                          */
                         if let CommandType::Write = strategy.command_type() {
-                            rdb_count.lock().unwrap().calc();
-                            match aof.lock() {
-                                Ok(mut aof_ref) => {
-                                    aof_ref.save(&fragments.join("\\r\\n"));
-                                }
-                                Err(_) => {
-                                    eprintln!("Failed to acquire lock on AOF");
-                                    return;
-                                }
-                            };
+                            rdb_count.lock().calc();
+                            aof.lock().save(&fragments.join("\\r\\n"));
                         }
                     } else {
                         let response_value = "PONG".to_string();
@@ -303,7 +271,7 @@ async fn connection(
                  *
                  * @param session_id 会话编号
                  */
-                let mut session_manager_ref = sessions.lock().unwrap();
+                let mut session_manager_ref = sessions.lock();
                 session_manager_ref.remove(&session_id);
                 break 'main;
             }
