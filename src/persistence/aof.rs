@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::Seek;
 use std::io::{SeekFrom, Write};
+use ahash::AHashMap;
 use parking_lot::Mutex;
 use std::{fs::OpenOptions, sync::Arc};
 
@@ -63,7 +63,7 @@ impl Aof {
                     use std::io::{BufRead, BufReader};
                     let line_count = BufReader::new(&file).lines().count() as u64;
                     let command_strategies = init_command_strategies();
-                    let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
+                    let sessions: Arc<Mutex<AHashMap<String, Session>>> = Arc::new(Mutex::new(AHashMap::new()));
                     let session_id = "0.0.0.0:0";
 
                     {

@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::Arc;
+use ahash::AHashMap;
 use parking_lot::Mutex;
 
 use clap::Parser;
@@ -61,7 +61,7 @@ async fn main() {
         }
     };
     let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
-    let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
+    let sessions: Arc<Mutex<AHashMap<String, Session>>> = Arc::new(Mutex::new(AHashMap::new()));
     let db = Arc::new(Mutex::new(Db::new(rudis_config.clone())));
     let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), db.clone())));
     let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), db.clone())));
@@ -129,7 +129,7 @@ async fn connection(
     mut stream: TcpStream,
     db: Arc<Mutex<Db>>,
     rudis_config: Arc<RudisConfig>,
-    sessions: Arc<Mutex<HashMap<String, Session>>>,
+    sessions: Arc<Mutex<AHashMap<String, Session>>>,
     rdb_count: Arc<Mutex<RdbCount>>,
     aof: Arc<Mutex<Aof>>,
 ) {

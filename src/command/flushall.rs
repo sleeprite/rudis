@@ -1,4 +1,5 @@
-use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use std::{net::TcpStream, sync::Arc};
+use ahash::AHashMap;
 use parking_lot::Mutex;
 use std::io::Write;
 
@@ -16,7 +17,7 @@ impl CommandStrategy for FlushAllCommand {
         _fragments: &[&str],
         db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
-        _sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        _sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         _session_id: &str
     ) {
         let mut db_ref = db.lock();

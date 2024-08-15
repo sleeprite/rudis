@@ -1,5 +1,6 @@
 
-use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use std::{net::TcpStream, sync::Arc};
+use ahash::AHashMap;
 use parking_lot::Mutex;
 use std::io::Write;
 
@@ -18,7 +19,7 @@ impl CommandStrategy for AuthCommand {
         fragments: &[&str],
         _db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
-        sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         session_id: &str
     ) {
         if fragments.len() < 3 {
@@ -66,9 +67,7 @@ impl CommandStrategy for AuthCommand {
         if let Some(stream) = stream { 
             let response_bytes = &RespValue::Ok.to_bytes();
             match stream.write(response_bytes) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },
