@@ -1,10 +1,10 @@
 use std::{
-    collections::HashMap,
     io::Write,
     net::TcpStream,
     sync::Arc,
 };
 
+use ahash::AHashMap;
 use parking_lot::Mutex;
 
 use crate::{
@@ -25,7 +25,7 @@ impl CommandStrategy for HsetCommand {
         fragments: &[&str],
         db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
-        sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         session_id: &str,
     ) {
         let mut db_ref = db.lock();

@@ -1,4 +1,5 @@
-use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use std::{net::TcpStream, sync::Arc};
+use ahash::AHashMap;
 use parking_lot::Mutex;
 use std::io::Write;
 
@@ -17,7 +18,7 @@ impl CommandStrategy for EchoCommand {
         fragments: &[&str],
         _db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
-        _sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        _sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         _session_id: &str
     ) {
         let keyword = fragments[4].to_string();

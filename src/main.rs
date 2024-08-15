@@ -1,9 +1,9 @@
-use parking_lot::Mutex;
-use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::Arc;
+use ahash::AHashMap;
+use parking_lot::Mutex;
 
 use clap::Parser;
 use tokio::time::Duration;
@@ -60,7 +60,7 @@ async fn main() {
         }
     };
     let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
-    let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
+    let sessions: Arc<Mutex<AHashMap<String, Session>>> = Arc::new(Mutex::new(AHashMap::new()));
     let db = Arc::new(Mutex::new(Db::new(rudis_config.clone())));
     let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), db.clone())));
     let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), db.clone())));
@@ -131,18 +131,14 @@ async fn connection(
     mut stream: TcpStream,
     db: Arc<Mutex<Db>>,
     rudis_config: Arc<RudisConfig>,
-    sessions: Arc<Mutex<HashMap<String, Session>>>,
+    sessions: Arc<Mutex<AHashMap<String, Session>>>,
     rdb_count: Arc<Mutex<RdbCount>>,
     aof: Arc<Mutex<Aof>>,
 ) {
     /*
      * 声明变量
      *
-     * @param session_id 会话编号
-     * @param command_strategies 命令集
-     * @param buff_list 消息列表
-     * @param read_size 读取长度
-     * @param buff 缓冲区
+     * command_strategies 命令集，session_id 会话编号，buff 消息，buff_list 完整消息，read_size 总读取长度
      */
     let command_strategies = init_command_strategies();
     let session_id = stream.peer_addr().unwrap().to_string();

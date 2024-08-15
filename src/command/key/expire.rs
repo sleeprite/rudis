@@ -1,4 +1,5 @@
-use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use std::{ net::TcpStream, sync::Arc };
+use ahash::AHashMap;
 use parking_lot::Mutex;
 use std::io::Write;
 use crate::{db::db::Db, interface::command_type::CommandType, session::session::Session, tools::{date::current_millis, resp::RespValue}, RudisConfig};
@@ -12,7 +13,7 @@ impl CommandStrategy for ExpireCommand {
         fragments: &[&str],
         db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
-        sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         session_id: &str
     ) {
         let mut db_ref = db.lock();
@@ -45,9 +46,7 @@ impl CommandStrategy for ExpireCommand {
         } else if let Some(stream) = stream { 
             let response_bytes = &RespValue::Integer(0).to_bytes();
             match stream.write(response_bytes) {
-                Ok(_bytes_written) => {
-                    // Response successful
-                },
+                Ok(_bytes_written) => {},
                 Err(e) => {
                     eprintln!("Failed to write to stream: {}", e);
                 },

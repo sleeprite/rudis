@@ -1,5 +1,6 @@
-use std::{collections::HashMap, net::TcpStream, sync::Arc};
+use std::{net::TcpStream, sync::Arc};
 
+use ahash::AHashMap;
 use parking_lot::Mutex;
 
 use crate::{db::db_config::RudisConfig, session::session::Session};
@@ -25,7 +26,7 @@ pub trait CommandStrategy {
         fragments: &[&str],
         db: &Arc<Mutex<Db>>,
         rudis_config: &Arc<RudisConfig>,
-        sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         session_id: &str,
     );
 

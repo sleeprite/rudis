@@ -6,11 +6,11 @@ use crate::{
 use crate::interface::command_strategy::CommandStrategy;
 use std::io::Write;
 use std::{
-    collections::HashMap,
     net::TcpStream,
     sync::Arc,
 };
 
+use ahash::AHashMap;
 use parking_lot::Mutex;
 
 /*
@@ -25,7 +25,7 @@ impl CommandStrategy for ExistsCommand {
         fragments: &[&str],
         db: &Arc<Mutex<Db>>,
         _rudis_config: &Arc<RudisConfig>,
-        sessions: &Arc<Mutex<HashMap<String, Session>>>,
+        sessions: &Arc<Mutex<AHashMap<String, Session>>>,
         session_id: &str
     ) {
         let mut db_ref = db.lock();
