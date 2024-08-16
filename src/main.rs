@@ -207,7 +207,11 @@ async fn connection(
                             let response_value = "ERR Authentication required".to_string();
                             let response_bytes = &RespValue::Error(response_value).to_bytes();
                             match stream.write(response_bytes) {
-                                Ok(_bytes_written) => {}
+                                Ok(_bytes_written) => {
+                                    buff_list.clear();
+                                    buff_list.shrink_to_fit();
+                                    read_size = 0;
+                                }
                                 Err(e) => {
                                     eprintln!("Failed to write to stream: {}", e);
                                 }
