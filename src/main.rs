@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
+use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::Arc;
 use parking_lot::Mutex;
@@ -60,12 +60,11 @@ async fn main() {
             return;
         }
     };
-    let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
     let db = Arc::new(Mutex::new(Db::new(rudis_config.clone())));
     let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), db.clone())));
     let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), db.clone())));
     let session_manager = Arc::new(SessionManager::new(rudis_config.clone()));
-    let listener = TcpListener::bind(address).unwrap();
+    let listener = TcpListener::bind(socket_addr).unwrap();
 
     println_banner(port);
 
