@@ -2,10 +2,10 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::Arc;
-use ahash::AHashMap;
 use parking_lot::Mutex;
 
 use clap::Parser;
+use session::session_manager::SessionManager;
 use tokio::time::Duration;
 
 mod command;
@@ -26,10 +26,11 @@ use crate::db::db::Db;
 use crate::db::db_config::RudisConfig;
 use crate::interface::command_type::CommandType;
 use crate::persistence::aof::Aof;
-use crate::session::session::Session;
+
 
 #[tokio::main]
 async fn main() {
+
     // 启动参数解析
     let cli = crate::tools::cli::Cli::parse();
 
@@ -60,10 +61,10 @@ async fn main() {
         }
     };
     let address = SocketAddr::new(socket_addr.ip(), socket_addr.port());
-    let sessions: Arc<Mutex<AHashMap<String, Session>>> = Arc::new(Mutex::new(AHashMap::new()));
     let db = Arc::new(Mutex::new(Db::new(rudis_config.clone())));
     let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), db.clone())));
     let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), db.clone())));
+    let session_manager = Arc::new(SessionManager::new(rudis_config.clone()));
     let listener = TcpListener::bind(address).unwrap();
 
     println_banner(port);
@@ -94,9 +95,7 @@ async fn main() {
     let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
     let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
     if let Some(save_interval) = &rudis_config.save {
-        arc_rdb_scheduler
-            .lock()
-            .execute(save_interval.clone(), arc_rdb_count.clone());
+        arc_rdb_scheduler.lock().execute(save_interval.clone(), arc_rdb_count.clone());
     }
 
     for stream in listener.incoming() {
@@ -104,7 +103,7 @@ async fn main() {
             Ok(stream) => {
                 let db_clone = Arc::clone(&db);
                 let rudis_config_clone = Arc::clone(&rudis_config);
-                let sessions_clone = Arc::clone(&sessions);
+                let session_manager_clone = Arc::clone(&session_manager);
                 let rdb_count_clone = Arc::clone(&arc_rdb_count);
                 let aof_clone = Arc::clone(&aof);
                 tokio::spawn(async move {
@@ -112,7 +111,7 @@ async fn main() {
                         stream,
                         db_clone,
                         rudis_config_clone,
-                        sessions_clone,
+                        session_manager_clone,
                         rdb_count_clone,
                         aof_clone,
                     )
@@ -131,14 +130,19 @@ async fn connection(
     mut stream: TcpStream,
     db: Arc<Mutex<Db>>,
     rudis_config: Arc<RudisConfig>,
-    sessions: Arc<Mutex<AHashMap<String, Session>>>,
+    session_manager: Arc<SessionManager>,
     rdb_count: Arc<Mutex<RdbCount>>,
     aof: Arc<Mutex<Aof>>,
 ) {
-    /*
+
+    /* 
      * 声明变量
      *
-     * command_strategies 命令集，session_id 会话编号，buff 消息，buff_list 完整消息，read_size 总读取长度
+     * command_strategies 命令集
+     * session_id 会话编号
+     * buff 消息
+     * buff_list 完整消息
+     * read_size 总读取长度
      */
     let command_strategies = init_command_strategies();
     let session_id = stream.peer_addr().unwrap().to_string();
@@ -146,28 +150,19 @@ async fn connection(
     let mut buff_list = Vec::new();
     let mut read_size = 0;
 
-    {
-        /*
-         * 创建会话
-         *
-         * （1）判定 session 数量是否超出阈值 {maxclients}
-         * （2）满足：响应 ERR max number of clients reached 错误
-         * （3）否则：创建 session 会话
-         */
-        let mut sessions_ref = sessions.lock();
-        if rudis_config.maxclients == 0 || sessions_ref.len() < rudis_config.maxclients {
-            sessions_ref.insert(session_id.clone(), Session::new());
-        } else {
-            let err = "ERR max number of clients reached".to_string();
-            let resp_value = RespValue::Error(err).to_bytes();
-            match stream.write(&resp_value) {
-                Ok(_bytes_written) => {}
-                Err(e) => {
-                    eprintln!("Failed to write to stream: {}", e);
-                }
+    /*
+     * 创建会话
+     */
+    if !session_manager.create_session(session_id.clone()) {
+        let err = "ERR max number of clients reached";
+        let resp_value = RespValue::Error(err.to_string()).to_bytes();
+        match stream.write(&resp_value) {
+            Ok(_bytes_written) => {}
+            Err(e) => {
+                eprintln!("Failed to write to stream: {}", e);
             }
-            return;
         }
+        return;
     }
 
     'main: loop {
@@ -181,6 +176,7 @@ async fn connection(
                 read_size += size;
 
                 if size < 512 {
+                    
                     /*
                      * 解析命令
                      *
@@ -193,31 +189,26 @@ async fn connection(
                     let fragments: Vec<&str> = body.split("\r\n").collect();
                     let command = fragments[2];
 
-                    {
-                        /*
-                         * 安全认证【前置拦截】
-                         *
-                         * 如果配置了密码，该命令不是 auth 指令，且用户未登录
-                         */
-                        let sessions_ref = sessions.lock();
-                        let session = sessions_ref.get(&session_id).unwrap();
-                        let is_not_auth_command = command.to_uppercase() != "AUTH";
-                        let is_not_auth = !session.get_authenticated();
-                        if rudis_config.password.is_some() && is_not_auth && is_not_auth_command {
-                            let response_value = "ERR Authentication required".to_string();
-                            let response_bytes = &RespValue::Error(response_value).to_bytes();
-                            match stream.write(response_bytes) {
-                                Ok(_bytes_written) => {
-                                    buff_list.clear();
-                                    buff_list.shrink_to_fit();
-                                    read_size = 0;
-                                }
-                                Err(e) => {
-                                    eprintln!("Failed to write to stream: {}", e);
-                                }
-                            };
-                            continue 'main;
-                        }
+                    /*
+                     * 安全认证【前置拦截】
+                     *
+                     * 如果配置了密码，该命令不是 auth 指令，且用户未登录
+                     */
+                    let is_authenticated = session_manager.authenticate(&session_id, command);
+                    if !is_authenticated {
+                        let err = "ERR Authentication required".to_string();
+                        let response_bytes = &RespValue::Error(err).to_bytes();
+                        match stream.write(response_bytes) {
+                            Ok(_bytes_written) => {
+                                buff_list.clear();
+                                buff_list.shrink_to_fit();
+                                read_size = 0;
+                            }
+                            Err(e) => {
+                                eprintln!("Failed to write to stream: {}", e);
+                            }
+                        };
+                        continue 'main;
                     }
 
                     /*
@@ -234,7 +225,7 @@ async fn connection(
                             &fragments,
                             &db,
                             &rudis_config,
-                            &sessions,
+                            &session_manager.get_sessions(),
                             &session_id,
                         );
 
@@ -268,13 +259,7 @@ async fn connection(
                 }
             }
             Err(_e) => {
-                /*
-                 * 销毁会话
-                 *
-                 * @param session_id 会话编号
-                 */
-                let mut session_manager_ref = sessions.lock();
-                session_manager_ref.remove(&session_id);
+                session_manager.destroy_session(&session_id);
                 break 'main;
             }
         }
