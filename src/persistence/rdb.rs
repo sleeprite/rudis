@@ -14,7 +14,7 @@ use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 
 use crate::db::{
-    db::{Db, RedisData, RedisValue},
+    db::{Db, TimedData, TimedDataValue},
     db_config::RudisConfig,
 };
 
@@ -54,24 +54,24 @@ impl Rdb {
                 return;
             }
             let db_ref = self.db.lock();
-            let databases: &Vec<AHashMap<String, RedisData>> = db_ref.get_databases();
+            let databases: &Vec<AHashMap<String, TimedData>> = db_ref.get_databases();
             for (db_index, database) in databases.iter().enumerate() {
                 for (key, redis_data) in database.iter() {
                     let expire_at = redis_data.get_expire_at();
                     let protocol_line = match redis_data.get_value() {
-                        RedisValue::List(list) => {
+                        TimedDataValue::List(list) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nList\\r\\n{}",db_index, key, list, expire_at)
                         }
-                        RedisValue::Hash(hash) => {
+                        TimedDataValue::Hash(hash) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nHash\\r\\n{}", db_index, key, hash, expire_at)
                         }
-                        RedisValue::Zset(zset) => {
+                        TimedDataValue::Zset(zset) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nZset\\r\\n{}", db_index, key, zset, expire_at)
                         }
-                        RedisValue::String(value) => {
+                        TimedDataValue::String(value) => {
                             format!("{}\\r\\n{}\\r\\n{}\\r\\nString\\r\\n{}", db_index, key, value, expire_at)
                         }
-                        RedisValue::Set(set) => {
+                        TimedDataValue::Set(set) => {
                             format!("{}\\r\\n{}\\r\\n{:?}\\r\\nSet\\r\\n{}", db_index, key, set, expire_at)
                         }
                     };
@@ -109,17 +109,17 @@ impl Rdb {
                             let db_index = parts[0].parse::<usize>().unwrap();
                             let expire_at = parts[4].parse().unwrap();
                             let value_str = parts[2];
-                            let value: Option<RedisValue> = match data_type.as_str() {
-                                "List" => Some(RedisValue::List(serde_json::from_str(value_str).unwrap())),
-                                "Hash" => Some(RedisValue::Hash(serde_json::from_str(value_str).unwrap())),
-                                "Zset" => Some(RedisValue::Zset(serde_json::from_str(value_str).unwrap())),
-                                "String" => Some(RedisValue::String(value_str.to_string())),
-                                "Set" => Some(RedisValue::Set(serde_json::from_str(value_str).unwrap())),
+                            let value: Option<TimedDataValue> = match data_type.as_str() {
+                                "List" => Some(TimedDataValue::List(serde_json::from_str(value_str).unwrap())),
+                                "Hash" => Some(TimedDataValue::Hash(serde_json::from_str(value_str).unwrap())),
+                                "Zset" => Some(TimedDataValue::Zset(serde_json::from_str(value_str).unwrap())),
+                                "String" => Some(TimedDataValue::String(value_str.to_string())),
+                                "Set" => Some(TimedDataValue::Set(serde_json::from_str(value_str).unwrap())),
                                 _ => None
                             };
 
                             if let Some(redis_value) = value {
-                                // Handle the RedisValue here
+                                // Handle the TimedDataValue here
                                 let key = parts[1].to_string();
                                 db_ref.set(db_index, key, redis_value, expire_at);
                                     
