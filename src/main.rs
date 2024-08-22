@@ -68,6 +68,7 @@ async fn main() {
 
     println_banner(port);
 
+    // 数据恢复
     if rudis_config.appendonly {
         log::info!("Start performing AOF recovery");
         aof.lock().load();
@@ -153,8 +154,8 @@ async fn connection(
      * 创建会话
      */
     if !session_manager.create_session(session_id.clone()) {
-        let err = "ERR max number of clients reached";
-        let resp_value = RespValue::Error(err.to_string()).to_bytes();
+        let err = "ERR max number of clients reached".to_string();
+        let resp_value = RespValue::Error(err).to_bytes();
         match stream.write(&resp_value) {
             Ok(_bytes_written) => {}
             Err(e) => {
@@ -218,7 +219,16 @@ async fn connection(
                      */
                     let uppercase_command = command.to_uppercase();
                     if let Some(strategy) = command_strategies.get(uppercase_command.as_str()) {
-                        // 执行命令
+                        
+                        /*
+                         * 执行命令
+                         * 
+                         * @param stream 流
+                         * @param db
+                         * @param rudis_config 配置文件
+                         * @param sessions 会话列表
+                         * @param session_id
+                         */
                         strategy.execute(
                             Some(&mut stream),
                             &fragments,
@@ -237,6 +247,8 @@ async fn connection(
                             aof.lock().save(&fragments.join("\\r\\n"));
                         }
                     } else {
+
+                        // 未知的命令
                         let response_value = "PONG".to_string();
                         let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
                         match stream.write(response_bytes) {
