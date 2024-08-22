@@ -283,7 +283,7 @@ async fn connection(
 fn println_banner(port: u16) {
     let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
-        r#"
+    r#"
          /\_____/\
         /  o   o  \          Rudis {}
        ( ==  ^  == )
@@ -291,10 +291,6 @@ fn println_banner(port: u16) {
        (           )
       ( (  )   (  ) )
      (__(__)___(__)__)
-    "#,
-        version,
-        port,
-        id()
-    );
+    "#, version, port, id());
     println!("{}", pattern);
 }
