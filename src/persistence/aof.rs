@@ -8,7 +8,7 @@ use std::{fs::OpenOptions, sync::Arc};
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::db::db::Db;
-use crate::command_strategies::init_command_strategies;
+use crate::commands::init_commands;
 use crate::db::db_config::RudisConfig;
 use crate::session::session::Session;
 
@@ -62,7 +62,7 @@ impl Aof {
                 if let Ok(mut file) = File::open(file_path) {
                     use std::io::{BufRead, BufReader};
                     let line_count = BufReader::new(&file).lines().count() as u64;
-                    let command_strategies = init_command_strategies();
+                    let command_strategies = init_commands();
                     let sessions: Arc<Mutex<AHashMap<String, Session>>> = Arc::new(Mutex::new(AHashMap::new()));
                     let session_id = "0.0.0.0:0";
 

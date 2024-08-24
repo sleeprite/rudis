@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{command::{arr::{lindex::LindexCommand, llen::LlenCommand, lpop::LpopCommand, lpush::LpushCommand, lrange::LrangeCommand, rpop::RpopCommand, rpush::RpushCommand}, auth::AuthCommand, dbsize::DBSizeCommand, echo::EchoCommand, flushall::FlushAllCommand, flushdb::FlushDbCommand, hash::{hdel::HdelCommand, hexists::HexistsCommand, hget::HgetCommand, hmset::HmsetCommand, hset::HsetCommand}, key::{del::DelCommand, exists::ExistsCommand, expire::ExpireCommand, keys::KeysCommand, r#move::MoveCommand, pexpire::PexpireCommand, pttl::PttlCommand, rename::RenameCommand, ttl::TtlCommand, r#type::TypeCommand}, select::SelectCommand, set::{sadd::SaddCommand, scard::ScardCommand, smembers::SmembersCommand}, string::{append::AppendCommand, decr::DecrCommand, get::GetCommand, incr::IncrCommand, mset::MsetCommand, set::SetCommand}, zset::{zadd::ZaddCommand, zcard::ZcardCommand, zcount::ZcountCommand, zscore::ZscoreCommand}}, interface::command_strategy::CommandStrategy};
 
-pub fn init_command_strategies() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
+pub fn init_commands() -> HashMap<&'static str, Box<dyn CommandStrategy>> {
     let mut strategies: HashMap<&'static str, Box<dyn CommandStrategy>> = HashMap::new();
 
     strategies.insert("ECHO", Box::new(EchoCommand {}));

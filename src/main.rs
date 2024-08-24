@@ -9,14 +9,14 @@ use session::session_manager::SessionManager;
 use tokio::time::Duration;
 
 mod command;
-mod command_strategies;
+mod commands;
 mod db;
 mod interface;
 mod persistence;
 mod session;
 mod tools;
 
-use command_strategies::init_command_strategies;
+use commands::init_commands;
 use persistence::rdb::Rdb;
 use persistence::rdb_count::RdbCount;
 use persistence::rdb_scheduler::RdbScheduler;
@@ -144,7 +144,7 @@ async fn connection(
      * buff_list 完整消息
      * read_size 总读取长度
      */
-    let command_strategies = init_command_strategies();
+    let command_strategies = init_commands();
     let session_id = stream.peer_addr().unwrap().to_string();
     let mut buff = [0; 512];
     let mut buff_list = Vec::new();
