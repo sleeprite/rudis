@@ -2,6 +2,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::process::id;
 use std::sync::Arc;
+use interface::command_strategy::CommandStrategy;
 use parking_lot::Mutex;
 
 use clap::Parser;
@@ -144,7 +145,7 @@ async fn connection(
      * buff_list 完整消息
      * read_size 总读取长度
      */
-    let command_strategies = init_commands();
+    let commands: std::collections::HashMap<&str, Box<dyn CommandStrategy>> = init_commands();
     let session_id = stream.peer_addr().unwrap().to_string();
     let mut buff = [0; 512];
     let mut buff_list = Vec::new();
@@ -218,7 +219,7 @@ async fn connection(
                      * 否则响应 PONG 内容。
                      */
                     let uppercase_command = command.to_uppercase();
-                    if let Some(strategy) = command_strategies.get(uppercase_command.as_str()) {
+                    if let Some(strategy) = commands.get(uppercase_command.as_str()) {
                         
                         /*
                          * 执行命令
