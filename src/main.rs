@@ -1,297 +1,289 @@
-use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream, ToSocketAddrs};
-use std::process::id;
-use std::sync::Arc;
-use interface::command_strategy::CommandStrategy;
-use parking_lot::Mutex;
-
-use clap::Parser;
-use session::session_manager::SessionManager;
-use tokio::time::Duration;
-
-mod command;
-mod commands;
-mod db;
-mod interface;
-mod persistence;
-mod session;
-mod tools;
-
-use commands::init_commands;
-use persistence::rdb::Rdb;
-use persistence::rdb_count::RdbCount;
-use persistence::rdb_scheduler::RdbScheduler;
-use tools::resp::RespValue;
-
-use crate::db::db::Db;
-use crate::db::db_config::RudisConfig;
-use crate::interface::command_type::CommandType;
-use crate::persistence::aof::Aof;
-
+use std::collections::HashMap;
+use anyhow::Error;
+use tokio::net::TcpListener;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::sync::oneshot;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    loop {
+        let (mut socket, _) = listener.accept().await?;
+        tokio::spawn(async move {
+            
+            let mut buf = [0; 1024];
+            
+            loop {
 
-    // 启动参数解析
-    let cli = crate::tools::cli::Cli::parse();
-
-    /*
-     * 初始日志框架
-     *
-     * (1) 日志级别
-     * (2) 框架加载
-     */
-    std::env::set_var("RUST_LOG", cli.log_level.as_str().to_lowercase());
-    env_logger::init();
-
-    /*
-     * 创建默认配置
-     */
-    let rudis_config: Arc<RudisConfig> = Arc::new(cli.into());
-
-    /*
-     * 创建通讯服务
-     */
-    let port: u16 = rudis_config.port;
-    let string_addr = format!("{}:{}", rudis_config.bind, port);
-    let socket_addr = match string_addr.to_socket_addrs() {
-        Ok(mut addr_iter) => addr_iter.next().unwrap(),
-        Err(e) => {
-            eprintln!("Failed to resolve bind address: {}", e);
-            return;
-        }
-    };
-    let db = Arc::new(Mutex::new(Db::new(rudis_config.clone())));
-    let aof = Arc::new(Mutex::new(Aof::new(rudis_config.clone(), db.clone())));
-    let rdb = Arc::new(Mutex::new(Rdb::new(rudis_config.clone(), db.clone())));
-    let session_manager = Arc::new(SessionManager::new(rudis_config.clone()));
-    let listener = TcpListener::bind(socket_addr).unwrap();
-
-    println_banner(port);
-
-    // 数据恢复
-    if rudis_config.appendonly {
-        log::info!("Start performing AOF recovery");
-        aof.lock().load();
-    } else {
-        log::info!("Start performing RDB recovery");
-        rdb.lock().load();
-    }
-
-    log::info!("Server initialized");
-    log::info!("Ready to accept connections");
-
-    let rc = Arc::clone(&db);
-    let rcc = Arc::clone(&rudis_config);
-
-    // 检测过期
-    tokio::spawn(async move {
-        loop {
-            rc.lock().check_all_database_ttl();
-            tokio::time::sleep(Duration::from_secs(1 / rcc.hz)).await;
-        }
-    });
-
-    // 保存策略
-    let arc_rdb_count = Arc::new(Mutex::new(RdbCount::new()));
-    let arc_rdb_scheduler = Arc::new(Mutex::new(RdbScheduler::new(rdb)));
-    if let Some(save_interval) = &rudis_config.save {
-        arc_rdb_scheduler.lock().execute(save_interval.clone(), arc_rdb_count.clone());
-    }
-
-    for stream in listener.incoming() {
-        match stream {
-            Ok(stream) => {
-                let db_clone = Arc::clone(&db);
-                let rudis_config_clone = Arc::clone(&rudis_config);
-                let session_manager_clone = Arc::clone(&session_manager);
-                let rdb_count_clone = Arc::clone(&arc_rdb_count);
-                let aof_clone = Arc::clone(&aof);
-                tokio::spawn(async move {
-                    connection(
-                        stream,
-                        db_clone,
-                        rudis_config_clone,
-                        session_manager_clone,
-                        rdb_count_clone,
-                        aof_clone,
-                    )
-                    .await;
-                });
-            }
-            Err(e) => {
-                println!("error: {}", e);
-            }
-        }
-    }
-}
-
-// 处理 Tcp 链接
-async fn connection(
-    mut stream: TcpStream,
-    db: Arc<Mutex<Db>>,
-    rudis_config: Arc<RudisConfig>,
-    session_manager: Arc<SessionManager>,
-    rdb_count: Arc<Mutex<RdbCount>>,
-    aof: Arc<Mutex<Aof>>,
-) {
-
-    /* 
-     * 声明变量
-     *
-     * command_strategies 命令集
-     * session_id 会话编号
-     * buff 消息
-     * buff_list 完整消息
-     * read_size 总读取长度
-     */
-    let commands: std::collections::HashMap<&str, Box<dyn CommandStrategy>> = init_commands();
-    let session_id = stream.peer_addr().unwrap().to_string();
-    let mut buff = [0; 512];
-    let mut buff_list = Vec::new();
-    let mut read_size = 0;
-
-    /*
-     * 创建会话
-     */
-    if !session_manager.create_session(session_id.clone()) {
-        let err = "ERR max number of clients reached".to_string();
-        let resp_value = RespValue::Error(err).to_bytes();
-        match stream.write(&resp_value) {
-            Ok(_bytes_written) => {}
-            Err(e) => {
-                eprintln!("Failed to write to stream: {}", e);
-            }
-        }
-        return;
-    }
-
-    'main: loop {
-        match stream.read(&mut buff) {
-            Ok(size) => {
-                if size == 0 {
-                    break 'main;
-                }
-
-                buff_list.extend_from_slice(&buff[..size]);
-                read_size += size;
-
-                if size < 512 {
-                    
-                    /*
-                     * 解析命令
-                     *
-                     * body: 消息体
-                     * fragments: 消息片段
-                     * command: 命令
-                     */
-                    let bytes = &buff_list[..read_size];
-                    let body = std::str::from_utf8(bytes).unwrap();
-                    let fragments: Vec<&str> = body.split("\r\n").collect();
-                    let command = fragments[2];
-
-                    /*
-                     * 安全认证【前置拦截】
-                     *
-                     * 如果配置了密码，该命令不是 auth 指令，且用户未登录
-                     */
-                    let is_authenticated = session_manager.authenticate(&session_id, command);
-                    if !is_authenticated {
-                        let err = "ERR Authentication required".to_string();
-                        let response_bytes = &RespValue::Error(err).to_bytes();
-                        match stream.write(response_bytes) {
-                            Ok(_bytes_written) => {
-                                buff_list.clear();
-                                buff_list.shrink_to_fit();
-                                read_size = 0;
-                            }
-                            Err(e) => {
-                                eprintln!("Failed to write to stream: {}", e);
-                            }
-                        };
-                        continue 'main;
+                // 读取 WS 消息
+                let n = match socket.read(&mut buf).await {
+                    Ok(n) => {
+                        if n == 0 {
+                            return
+                        } 
+                        n
+                    },
+                    Err(e) => {
+                        eprintln!("failed to read from socket; err = {:?}", e);
+                        return;
                     }
+                };
+                
+                // 解析 WS 消息
+                let bytes = &buf[0..n];
+                let frame = Frame::parse_from_bytes(bytes).unwrap();
+                let command = Command::parse_from_frame(frame);
+                let db =  Db::new();
 
-                    /*
-                     * 匹配命令
-                     *
-                     * 利用策略模式，根据 command 获取具体实现，
-                     * 否则响应 PONG 内容。
-                     */
-                    let uppercase_command = command.to_uppercase();
-                    if let Some(strategy) = commands.get(uppercase_command.as_str()) {
-                        
-                        /*
-                         * 执行命令
-                         * 
-                         * @param stream 流
-                         * @param db
-                         * @param rudis_config 配置文件
-                         * @param sessions 会话列表
-                         * @param session_id
-                         */
-                        strategy.execute(
-                            Some(&mut stream),
-                            &fragments,
-                            &db,
-                            &rudis_config,
-                            &session_manager.get_sessions(),
-                            &session_id,
-                        );
+                let frame = match command {
+                    Command::Set(set) => set.apply(&db),
+                    Command::Get(get) => get.apply(&db),
+                    Command::Del(del) => del.apply(&db),
+                    Command::Unknown(unknown) => unknown.apply(&db)
+                };
 
-                        /*
-                         * 假定是个影响内存的命令，记录到日志，
-                         *【备份与恢复】中的恢复。
-                         */
-                        if let CommandType::Write = strategy.command_type() {
-                            rdb_count.lock().calc();
-                            aof.lock().save(&fragments.join("\\r\\n"));
+                match frame {
+                    Ok(f) => {
+                        let response_str = f.as_str();
+                        if let Err(e) = socket.write_all(response_str.as_bytes()).await {
+                            eprintln!("failed to write to socket; err = {:?}", e);
+                            return;
                         }
-                    } else {
-
-                        // 未知的命令
-                        let response_value = "PONG".to_string();
-                        let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
-                        match stream.write(response_bytes) {
-                            Ok(_bytes_written) => {}
-                            Err(e) => {
-                                eprintln!("Failed to write to stream: {}", e);
-                            }
-                        }
+                    },
+                    Err(error) => {
+                        // TODO
                     }
-
-                    /*
-                     * 完成命令的执行后
-                     *
-                     * buff_list.shrink_to_fit(); 释放内存
-                     */
-                    buff_list.clear();
-                    buff_list.shrink_to_fit();
-                    read_size = 0;
                 }
             }
-            Err(_e) => {
-                session_manager.destroy_session(&session_id);
-                break 'main;
-            }
-        }
+        });
     }
 }
 
 /*
- * 启动服务
+ * 命令帧枚举 
  */
-fn println_banner(port: u16) {
-    let version = env!("CARGO_PKG_VERSION");
-    let pattern = format!(
-    r#"
-         /\_____/\
-        /  o   o  \          Rudis {}
-       ( ==  ^  == )
-        )         (          Bind: {} PID: {}
-       (           )
-      ( (  )   (  ) )
-     (__(__)___(__)__)
-    "#, version, port, id());
-    println!("{}", pattern);
+pub enum Frame {
+    SimpleString(String),
+    Integer(i64),
+    Array(Vec<String>),
+    BulkString(Option<String>),
+    Null,
+    Error(String),
+}
+
+impl Frame {
+
+    /*
+     * 通过解析 bytes 创建命令帧
+     * 
+     * @param bytes 二进制
+     */
+    pub fn parse_from_bytes(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+        match bytes[0] {
+            b'+' => Frame::parse_simple_string(bytes),
+            b'*' => Frame::parse_array(bytes),
+            _ => Err("Unknown frame type".into()),
+        }
+    }
+
+    /*
+     * 简单字符串
+     * 
+     * @param bytes 二进制
+     */
+    fn parse_simple_string(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+        let end = bytes.iter().position(|&x| x == b'\r').unwrap();
+        let content = String::from_utf8(bytes[1..end].to_vec())?;
+        Ok(Frame::SimpleString(content))
+    }
+
+    /*
+     * 数组字符串 
+     * 
+     * @param bytes 二进制
+     */
+    fn parse_array(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+        
+        let mut frames = Vec::new();
+        let mut start = 0;
+    
+        for (i, &item) in bytes.iter().enumerate() {
+            if item == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                let part = match std::str::from_utf8(&bytes[start..i]) {
+                    Ok(v) => v,
+                    Err(_) => return Err("Invalid UTF-8 sequence".into()),
+                };
+
+                if !(part.starts_with('*') || part.starts_with('$')) {
+                    frames.push(part.to_string());
+                }
+
+                start = i + 2;
+            }
+        }
+    
+        Ok(Frame::Array(frames))
+    }
+
+    pub fn get(&self, index: usize) -> Option<&String> {
+        match self {
+            Frame::Array(array) => Some(&array[index]),
+            _ => None,
+        }
+    }
+
+    /*
+     * 将 Frame 转换为 String 
+     * 
+     * @param self Frame 本身
+     */
+    pub fn as_str(&self) -> String {
+        // TODO
+        return "".to_string();
+    }
+}
+
+enum Command {
+    Set(Set),
+    Get(Get),
+    Del(Del),
+    Unknown(Unknown),
+}
+
+impl Command {
+
+    pub fn parse_from_frame(frame: Frame) -> Command {
+        let command_name = frame.get(0).unwrap();
+        let command = match command_name.to_uppercase().as_str() {
+            "SET" => Command::Set(Set::parse_from_frame(frame)),
+            "GET" => Command::Get(Get::parse_from_frame(frame)),
+            "DEL" => Command::Del(Del::parse_from_frame(frame)),
+            _ => Command::Unknown(Unknown {})
+        };
+
+        command
+    }
+}
+
+pub struct Unknown {
+
+}
+
+impl Unknown {
+    
+    pub fn apply(self, db: &Db) -> Result<Frame, Error> {
+        Ok(Frame::Integer(0))
+    }
+}
+
+pub struct Set {
+    key: String,
+    value: String
+}
+
+impl Set {
+
+    pub fn parse_from_frame(frame: Frame) -> Self {
+
+        let key = "username".to_string();
+        let value = "root".to_string();
+
+        Set {
+            key,
+            value
+        }
+    }
+
+    pub fn apply(self, db: &Db) -> Result<Frame, Error> {
+        Ok(Frame::Integer(0))
+    }
+}
+
+pub struct Get {
+    key: String
+}
+
+impl Get {
+    
+    pub fn parse_from_frame(frame: Frame) -> Self {
+
+        let key = "username".to_string();
+
+        Get {
+            key
+        }
+    }
+
+    pub fn apply(self, db: &Db) -> Result<Frame, Error> {
+        Ok(Frame::Integer(0))
+    }
+} 
+
+pub struct Del {
+    key: String
+}
+
+impl Del {
+
+    pub fn parse_from_frame(frame: Frame) -> Self {
+
+        let key = "username".to_string();
+
+        Del {
+            key
+        }
+    }
+    
+    pub fn apply(self, db: &Db) -> Result<Frame, Error> {
+        Ok(Frame::Integer(0))
+    }
+}
+
+pub enum Structure {
+    String(String)
+}
+
+struct Message {
+    sender: oneshot::Sender<Frame>,
+    command: Command,
+}
+
+struct Db {
+    record: HashMap<String, Structure>,
+    sender: Sender<Message>,
+    receiver: Receiver<Message>
+}
+
+impl Db {
+    
+    pub fn new() -> Self {
+
+        let (sender, receiver) = channel(1024);
+
+        Db {
+            record: HashMap::new(),
+            sender,
+            receiver
+        }
+    }
+
+    async fn run(&mut self) {
+        while let Some(Message { sender, command }) = self.receiver.recv().await {
+            let result: Result<Frame, Error> = match command {
+                Command::Set(set) => set.apply(self),
+                Command::Get(get) => get.apply(self),
+                Command::Del(del) => del.apply(self),
+                Command::Unknown(unknown) => unknown.apply(self)
+            };
+            match result {
+                Ok(frame) => {
+                    sender.send(frame);
+                },
+                Err(e) => {
+                    eprintln!("Error applying command: {:?}", e);
+                }
+            }
+        }
+    }
 }
