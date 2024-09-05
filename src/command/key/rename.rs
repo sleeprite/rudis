@@ -39,7 +39,7 @@ impl CommandStrategy for RenameCommand {
         match db_ref.rename(db_index, &old_key, &new_key) {
             Ok(_) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::SimpleString("OK".to_string()).to_bytes();
+                    let response_bytes = &RespValue::SimpleString("OK".to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {
                             // Response successful
@@ -52,7 +52,7 @@ impl CommandStrategy for RenameCommand {
             }
             Err(err_msg) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

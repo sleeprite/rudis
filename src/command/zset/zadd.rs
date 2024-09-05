@@ -48,7 +48,7 @@ impl CommandStrategy for ZaddCommand {
         match db_ref.zadd(db_index, key.clone(), value, score) {
             Ok(result) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::Integer(result as i64).to_bytes();
+                    let response_bytes = &RespValue::Integer(result as i64).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -59,7 +59,7 @@ impl CommandStrategy for ZaddCommand {
             }
             Err(err_msg) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

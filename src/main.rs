@@ -156,7 +156,7 @@ async fn connection(
      */
     if !session_manager.create_session(session_id.clone()) {
         let err = "ERR max number of clients reached".to_string();
-        let resp_value = RespValue::Error(err).to_bytes();
+        let resp_value = RespValue::Error(err).as_bytes();
         match stream.write(&resp_value) {
             Ok(_bytes_written) => {}
             Err(e) => {
@@ -198,7 +198,7 @@ async fn connection(
                     let is_authenticated = session_manager.authenticate(&session_id, command);
                     if !is_authenticated {
                         let err = "ERR Authentication required".to_string();
-                        let response_bytes = &RespValue::Error(err).to_bytes();
+                        let response_bytes = &RespValue::Error(err).as_bytes();
                         match stream.write(response_bytes) {
                             Ok(_bytes_written) => {
                                 buff_list.clear();
@@ -251,7 +251,7 @@ async fn connection(
 
                         // 未知的命令
                         let response_value = "PONG".to_string();
-                        let response_bytes = &RespValue::SimpleString(response_value).to_bytes();
+                        let response_bytes = &RespValue::SimpleString(response_value).as_bytes();
                         match stream.write(response_bytes) {
                             Ok(_bytes_written) => {}
                             Err(e) => {

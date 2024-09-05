@@ -39,7 +39,7 @@ impl CommandStrategy for MoveCommand {
 
         if move_result {
             if let Some(stream) = stream {  
-                let response_bytes = &RespValue::Integer(1).to_bytes();
+                let response_bytes = &RespValue::Integer(1).as_bytes();
                 match stream.write(response_bytes) {
                     Ok(_bytes_written) => {},
                     Err(e) => {
@@ -48,7 +48,7 @@ impl CommandStrategy for MoveCommand {
                 };
             }
         } else if let Some(stream) = stream { 
-            let response_bytes = &RespValue::Integer(0).to_bytes();
+            let response_bytes = &RespValue::Integer(0).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

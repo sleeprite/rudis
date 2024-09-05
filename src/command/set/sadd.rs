@@ -46,7 +46,7 @@ impl CommandStrategy for SaddCommand {
         match result {
             Ok(value) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Integer(value).to_bytes();
+                    let response_bytes = &RespValue::Integer(value).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -57,7 +57,7 @@ impl CommandStrategy for SaddCommand {
             },
             Err(err_msg) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

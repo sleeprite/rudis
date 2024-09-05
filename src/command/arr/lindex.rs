@@ -44,8 +44,8 @@ impl CommandStrategy for LindexCommand {
         let result = db_ref.lindex(db_index, &key.clone(), index as i64);
 
         let response_bytes = match result {
-            Some(value) => RespValue::BulkString(value).to_bytes(),
-            None => RespValue::Null.to_bytes(),
+            Some(value) => RespValue::BulkString(value).as_bytes(),
+            None => RespValue::Null.as_bytes(),
         };
 
         if let Some(stream) = stream {

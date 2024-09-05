@@ -45,7 +45,7 @@ impl CommandStrategy for SetCommand {
             Some(fragment) => fragment.to_string(),
             None => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'set' command".to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'set' command".to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -61,7 +61,7 @@ impl CommandStrategy for SetCommand {
             Some(fragment) => fragment.to_string(),
             None => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'set' command".to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'set' command".to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -79,7 +79,7 @@ impl CommandStrategy for SetCommand {
                     let is_exists = db_ref.exists(db_index, &key);
                     if is_exists {
                         if let Some(stream) = stream {
-                            let response_bytes = &RespValue::Null.to_bytes();
+                            let response_bytes = &RespValue::Null.as_bytes();
                             match stream.write(response_bytes) {
                                 Ok(_bytes_written) => {},
                                 Err(e) => {
@@ -99,7 +99,7 @@ impl CommandStrategy for SetCommand {
                     let is_exists = db_ref.exists(db_index, &key);
                     if !is_exists{
                         if let Some(stream) = stream { 
-                            let response_bytes = &RespValue::Null.to_bytes();
+                            let response_bytes = &RespValue::Null.as_bytes();
                             match stream.write(response_bytes) {
                                 Ok(_bytes_written) => {},
                                 Err(e) => {
@@ -143,7 +143,7 @@ impl CommandStrategy for SetCommand {
         db_ref.set_with_ttl(db_index, key.clone(), value.clone(), expire_at);
 
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::Ok.to_bytes();
+            let response_bytes = &RespValue::Ok.as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

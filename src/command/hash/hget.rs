@@ -38,7 +38,7 @@ impl CommandStrategy for HgetCommand {
         match db_ref.hget(db_index, &key, &field) {
             Ok(Some(value)) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
+                    let response_bytes = &RespValue::BulkString(value.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -59,7 +59,7 @@ impl CommandStrategy for HgetCommand {
             },
             Err(err_msg) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

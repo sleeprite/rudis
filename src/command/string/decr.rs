@@ -41,7 +41,7 @@ impl CommandStrategy for DecrCommand {
         match db_ref.decr(db_index, key, 1) {
             Ok(result) => {
                 if let Some(stream) = stream { 
-                    let response_value = RespValue::Integer(result).to_bytes();
+                    let response_value = RespValue::Integer(result).as_bytes();
                     match stream.write(&response_value) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -53,7 +53,7 @@ impl CommandStrategy for DecrCommand {
             }
             Err(err) => {
                 if let Some(stream) = stream { 
-                    let response_value = RespValue::Error(err).to_bytes();
+                    let response_value = RespValue::Error(err).as_bytes();
                     match stream.write(&response_value) {
                         Ok(_bytes_written) => {
                             // Response successful

@@ -47,7 +47,7 @@ impl CommandStrategy for ZscoreCommand {
             Ok(card) => {
                 if let Some(stream) = stream {
                     if let Some(card) = card {
-                        let resp_value = RespValue::BulkString(card.to_string()).to_bytes();
+                        let resp_value = RespValue::BulkString(card.to_string()).as_bytes();
                         match stream.write(&resp_value) {
                             Ok(_bytes_written) => {},
                             Err(e) => {
@@ -55,7 +55,7 @@ impl CommandStrategy for ZscoreCommand {
                             },
                         };
                     } else {
-                        let resp_value = RespValue::Null.to_bytes();
+                        let resp_value = RespValue::Null.as_bytes();
                         match stream.write(&resp_value) {
                             Ok(_bytes_written) => {},
                             Err(e) => {
@@ -67,7 +67,7 @@ impl CommandStrategy for ZscoreCommand {
             }
             Err(err) => {
                 if let Some(stream) = stream {
-                    let resp_value = &RespValue::Error(err).to_bytes();
+                    let resp_value = &RespValue::Error(err).as_bytes();
                     match stream.write(resp_value) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

@@ -36,7 +36,7 @@ impl CommandStrategy for DBSizeCommand {
         let db_size = db_ref.dbsize(db_index);
 
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::Integer(db_size as i64).to_bytes();
+            let response_bytes = &RespValue::Integer(db_size as i64).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

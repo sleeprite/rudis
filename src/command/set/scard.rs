@@ -42,7 +42,7 @@ impl CommandStrategy for ScardCommand {
 
         if let Some(cardinality) = db_ref.scard(db_index, &key.to_string()) {
             if let Some(stream) = stream { 
-                let response_value = RespValue::Integer(cardinality as i64).to_bytes();
+                let response_value = RespValue::Integer(cardinality as i64).as_bytes();
                 match stream.write(&response_value) {
                     Ok(_bytes_written) => {},
                     Err(e) => {
@@ -51,7 +51,7 @@ impl CommandStrategy for ScardCommand {
                 };
             }
         } else if let Some(stream) = stream { 
-            let response_value = RespValue::Integer(0).to_bytes();
+            let response_value = RespValue::Integer(0).as_bytes();
             match stream.write(&response_value) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

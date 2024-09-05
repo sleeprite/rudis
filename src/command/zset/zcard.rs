@@ -44,7 +44,7 @@ impl CommandStrategy for ZcardCommand {
         match result {
             Ok(card) => {
                 if let Some(stream) = stream {
-                    let resp_value = &RespValue::Integer(card as i64).to_bytes();
+                    let resp_value = &RespValue::Integer(card as i64).as_bytes();
                     match stream.write(resp_value) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -55,7 +55,7 @@ impl CommandStrategy for ZcardCommand {
             }
             Err(err) => {
                 if let Some(stream) = stream {
-                    let resp_value = &RespValue::Error(err).to_bytes();
+                    let resp_value = &RespValue::Error(err).as_bytes();
                     match stream.write(resp_value) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

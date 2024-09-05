@@ -40,7 +40,7 @@ impl CommandStrategy for HdelCommand {
             Ok(deleted_count) => {
                 if let Some(stream) = stream {
                     let response = RespValue::Integer(deleted_count as i64);
-                    let response_bytes = &response.to_bytes();
+                    let response_bytes = &response.as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -51,7 +51,7 @@ impl CommandStrategy for HdelCommand {
             }
             Err(err_msg) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

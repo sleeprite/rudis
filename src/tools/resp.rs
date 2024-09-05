@@ -8,7 +8,8 @@ pub enum RespValue {
 }
 
 impl RespValue {
-    pub fn to_bytes(&self) -> Vec<u8> {
+    
+    pub fn as_bytes(&self) -> Vec<u8> {
         match self {
             RespValue::Ok => b"+OK\r\n".to_vec(),
             RespValue::Null => b"$-1\r\n".to_vec(),

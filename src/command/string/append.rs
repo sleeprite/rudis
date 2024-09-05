@@ -43,7 +43,7 @@ impl CommandStrategy for AppendCommand {
             Ok(len) => len as i64,
             Err(err) => {
                 if let Some(stream) = stream { 
-                    let response_value = RespValue::Error(err).to_bytes();
+                    let response_value = RespValue::Error(err).as_bytes();
                     match stream.write(&response_value) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -56,7 +56,7 @@ impl CommandStrategy for AppendCommand {
         };
 
         if let Some(stream) = stream { 
-            let response_value = RespValue::Integer(len).to_bytes();
+            let response_value = RespValue::Integer(len).as_bytes();
             match stream.write(&response_value) {
                 Ok(_bytes_written) => {
                     // Response successful

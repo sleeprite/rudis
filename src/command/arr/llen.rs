@@ -43,7 +43,7 @@ impl CommandStrategy for LlenCommand {
         let len = db_ref.llen(db_index, &key.clone());
 
         if let Some(stream) = stream {
-            let response_bytes = &RespValue::Integer(len as i64).to_bytes();
+            let response_bytes = &RespValue::Integer(len as i64).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

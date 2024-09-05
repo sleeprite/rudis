@@ -25,7 +25,7 @@ impl CommandStrategy for FlushAllCommand {
         db_ref.flush_all();
         
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::Ok.to_bytes();
+            let response_bytes = &RespValue::Ok.as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

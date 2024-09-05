@@ -34,7 +34,7 @@ impl CommandStrategy for SelectCommand {
          */
         if fragments.len() < 4 {
             if let Some(stream) = stream { 
-                let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'select' command".to_string()).to_bytes();
+                let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'select' command".to_string()).as_bytes();
                 match stream.write(response_bytes) {
                     Ok(_bytes_written) => {},
                     Err(e) => {
@@ -54,7 +54,7 @@ impl CommandStrategy for SelectCommand {
             Ok(index) => index,
             Err(_) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error("ERR invalid DB index".to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error("ERR invalid DB index".to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -74,7 +74,7 @@ impl CommandStrategy for SelectCommand {
         }
 
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::Ok.to_bytes();
+            let response_bytes = &RespValue::Ok.as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

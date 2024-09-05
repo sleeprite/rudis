@@ -35,7 +35,7 @@ impl CommandStrategy for PttlCommand {
         let ttl_millis = db_ref.pttl(db_index, key);
         
         if let Some(stream) = stream {  
-            let response_bytes = &RespValue::Integer(ttl_millis).to_bytes();
+            let response_bytes = &RespValue::Integer(ttl_millis).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

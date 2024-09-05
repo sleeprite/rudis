@@ -24,7 +24,7 @@ impl CommandStrategy for EchoCommand {
         let keyword = fragments[4].to_string();
 
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::BulkString(keyword).to_bytes();
+            let response_bytes = &RespValue::BulkString(keyword).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

@@ -46,7 +46,7 @@ impl CommandStrategy for LpopCommand {
         };
 
         if let Some(stream) = stream {
-            let response_bytes = &RespValue::BulkString(value).to_bytes();
+            let response_bytes = &RespValue::BulkString(value).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

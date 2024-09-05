@@ -35,7 +35,7 @@ impl CommandStrategy for TypeCommand {
         let key_type = db_ref.key_type(db_index, key);
 
         if let Some(stream) = stream { 
-            let response_bytes = &RespValue::SimpleString(key_type).to_bytes();
+            let response_bytes = &RespValue::SimpleString(key_type).as_bytes();
             match stream.write(response_bytes) {
                 Ok(_bytes_written) => {},
                 Err(e) => {

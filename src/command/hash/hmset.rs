@@ -49,7 +49,7 @@ impl CommandStrategy for HmsetCommand {
         match db_ref.hmset(db_index, key.clone(), values) {
             Ok(()) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::Ok.to_bytes();
+                    let response_bytes = &RespValue::Ok.as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -60,7 +60,7 @@ impl CommandStrategy for HmsetCommand {
             }
             Err(err_msg) => {
                 if let Some(stream) = stream {
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

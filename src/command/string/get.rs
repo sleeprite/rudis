@@ -37,7 +37,7 @@ impl CommandStrategy for GetCommand {
             Some(fragment) => fragment.to_string(),
             None => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'get' command".to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error("ERR wrong number of arguments for 'get' command".to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -54,7 +54,7 @@ impl CommandStrategy for GetCommand {
         match db_ref.get(db_index, &key) {
             Ok(Some(value)) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::BulkString(value.to_string()).to_bytes();
+                    let response_bytes = &RespValue::BulkString(value.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -65,7 +65,7 @@ impl CommandStrategy for GetCommand {
             },
             Ok(None) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Null.to_bytes();
+                    let response_bytes = &RespValue::Null.as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {
@@ -76,7 +76,7 @@ impl CommandStrategy for GetCommand {
             },
             Err(err_msg) => {
                 if let Some(stream) = stream { 
-                    let response_bytes = &RespValue::Error(err_msg.to_string()).to_bytes();
+                    let response_bytes = &RespValue::Error(err_msg.to_string()).as_bytes();
                     match stream.write(response_bytes) {
                         Ok(_bytes_written) => {},
                         Err(e) => {

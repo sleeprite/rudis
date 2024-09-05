@@ -219,10 +219,7 @@ impl Db {
                     // If the member is not found in the sorted set
                     Ok(None)
                 }
-                _ => Err(format!(
-                    "Key {} exists in the database but is not a sorted set.",
-                    key
-                )),
+                _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
             },
             None => Err(format!("Key {} does not exist in the database.", key)),
         }
@@ -249,10 +246,7 @@ impl Db {
                         .count();
                     Ok(count)
                 }
-                _ => Err(format!(
-                    "Key {} exists in the database but is not a sorted set.",
-                    key
-                )),
+                _ => Err(format!("Key {} exists in the database but is not a sorted set.", key)),
             },
             None => Err(format!("Key {} does not exist in the database.", key)),
         }
