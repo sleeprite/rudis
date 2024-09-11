@@ -165,7 +165,7 @@ enum Command {
 }
 
 impl Command {
-    
+
     // 根据 frame 获取 command
     pub fn parse_from_frame(frame: Frame) -> Command {
         let command_name = frame.get(0).unwrap();
@@ -257,6 +257,8 @@ impl DbRepository {
 
     // 创建 Db 并维护 sender 对象
     pub fn new(size: usize) -> Self {
+        
+        // 创建 DB 实例（单线程）
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
         for _ in 0..size {
@@ -264,7 +266,7 @@ impl DbRepository {
             senders.push(db.sender.clone());
             dbs.push(db);
         }
-        // 启动 DB 实例（异步线程）
+        // 启动 DB 实例（多线程）
         for mut db in dbs {
             tokio::spawn(async move {
                 db.run().await;
