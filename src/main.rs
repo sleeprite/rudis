@@ -165,6 +165,7 @@ enum Command {
 }
 
 impl Command {
+    
     // 根据 frame 获取 command
     pub fn parse_from_frame(frame: Frame) -> Command {
         let command_name = frame.get(0).unwrap();
@@ -263,6 +264,7 @@ impl DbRepository {
             senders.push(db.sender.clone());
             dbs.push(db);
         }
+        // 启动 DB 实例（异步线程）
         for mut db in dbs {
             tokio::spawn(async move {
                 db.run().await;
