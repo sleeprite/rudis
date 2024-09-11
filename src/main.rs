@@ -1,52 +1,79 @@
-use std::collections::HashMap;
 use anyhow::Error;
-use tokio::net::TcpListener;
+use std::collections::HashMap;
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpListener;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio::sync::oneshot;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    
+
     let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    let repository = Arc::new(DbRepository::new(16));
 
     loop {
 
         let (mut socket, _) = listener.accept().await?;
+        let rep_clone: Arc<DbRepository> = repository.clone();
+
+        // 创建会话
         tokio::spawn(async move {
 
             let mut buf = [0; 1024];
-            
+
             loop {
 
                 // 读取 WS 消息
                 let n = match socket.read(&mut buf).await {
                     Ok(n) => {
                         if n == 0 {
-                            return
-                        } 
+                            return;
+                        }
                         n
-                    },
+                    }
                     Err(e) => {
                         eprintln!("failed to read from socket; err = {:?}", e);
                         return;
                     }
                 };
-                
+
                 // 解析 WS 消息
                 let bytes = &buf[0..n];
                 let frame = Frame::parse_from_bytes(bytes).unwrap();
                 let command = Command::parse_from_frame(frame);
-                let handler = Handler::new(16);
 
-    
+                // 创建 OC 通道
+                let (sender, receiver) = oneshot::channel();
+                let target_sender = rep_clone.get(0);
+
+                // 发送 DB 命令
+                match target_sender.send(Message {
+                    sender: sender,
+                    command,
+                }).await {
+                    Err(e) => {
+                        eprintln!("Failed to connect to the database: {:?}", e)
+                    },
+                    Ok(()) => {}
+                };
+
+                // 接收 DB 响应
+                match receiver.await {
+                    Ok(f) => {
+                        println!("响应结果");
+                    }
+                    Err(e) => {
+                        println!("响应失败");
+                    }
+                }
             }
         });
     }
 }
 
 /*
- * 命令帧枚举 
+ * 命令帧枚举
  */
 pub enum Frame {
     SimpleString(String),
@@ -61,7 +88,7 @@ impl Frame {
 
     /*
      * 通过解析 bytes 创建命令帧
-     * 
+     *
      * @param bytes 二进制
      */
     pub fn parse_from_bytes(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
@@ -74,7 +101,7 @@ impl Frame {
 
     /*
      * 简单字符串
-     * 
+     *
      * @param bytes 二进制
      */
     fn parse_simple_string(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
@@ -84,8 +111,8 @@ impl Frame {
     }
 
     /*
-     * 数组字符串 
-     * 
+     * 数组字符串
+     *
      * @param bytes 二进制
      */
     fn parse_array(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
@@ -110,7 +137,7 @@ impl Frame {
 
     /*
      * 获取 frame 值
-     * 
+     *
      * @param index 索引
      */
     pub fn get(&self, index: usize) -> Option<&String> {
@@ -121,8 +148,8 @@ impl Frame {
     }
 
     /*
-     * 将 Frame 转换为 String 
-     * 
+     * 将 Frame 转换为 String
+     *
      * @param self Frame 本身
      */
     pub fn as_str(&self) -> String {
@@ -138,7 +165,6 @@ enum Command {
 }
 
 impl Command {
-
     // 根据 frame 获取 command
     pub fn parse_from_frame(frame: Frame) -> Command {
         let command_name = frame.get(0).unwrap();
@@ -146,25 +172,20 @@ impl Command {
             "SET" => Command::Set(Set::parse_from_frame(frame)),
             "GET" => Command::Get(Get::parse_from_frame(frame)),
             "DEL" => Command::Del(Del::parse_from_frame(frame)),
-            _ => Command::Unknown(Unknown::parse_from_frame(frame))
+            _ => Command::Unknown(Unknown::parse_from_frame(frame)),
         };
 
         command
     }
 }
 
-pub struct Unknown {
-
-}
+pub struct Unknown {}
 
 impl Unknown {
-
-    
     pub fn parse_from_frame(frame: Frame) -> Self {
-
         Unknown {}
     }
-    
+
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
         Ok(Frame::Integer(0))
     }
@@ -172,20 +193,14 @@ impl Unknown {
 
 pub struct Set {
     key: String,
-    value: String
+    value: String,
 }
 
 impl Set {
-
     pub fn parse_from_frame(frame: Frame) -> Self {
-
-        let key = "username".to_string();
-        let value = "root".to_string();
-
-        Set {
-            key,
-            value
-        }
+        let key = "key".to_string();
+        let value = "value".to_string();
+        Set { key, value }
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
@@ -194,47 +209,37 @@ impl Set {
 }
 
 pub struct Get {
-    key: String
+    key: String,
 }
 
 impl Get {
-    
     pub fn parse_from_frame(frame: Frame) -> Self {
-
         let key = "username".to_string();
-
-        Get {
-            key
-        }
+        Get { key }
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
         Ok(Frame::Integer(0))
     }
-} 
+}
 
 pub struct Del {
-    key: String
+    key: String,
 }
 
 impl Del {
-
     pub fn parse_from_frame(frame: Frame) -> Self {
-
         let key = "username".to_string();
-
-        Del {
-            key
-        }
+        Del { key }
     }
-    
+
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
         Ok(Frame::Integer(0))
     }
 }
 
 pub enum Structure {
-    String(String)
+    String(String),
 }
 
 struct Message {
@@ -242,14 +247,15 @@ struct Message {
     command: Command,
 }
 
-struct Handler {
-    senders: Vec<Sender<Message>>
+// Db 仓库
+struct DbRepository {
+    senders: Vec<Sender<Message>>,
 }
 
-impl Handler {
+impl DbRepository {
 
-    // 创建 Db 并存储 sender 对象
-   pub fn new(size: usize) -> Self {
+    // 创建 Db 并维护 sender 对象
+    pub fn new(size: usize) -> Self {
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
         for _ in 0..size {
@@ -262,8 +268,14 @@ impl Handler {
                 db.run().await;
             });
         }
-        Handler {
-            senders
+        DbRepository { senders }
+    }
+
+    pub fn get(&self, idx: usize) -> Sender<Message> {
+        if let Some(sender) = self.senders.get(idx) {
+            sender.clone()
+        } else {
+            panic!("Index out of bounds");
         }
     }
 }
@@ -271,36 +283,36 @@ impl Handler {
 struct Db {
     record: HashMap<String, Structure>,
     sender: Sender<Message>,
-    receiver: Receiver<Message>
+    receiver: Receiver<Message>,
 }
 
 impl Db {
-    
-    pub fn new() -> Self {
 
+    pub fn new() -> Self {
         let (sender, receiver) = channel(1024);
 
         Db {
             record: HashMap::new(),
             sender,
-            receiver
+            receiver,
         }
     }
 
     async fn run(&mut self) {
-        while let Some(Message { sender, command }) = self.receiver.recv().await {
+        while let Some(Message { sender, command }) = self.receiver.recv().await { 
             let result: Result<Frame, Error> = match command {
                 Command::Set(set) => set.apply(self),
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
-                Command::Unknown(unknown) => unknown.apply(self)
+                Command::Unknown(unknown) => unknown.apply(self),
             };
+
             match result {
-                Ok(frame) => {
-                    println!("11111111111");
-                    println!("{}",frame.get(0).unwrap());
-                    sender.send(frame);
-                },
+                Ok(f) => {
+                    if let Err(_) = sender.send(f) {
+                        // TODO 处理异常
+                    }
+                }
                 Err(e) => {
                     eprintln!("Error applying command: {:?}", e);
                 }
