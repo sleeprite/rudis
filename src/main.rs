@@ -7,11 +7,14 @@ use tokio::sync::oneshot;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    
     let listener = TcpListener::bind("127.0.0.1:6379").await?;
+
     loop {
+
         let (mut socket, _) = listener.accept().await?;
         tokio::spawn(async move {
-            
+
             let mut buf = [0; 1024];
             
             loop {
@@ -34,27 +37,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let bytes = &buf[0..n];
                 let frame = Frame::parse_from_bytes(bytes).unwrap();
                 let command = Command::parse_from_frame(frame);
-                let db =  Db::new();
+                let handler = Handler::new(16);
 
-                let frame = match command {
-                    Command::Set(set) => set.apply(&db),
-                    Command::Get(get) => get.apply(&db),
-                    Command::Del(del) => del.apply(&db),
-                    Command::Unknown(unknown) => unknown.apply(&db)
-                };
-
-                match frame {
-                    Ok(f) => {
-                        let response_str = f.as_str();
-                        if let Err(e) = socket.write_all(response_str.as_bytes()).await {
-                            eprintln!("failed to write to socket; err = {:?}", e);
-                            return;
-                        }
-                    },
-                    Err(error) => {
-                        // TODO
-                    }
-                }
+    
             }
         });
     }
@@ -104,10 +89,8 @@ impl Frame {
      * @param bytes 二进制
      */
     fn parse_array(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
-        
         let mut frames = Vec::new();
         let mut start = 0;
-    
         for (i, &item) in bytes.iter().enumerate() {
             if item == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
                 let part = match std::str::from_utf8(&bytes[start..i]) {
@@ -122,10 +105,14 @@ impl Frame {
                 start = i + 2;
             }
         }
-    
         Ok(Frame::Array(frames))
     }
 
+    /*
+     * 获取 frame 值
+     * 
+     * @param index 索引
+     */
     pub fn get(&self, index: usize) -> Option<&String> {
         match self {
             Frame::Array(array) => Some(&array[index]),
@@ -139,7 +126,6 @@ impl Frame {
      * @param self Frame 本身
      */
     pub fn as_str(&self) -> String {
-        // TODO
         return "".to_string();
     }
 }
@@ -153,13 +139,14 @@ enum Command {
 
 impl Command {
 
+    // 根据 frame 获取 command
     pub fn parse_from_frame(frame: Frame) -> Command {
         let command_name = frame.get(0).unwrap();
         let command = match command_name.to_uppercase().as_str() {
             "SET" => Command::Set(Set::parse_from_frame(frame)),
             "GET" => Command::Get(Get::parse_from_frame(frame)),
             "DEL" => Command::Del(Del::parse_from_frame(frame)),
-            _ => Command::Unknown(Unknown {})
+            _ => Command::Unknown(Unknown::parse_from_frame(frame))
         };
 
         command
@@ -171,6 +158,12 @@ pub struct Unknown {
 }
 
 impl Unknown {
+
+    
+    pub fn parse_from_frame(frame: Frame) -> Self {
+
+        Unknown {}
+    }
     
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
         Ok(Frame::Integer(0))
@@ -249,6 +242,32 @@ struct Message {
     command: Command,
 }
 
+struct Handler {
+    senders: Vec<Sender<Message>>
+}
+
+impl Handler {
+
+    // 创建 Db 并存储 sender 对象
+   pub fn new(size: usize) -> Self {
+        let mut dbs = Vec::new();
+        let mut senders = Vec::new();
+        for _ in 0..size {
+            let db = Db::new();
+            senders.push(db.sender.clone());
+            dbs.push(db);
+        }
+        for mut db in dbs {
+            tokio::spawn(async move {
+                db.run().await;
+            });
+        }
+        Handler {
+            senders
+        }
+    }
+}
+
 struct Db {
     record: HashMap<String, Structure>,
     sender: Sender<Message>,
@@ -278,6 +297,8 @@ impl Db {
             };
             match result {
                 Ok(frame) => {
+                    println!("11111111111");
+                    println!("{}",frame.get(0).unwrap());
                     sender.send(frame);
                 },
                 Err(e) => {
