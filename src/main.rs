@@ -59,13 +59,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // 接收 DB 响应
                 match receiver.await {
                     Ok(f) => {
-                        if let Err(e) = socket.write_all(&f.to_bytes()).await {
+                        if let Err(e) = socket.write_all(&f.as_bytes()).await {
                             eprintln!("failed to write to socket; err = {:?}", e);
                             return;
                         }
                     }
                     Err(e) => {
-                        println!("响应失败");
+                        println!("Failed to receive DB response.");
                     }
                 }
             }
@@ -88,7 +88,12 @@ pub enum Frame {
 
 impl Frame {
 
-    pub fn to_bytes(&self) -> Vec<u8> {
+    /*
+     * 将 frame 转换为 bytes
+     * 
+     * @param self 本身
+     */
+    pub fn as_bytes(&self) -> Vec<u8> {
         match self {
             Frame::Ok => b"+OK\r\n".to_vec(),
             Frame::SimpleString(s) => format!("+{}\r\n", s).into_bytes(),
@@ -208,6 +213,7 @@ impl Command {
 pub struct Unknown {}
 
 impl Unknown {
+
     pub fn parse_from_frame(frame: Frame) -> Self {
         Unknown {}
     }
