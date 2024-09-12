@@ -19,9 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // 创建会话
         tokio::spawn(async move {
-
             let mut buf = [0; 1024];
-
             loop {
 
                 // 读取 WS 消息
@@ -61,7 +59,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // 接收 DB 响应
                 match receiver.await {
                     Ok(f) => {
-                        println!("响应结果");
+                        if let Err(e) = socket.write_all(&f.to_bytes()).await {
+                            eprintln!("failed to write to socket; err = {:?}", e);
+                            return;
+                        }
                     }
                     Err(e) => {
                         println!("响应失败");
@@ -76,6 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
  * 命令帧枚举
  */
 pub enum Frame {
+    Ok,
     SimpleString(String),
     Integer(i64),
     Array(Vec<String>),
@@ -86,6 +88,29 @@ pub enum Frame {
 
 impl Frame {
 
+    pub fn to_bytes(&self) -> Vec<u8> {
+        match self {
+            Frame::Ok => b"+OK\r\n".to_vec(),
+            Frame::SimpleString(s) => format!("+{}\r\n", s).into_bytes(),
+            Frame::Integer(i) => format!(":{}\r\n", i).into_bytes(),
+            Frame::BulkString(None) => b"$-1\r\n".to_vec(),
+            Frame::Null => b"$-1\r\n".to_vec(),
+            Frame::Error(e) => format!("-{}\r\n", e).into_bytes(),
+            Frame::Array(arr) => {
+                let mut bytes = format!("*{}\r\n", arr.len()).into_bytes();
+                for item in arr {
+                    bytes.extend(format!("${}\r\n{}\r\n", item.len(), item).into_bytes());
+                }
+                bytes
+            },
+            Frame::BulkString(Some(s)) => {
+                let mut bytes = format!("${}\r\n", s.len()).into_bytes();
+                bytes.extend(s.as_bytes());
+                bytes.extend(b"\r\n");
+                bytes
+            },
+        }
+    }
     /*
      * 通过解析 bytes 创建命令帧
      *
@@ -188,7 +213,7 @@ impl Unknown {
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
-        Ok(Frame::Integer(0))
+        Ok(Frame::Ok)
     }
 }
 
@@ -205,7 +230,7 @@ impl Set {
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
-        Ok(Frame::Integer(0))
+        Ok(Frame::Ok)
     }
 }
 
@@ -220,7 +245,7 @@ impl Get {
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
-        Ok(Frame::Integer(0))
+        Ok(Frame::Ok)
     }
 }
 
@@ -235,7 +260,7 @@ impl Del {
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
-        Ok(Frame::Integer(0))
+        Ok(Frame::Ok)
     }
 }
 
