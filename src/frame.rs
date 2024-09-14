@@ -1,3 +1,5 @@
+use crate::frame;
+
 /*
  * 命令帧枚举
  */
@@ -97,17 +99,14 @@ impl Frame {
      */
     pub fn get(&self, index: usize) -> Option<&String> {
         match self {
-            Frame::Array(array) => Some(&array[index]),
+            Frame::Array(array) => {
+                if index < array.len() {
+                    Some(&array[index])
+                } else {
+                    None
+                }
+            },
             _ => None,
         }
-    }
-
-    /*
-     * 将 Frame 转换为 String
-     *
-     * @param self Frame 本身
-     */
-    pub fn as_str(&self) -> String {
-        return "".to_string();
     }
 }

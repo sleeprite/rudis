@@ -40,7 +40,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // 解析 WS 消息
                 let bytes = &buf[0..n];
                 let frame = Frame::parse_from_bytes(bytes).unwrap();
-                let command = Command::parse_from_frame(frame);
+                
+                // 转化 DB 命令
+                let result_command = Command::parse_from_frame(frame);
+                let command = match result_command {
+                    Ok(cmd) => cmd,
+                    Err(e) => {
+                        let frame = Frame::Error(e.to_string());
+                        if let Err(e) = socket.write_all(&frame.as_bytes()).await {
+                            eprintln!("failed to write to socket; err = {:?}", e);
+                            return;
+                        }
+                        continue; 
+                    }
+                };
 
                 // 创建 OC 通道
                 let (sender, receiver) = oneshot::channel();
@@ -74,6 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
+// 命令
 enum Command {
     Set(Set),
     Get(Get),
@@ -84,16 +98,16 @@ enum Command {
 impl Command {
 
     // 根据 frame 获取 command
-    pub fn parse_from_frame(frame: Frame) -> Command {
+    pub fn parse_from_frame(frame: Frame)  -> Result<Self, Error>  {
         let command_name = frame.get(0).unwrap();
         let command = match command_name.to_uppercase().as_str() {
-            "SET" => Command::Set(Set::parse_from_frame(frame)),
-            "GET" => Command::Get(Get::parse_from_frame(frame)),
-            "DEL" => Command::Del(Del::parse_from_frame(frame)),
-            _ => Command::Unknown(Unknown::parse_from_frame(frame)),
+            "SET" => Command::Set(Set::parse_from_frame(frame)?),
+            "GET" => Command::Get(Get::parse_from_frame(frame)?),
+            "DEL" => Command::Del(Del::parse_from_frame(frame)?),
+            _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
 
-        command
+        Ok(command)
     }
 }
 
@@ -101,8 +115,8 @@ pub struct Unknown {}
 
 impl Unknown {
 
-    pub fn parse_from_frame(frame: Frame) -> Self {
-        Unknown {}
+    pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
+        Ok(Unknown {})
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
@@ -112,17 +126,37 @@ impl Unknown {
 
 pub struct Set {
     key: String,
-    value: String,
+    val: String,
 }
 
 impl Set {
-    pub fn parse_from_frame(frame: Frame) -> Self {
-        let key = "key".to_string();
-        let value = "value".to_string();
-        Set { key, value }
+
+    pub fn parse_from_frame(frame: Frame) -> Result<Self, Error>{
+
+        let key = frame.get(1);
+        let val = frame.get(2);
+
+        if key.is_none() {
+            return Err(Error::msg("Key is missing"));
+        }
+
+        if val.is_none() {
+            return Err(Error::msg("Val is missing"));
+        }
+
+        let fianl_key = key.unwrap().to_string();
+        let final_val = val.unwrap().to_string();
+
+        Ok(Set { 
+            key: fianl_key, 
+            val: final_val 
+        })
     }
 
-    pub fn apply(self, db: &Db) -> Result<Frame, Error> {
+    pub fn apply(self,db: &mut Db) -> Result<Frame, Error> {
+
+        db.record.insert(self.key, Structure::String(self.val));
+
         Ok(Frame::Ok)
     }
 }
@@ -132,9 +166,9 @@ pub struct Get {
 }
 
 impl Get {
-    pub fn parse_from_frame(frame: Frame) -> Self {
+    pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let key = "username".to_string();
-        Get { key }
+        Ok(Get { key })
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
@@ -147,9 +181,9 @@ pub struct Del {
 }
 
 impl Del {
-    pub fn parse_from_frame(frame: Frame) -> Self {
+    pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let key = "username".to_string();
-        Del { key }
+        Ok(Del { key }) 
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {
@@ -179,11 +213,13 @@ impl DbRepository {
         // 创建 DB 实例（单线程）
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
+
         for _ in 0..size {
             let db = Db::new();
             senders.push(db.sender.clone());
             dbs.push(db);
         }
+
         // 启动 DB 实例（多线程）
         for mut db in dbs {
             tokio::spawn(async move {
@@ -241,4 +277,6 @@ impl Db {
             }
         }
     }
+
+    // TODO 常用方法
 }
