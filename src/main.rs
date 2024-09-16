@@ -2,7 +2,6 @@ use rudis_server::command::Command;
 use rudis_server::db::DbRepository;
 use rudis_server::frame::Frame;
 use rudis_server::message::Message;
-use std::env::args;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;

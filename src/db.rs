@@ -30,6 +30,7 @@ impl DbRepository {
                 db.run().await;
             });
         }
+        
         DbRepository { senders }
     }
 
