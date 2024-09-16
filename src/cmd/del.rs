@@ -7,6 +7,7 @@ pub struct Del {
 }
 
 impl Del {
+
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let key = "username".to_string();
         Ok(Del { key }) 

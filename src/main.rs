@@ -2,16 +2,31 @@ use rudis_server::command::Command;
 use rudis_server::db::DbRepository;
 use rudis_server::frame::Frame;
 use rudis_server::message::Message;
+use std::env::args;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
+use clap::Parser;
+
+
+#[derive(Parser)]
+#[command(version, author, about, long_about = None)]
+struct Args {
+
+    #[arg(short, long, default_value = "127.0.0.1")]
+    bind: String,
+
+    #[arg(short, long, default_value = "3306")]
+    port: String,
+
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    // TCP 监听器 
-    let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    let args = Args::parse();
+    let listener = TcpListener::bind(format!("{}:{}", args.bind, args.port)).await?;
     let repository = Arc::new(DbRepository::new(16));
 
     loop {
