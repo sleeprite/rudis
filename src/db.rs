@@ -30,7 +30,7 @@ impl DbRepository {
                 db.run().await;
             });
         }
-        
+
         DbRepository { senders }
     }
 
@@ -75,9 +75,7 @@ impl Db {
 
             match result {
                 Ok(f) => {
-                    if let Err(_) = sender.send(f) {
-                        // 服务器发生错误!!!
-                    }
+                    if let Err(_) = sender.send(f) {}
                 }
                 Err(e) => {
                     eprintln!("Error applying command: {:?}", e);
@@ -85,6 +83,4 @@ impl Db {
             }
         }
     }
-
-    // TODO 常用方法
 }

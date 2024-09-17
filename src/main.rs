@@ -19,6 +19,9 @@ struct Args {
     #[arg(short, long, default_value = "3306")]
     port: String,
 
+    #[arg(short, long, default_value = "16")]
+    databases: usize
+
 }
 
 #[tokio::main]
@@ -26,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
     let listener = TcpListener::bind(format!("{}:{}", args.bind, args.port)).await?;
-    let repository = Arc::new(DbRepository::new(16));
+    let repository = Arc::new(DbRepository::new(args.databases));
 
     loop {
 
