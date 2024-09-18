@@ -7,7 +7,7 @@ pub fn println_banner(port: String) {
     let version = env!("CARGO_PKG_VERSION");
     let pid = id();
     let pattern = format!(
-        r#"
+    r#"
          /\_____/\
         /  o   o  \          Rudis {}
        ( ==  ^  == )
