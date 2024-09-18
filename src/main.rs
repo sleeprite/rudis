@@ -1,3 +1,4 @@
+use rudis_server::banner::println_banner;
 use rudis_server::command::Command;
 use rudis_server::db::DbRepository;
 use rudis_server::frame::Frame;
@@ -30,6 +31,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let listener = TcpListener::bind(format!("{}:{}", args.bind, args.port)).await?;
     let repository = Arc::new(DbRepository::new(args.databases));
+    
+    println_banner(args.port);
 
     loop {
 
