@@ -1,4 +1,3 @@
-pub mod banner;
 pub mod cmd;
 pub mod command;
 pub mod db;
