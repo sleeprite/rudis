@@ -53,16 +53,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println_banner(args.port);
 
     loop {
-
         let (mut socket, _) = listener.accept().await?;
         let rep_clone: Arc<DbRepository> = repository.clone();
 
-        // 创建会话
         tokio::spawn(async move {
             let mut buf = [0; 1024];
             loop {
 
-                // 读取 WS 消息
                 let n = match socket.read(&mut buf).await {
                     Ok(n) => {
                         if n == 0 {
@@ -76,11 +73,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 };
 
-                // 解析 WS 消息
                 let bytes = &buf[0..n];
                 let frame = Frame::parse_from_bytes(bytes).unwrap();
-                
-                // 转化 DB 命令
                 let result_command = Command::parse_from_frame(frame);
                 let command = match result_command {
                     Ok(cmd) => cmd,
@@ -94,23 +88,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 };
 
-                // 创建 OC 通道
-                let (sender, receiver) = oneshot::channel();
-                let target_sender = rep_clone.get(0);
+                let result = match command {
+                    Command::Select(select) => select.apply(),
+                    _ => {
+                        let (sender, receiver) = oneshot::channel();
+                        let target_sender = rep_clone.get(0);
+                        match target_sender.send(Message {
+                            sender: sender,
+                            command,
+                        }).await {
+                            Ok(()) => {},
+                            Err(e) => {
+                                eprintln!("Failed to write to socket; err = {:?}", e);
+                            }
+                        };
 
-                // 发送 DB 命令
-                match target_sender.send(Message {
-                    sender: sender,
-                    command,
-                }).await {
-                    Err(e) => {
-                        eprintln!("Failed to connect to the database: {:?}", e)
-                    },
-                    Ok(()) => {}
+                        let result = match receiver.await {
+                            Ok(f) => {
+                                f
+                            },
+                            Err(e) => {
+                                Frame::Error(format!("{:?}", e))
+                            }
+                        };
+
+                        Ok(result) 
+                    }
                 };
 
                 // 接收 DB 响应
-                match receiver.await {
+                match result {
                     Ok(f) => {
                         if let Err(e) = socket.write_all(&f.as_bytes()).await {
                             eprintln!("Failed to write to socket; err = {:?}", e);

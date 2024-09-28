@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use anyhow::Error;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::{command::Command, message::Message, structure::Structure};
@@ -66,11 +67,12 @@ impl Db {
 
         while let Some(Message { sender, command }) = self.receiver.recv().await { 
             
-            let result = match command {
+            let result: Result<crate::frame::Frame, Error> = match command {
                 Command::Set(set) => set.apply(self),
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
                 Command::Unknown(unknown) => unknown.apply(self),
+                _ => Err(Error::msg("program exception"))
             };
 
             match result {
