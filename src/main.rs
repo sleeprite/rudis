@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let (mut socket, _) = listener.accept().await?;
-        let rep_clone: Arc<DbRepository> = repository.clone();
+        let repository_clone: Arc<DbRepository> = repository.clone();
 
         tokio::spawn(async move {
             let mut buf = [0; 1024];
@@ -90,9 +90,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let result = match command {
                     Command::Select(select) => select.apply(),
+                    Command::Auth(auth) => auth.apply(),
                     _ => {
                         let (sender, receiver) = oneshot::channel();
-                        let target_sender = rep_clone.get(0);
+                        let target_sender = repository_clone.get(0);
                         match target_sender.send(Message {
                             sender: sender,
                             command,

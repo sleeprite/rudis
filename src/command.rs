@@ -1,14 +1,15 @@
 use anyhow::Error;
 
-use crate::{cmd::{del::Del, select::Select, string::{get::Get, set::Set}, unknown::Unknown}, frame::Frame};
+use crate::{cmd::{auth::Auth, del::Del, select::Select, string::{get::Get, set::Set}, unknown::Unknown}, frame::Frame};
 
 // 命令
 pub enum Command {
+    Auth(Auth),
     Set(Set),
     Get(Get),
     Del(Del),
     Unknown(Unknown),
-    Select(Select)
+    Select(Select),
 }
 
 impl Command {
