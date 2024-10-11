@@ -32,7 +32,7 @@ pub fn println_banner(port: String) {
 #[command(version, author, about, long_about = None)]
 struct Args {
 
-    #[arg(short, long, default_value = "127.0.0.1")]
+    #[arg(short, long, default_value = "127.0.0.1")] 
     bind: String,
 
     #[arg(short, long, default_value = "3306")]
@@ -92,6 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Command::Select(select) => select.apply(),
                     Command::Auth(auth) => auth.apply(),
                     _ => {
+                        
                         let (sender, receiver) = oneshot::channel();
                         let target_sender = repository_clone.get(0);
                         match target_sender.send(Message {

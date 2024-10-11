@@ -23,7 +23,7 @@ impl Del {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        db.record.remove(&self.key);
+        db.remove(&self.key);
         Ok(Frame::Ok)
     }
 }

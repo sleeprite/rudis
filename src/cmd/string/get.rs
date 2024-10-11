@@ -23,8 +23,8 @@ impl Get {
         })
     }
 
-    pub fn apply(self, db: &Db) -> Result<Frame, Error> {
-        let result_structure = db.record.get(&self.key);
+    pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
+        let result_structure = db.get(&self.key);
         match result_structure {
             Some(structure) => {
                 match structure {

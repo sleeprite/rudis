@@ -32,7 +32,7 @@ impl Set {
     }
 
     pub fn apply(self,db: &mut Db) -> Result<Frame, Error> {
-        db.record.insert(self.key, Structure::String(self.val));
+        db.insert(self.key, Structure::String(self.val));
         Ok(Frame::Ok)
     }
 }
