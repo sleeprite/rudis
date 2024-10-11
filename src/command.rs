@@ -4,10 +4,10 @@ use crate::{cmd::{auth::Auth, del::Del, select::Select, string::{get::Get, set::
 
 // 命令
 pub enum Command {
-    Auth(Auth),
     Set(Set),
     Get(Get),
     Del(Del),
+    Auth(Auth),
     Unknown(Unknown),
     Select(Select),
 }
