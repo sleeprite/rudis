@@ -1,5 +1,3 @@
-use std::time::SystemTime;
-
 use anyhow::Error;
 
 use crate::{db::Db, frame::Frame, structure::Structure};
@@ -7,6 +5,7 @@ use crate::{db::Db, frame::Frame, structure::Structure};
 pub struct Set {
     key: String,
     val: String,
+    ttl: i128
 }
 
 impl Set {
@@ -29,7 +28,8 @@ impl Set {
 
         Ok(Set { 
             key: fianl_key, 
-            val: final_val 
+            val: final_val,
+            ttl: 0
         })
     }
 

@@ -14,6 +14,7 @@ pub struct DbRepository {
 impl DbRepository {
     // 创建 Db 并维护 sender 对象
     pub fn new(size: usize) -> Self {
+
         // 创建 DB 实例（单线程）
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
@@ -43,11 +44,15 @@ impl DbRepository {
     }
 }
 
+/**
+ * @param receiver
+ * @param sender
+ */
 pub struct Db {
-    pub record: HashMap<String, Structure>,
-    pub expire_record: HashMap<String, SystemTime>,
     receiver: Receiver<Message>,
     sender: Sender<Message>,
+    pub record: HashMap<String, Structure>,
+    pub expire_record: HashMap<String, SystemTime>,
 }
 
 impl Db {
@@ -115,6 +120,9 @@ impl Db {
         self.record.remove(key);
     }
 
+    /**
+     * 懒加载
+     */
     pub fn expire_if_needed(&mut self, key: &str) {
         if let Some(expire_time) = self.expire_record.get(key) {
             let now = SystemTime::now();
