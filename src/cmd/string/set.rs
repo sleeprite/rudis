@@ -5,7 +5,7 @@ use crate::{db::Db, frame::Frame, structure::Structure};
 pub struct Set {
     key: String,
     val: String,
-    ttl: i128
+    ttl: u64
 }
 
 impl Set {
@@ -34,7 +34,8 @@ impl Set {
     }
 
     pub fn apply(self,db: &mut Db) -> Result<Frame, Error> {
-        db.insert(self.key, Structure::String(self.val));
+        db.insert(self.key.clone(), Structure::String(self.val));
+        db.expire(self.key.clone(), self.ttl);
         Ok(Frame::Ok)
     }
 }
