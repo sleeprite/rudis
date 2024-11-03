@@ -51,8 +51,8 @@ impl DbRepository {
 pub struct Db {
     receiver: Receiver<Message>,
     sender: Sender<Message>,
-    pub record: HashMap<String, Structure>,
-    pub expire_record: HashMap<String, SystemTime>,
+    pub records: HashMap<String, Structure>,
+    pub expire_records: HashMap<String, SystemTime>,
 }
 
 impl Db {
@@ -61,8 +61,8 @@ impl Db {
         let (sender, receiver) = channel(1024);
 
         Db {
-            record: HashMap::new(),
-            expire_record: HashMap::new(),
+            records: HashMap::new(),
+            expire_records: HashMap::new(),
             receiver,
             sender,
         }
@@ -93,42 +93,46 @@ impl Db {
      * 保存键值
      */
     pub fn insert(&mut self, key: String, value: Structure) {
-        self.record.insert(key, value);
+        self.records.insert(key, value);
     }
 
     /**
      * 获取键值
+     * 
+     * @param key 键名
      */
     pub fn get(&mut self, key: &str) -> Option<&Structure> {
         self.expire_if_needed(key); 
-        self.record.get(key)
+        self.records.get(key)
     }
 
     /**
      * 设置过期
+     * 
+     * @param key 键名
+     * @param ttl 过期时间（毫秒）
      */
     pub fn expire(&mut self, key: String, ttl: u64) {
-        let expire_time = SystemTime::now() + std::time::Duration::from_secs(ttl);
-        self.expire_record.insert(key, expire_time);
+        let expire_time = SystemTime::now() + std::time::Duration::from_millis(ttl);
+        self.expire_records.insert(key, expire_time);
     }
 
     /**
      * 删除键值
+     * 
+     * @param key 键名
      */
     pub fn remove(&mut self, key: &str) {
-        self.expire_record.remove(key);
-        self.record.remove(key);
+        self.expire_records.remove(key);
+        self.records.remove(key);
     }
 
-    /**
-     * 懒加载
-     */
     pub fn expire_if_needed(&mut self, key: &str) {
-        if let Some(expire_time) = self.expire_record.get(key) {
+        if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
             if now.duration_since(UNIX_EPOCH).unwrap().as_secs() > expire_time.duration_since(UNIX_EPOCH).unwrap().as_secs() {
-                self.expire_record.remove(key);
-                self.record.remove(key);
+                self.expire_records.remove(key);
+                self.records.remove(key);
             }
         }
     }

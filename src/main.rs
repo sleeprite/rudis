@@ -39,7 +39,7 @@ struct Args {
     port: String,
 
     #[arg(short, long, default_value = "16")]
-    databases: usize
+    databases: usize,
 
 }
 

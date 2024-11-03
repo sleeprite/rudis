@@ -26,6 +26,9 @@ impl Set {
         let fianl_key = key.unwrap().to_string();
         let final_val = val.unwrap().to_string();
 
+        // 遍历 frame 数组，检查是否包含 EX 与 PX 关键字
+        
+
         Ok(Set { 
             key: fianl_key, 
             val: final_val,
