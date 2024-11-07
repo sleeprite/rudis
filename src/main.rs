@@ -35,7 +35,7 @@ struct Args {
     #[arg(short, long, default_value = "127.0.0.1")] 
     bind: String,
 
-    #[arg(short, long, default_value = "3306")]
+    #[arg(short, long, default_value = "6379")]
     port: String,
 
     #[arg(short, long, default_value = "16")]

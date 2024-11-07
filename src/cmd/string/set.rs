@@ -5,7 +5,7 @@ use crate::{db::Db, frame::Frame, structure::Structure};
 pub struct Set {
     key: String,
     val: String,
-    ttl: u64
+    ttl: i128
 }
 
 impl Set {
@@ -26,19 +26,48 @@ impl Set {
         let fianl_key = key.unwrap().to_string();
         let final_val = val.unwrap().to_string();
 
-        // 遍历 frame 数组，检查是否包含 EX 与 PX 关键字
-        
+        // （1）遍历 frame 数组，检查是否包含 EX 与 PX 关键字
 
+        // （2）包含则取 idx + 1 位置作为 ttl
+        
+        // （3）EX 秒，PX 毫秒
+
+        let args = match frame {
+            Frame::Array(args) => args,
+            _ => return Err(Error::msg("Frame is not an Array variant")),
+        };
+
+        let mut ttl: i128 = -1; // 默认 ttl 为 0
+        for (idx, item) in args.iter().enumerate() {
+            if idx > 2 { // 从第三个参数开始检查，因为前两个是 key 和 val
+                match item.as_str() {
+                    "EX" | "PX" => {
+                        if let Some(ttl_value) = args.get(idx + 1) {
+                            ttl = match item.as_str() {
+                                "EX" => ttl_value.parse::<i128>().map_err(|_| Error::msg("Invalid TTL value for EX"))? * 1000, // EX 秒
+                                "PX" => ttl_value.parse::<i128>()?, // PX 毫秒
+                                _ => 0,
+                            };
+                            break; // 找到 ttl 后退出循环
+                        }
+                    },
+                    _ => continue,
+                }
+            }
+        }
+        
         Ok(Set { 
             key: fianl_key, 
             val: final_val,
-            ttl: 0
+            ttl: ttl
         })
     }
 
     pub fn apply(self,db: &mut Db) -> Result<Frame, Error> {
         db.insert(self.key.clone(), Structure::String(self.val));
-        db.expire(self.key.clone(), self.ttl);
+        if self.ttl > -1 {
+            db.expire(self.key.clone(), self.ttl as u64);
+        }
         Ok(Frame::Ok)
     }
 }
