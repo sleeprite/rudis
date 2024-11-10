@@ -58,6 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         tokio::spawn(async move {
             let mut buf = [0; 1024];
+
             loop {
 
                 let n = match socket.read(&mut buf).await {
@@ -72,6 +73,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         return;
                     }
                 };
+
+                // TODO 是否认证
+
+                // （1）已登录：继续任务
+
+                // （2）未登录：响应错误
 
                 let bytes = &buf[0..n];
                 let frame = Frame::parse_from_bytes(bytes).unwrap();

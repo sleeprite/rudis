@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use anyhow::Error;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
@@ -12,6 +12,7 @@ pub struct DbRepository {
 }
 
 impl DbRepository {
+    
     // 创建 Db 并维护 sender 对象
     pub fn new(size: usize) -> Self {
 
@@ -127,6 +128,11 @@ impl Db {
         self.records.remove(key);
     }
 
+    /**
+     * 过期检测
+     * 
+     * @param key 键名
+     */
     pub fn expire_if_needed(&mut self, key: &str) {
         if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
