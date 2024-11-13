@@ -5,7 +5,7 @@ use crate::{db::Db, frame::Frame, structure::Structure};
 pub struct Set {
     key: String,
     val: String,
-    ttl: i128
+    ttl: Option<u64>
 }
 
 impl Set {
@@ -37,16 +37,16 @@ impl Set {
             _ => return Err(Error::msg("Frame is not an Array variant")),
         };
 
-        let mut ttl: i128 = -1; // 默认 ttl 为 0
+        let mut ttl: Option<u64> = None; // 默认 ttl 为 0
         for (idx, item) in args.iter().enumerate() {
             if idx > 2 { // 从第三个参数开始检查，因为前两个是 key 和 val
                 match item.as_str() {
                     "EX" | "PX" => {
                         if let Some(ttl_value) = args.get(idx + 1) {
                             ttl = match item.as_str() {
-                                "EX" => ttl_value.parse::<i128>().map_err(|_| Error::msg("Invalid TTL value for EX"))? * 1000, // EX 秒
-                                "PX" => ttl_value.parse::<i128>()?, // PX 毫秒
-                                _ => 0,
+                                "EX" => Some(ttl_value.parse::<u64>()? * 1000), // EX 秒
+                                "PX" => Some(ttl_value.parse::<u64>()?), // PX 毫秒
+                                _ => None,
                             };
                             break; // 找到 ttl 后退出循环
                         }
@@ -65,8 +65,8 @@ impl Set {
 
     pub fn apply(self,db: &mut Db) -> Result<Frame, Error> {
         db.insert(self.key.clone(), Structure::String(self.val));
-        if self.ttl > -1 {
-            db.expire(self.key.clone(), self.ttl as u64);
+        if let Some(ttl) = self.ttl {
+            db.expire(self.key.clone(), ttl);
         }
         Ok(Frame::Ok)
     }
