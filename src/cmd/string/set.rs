@@ -26,16 +26,16 @@ impl Set {
         let fianl_key = key.unwrap().to_string();
         let final_val = val.unwrap().to_string();
 
+        let args = match frame {
+            Frame::Array(args) => args,
+            _ => return Err(Error::msg("Frame is not an Array variant")),
+        };
+
         // （1）遍历 frame 数组，检查是否包含 EX 与 PX 关键字
 
         // （2）包含则取 idx + 1 位置作为 ttl
         
         // （3）EX 秒，PX 毫秒
-
-        let args = match frame {
-            Frame::Array(args) => args,
-            _ => return Err(Error::msg("Frame is not an Array variant")),
-        };
 
         let mut ttl: Option<u64> = None; // 默认 ttl 为 0
         for (idx, item) in args.iter().enumerate() {

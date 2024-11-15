@@ -92,7 +92,7 @@ impl Frame {
     }
 
     /*
-     * 获取 frame 值
+     * 获取指定索引的内容
      *
      * @param index 索引
      */
@@ -101,6 +101,24 @@ impl Frame {
             Frame::Array(array) => {
                 if index < array.len() {
                     Some(&array[index])
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
+
+        /**
+     * 获取从指定索引开始的内容集合
+     * 
+     * @param start_index 开始索引
+     */
+    pub fn get_from_to_vec(&self, start_index: usize) -> Option<Vec<String>> {
+        match self {
+            Frame::Array(array) => {
+                if start_index < array.len() {
+                    Some(array[start_index..].to_vec())
                 } else {
                     None
                 }

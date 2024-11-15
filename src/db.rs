@@ -77,6 +77,7 @@ impl Db {
                 Command::Set(set) => set.apply(self),
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
+                Command::Expire(expire) => expire.apply(self),
                 Command::Unknown(unknown) => unknown.apply(self),
                 _ => Err(Error::msg("program exception")),
             };
@@ -123,9 +124,14 @@ impl Db {
      * 
      * @param key 键名
      */
-    pub fn remove(&mut self, key: &str) {
-        self.expire_records.remove(key);
-        self.records.remove(key);
+    pub fn remove(&mut self, key: &str) -> bool {
+        if self.records.contains_key(key) {
+            // 清除 键值 和 过期数据
+            self.expire_records.remove(key);
+            self.records.remove(key);
+            return true
+        }
+        false
     }
 
     /**
