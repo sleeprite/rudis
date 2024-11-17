@@ -16,7 +16,7 @@ pub enum Command {
 impl Command {
     
     pub fn parse_from_frame(frame: Frame)  -> Result<Self, Error>  {
-        let command_name = frame.get(0).unwrap();
+        let command_name = frame.get_arg(0).unwrap();
         let command = match command_name.to_uppercase().as_str() {
             "SET" => Command::Set(Set::parse_from_frame(frame)?),
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
@@ -26,5 +26,5 @@ impl Command {
         };
         Ok(command)
     }
-    
+
 }

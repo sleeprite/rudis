@@ -96,7 +96,7 @@ impl Frame {
      *
      * @param index 索引
      */
-    pub fn get(&self, index: usize) -> Option<&String> {
+    pub fn get_arg(&self, index: usize) -> Option<&String> {
         match self {
             Frame::Array(array) => {
                 if index < array.len() {
@@ -109,21 +109,39 @@ impl Frame {
         }
     }
 
-        /**
+    /**
+     * 获取命令帧中的所有参数
+     * 
+     * @param self 本身
+     * 
+     * @return 一个包含所有参数的字符串向量，如果不是 Array 类型则返回空向量
+     */
+    pub fn get_args(&self) -> Vec<String> {
+        match self {
+            Frame::Array(array) => array.clone(),
+            _ => Vec::new(),
+        }
+    }
+
+/**
      * 获取从指定索引开始的内容集合
      * 
+     * @param self 本身
      * @param start_index 开始索引
+     * 
+     * @return 一个包含从指定索引开始的所有参数的字符串向量，如果不是 Array 类型或索引超出范围则返回空向量
      */
-    pub fn get_from_to_vec(&self, start_index: usize) -> Option<Vec<String>> {
+    pub fn get_args_from_index(&self, start_index: usize) -> Vec<String> {
         match self {
             Frame::Array(array) => {
                 if start_index < array.len() {
-                    Some(array[start_index..].to_vec())
+                    array[start_index..].to_vec()
                 } else {
-                    None
+                    Vec::new() // 返回空向量而不是 None
                 }
             },
-            _ => None,
+            _ => Vec::new(), // 返回空向量而不是 None
         }
     }
+    
 }

@@ -14,11 +14,12 @@ impl Del {
      * @param frame 命令帧
      */
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
-        let keys_vec = frame.get_from_to_vec(1);
-        if keys_vec.is_none() {
+        let keys = frame.get_args_from_index(1);
+
+        if keys.is_empty() {
             return Err(Error::msg("No keys provided"));
         }
-        let keys = keys_vec.unwrap();
+       
         Ok(Del { 
             keys: keys 
         })
@@ -36,7 +37,7 @@ impl Del {
                 true => counter.increment(),
                 false => (), // 键不存在，不增加计数器
             }
-        } // 获取计数
+        } // 响应 counter 值
         let count = counter.get(); 
         Ok(Frame::Integer(count))
     }

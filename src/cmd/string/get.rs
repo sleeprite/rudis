@@ -10,7 +10,7 @@ impl Get {
 
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
 
-        let key = frame.get(1);
+        let key = frame.get_arg(1);
 
         if key.is_none() {
             return Err(Error::msg("Key is missing"));

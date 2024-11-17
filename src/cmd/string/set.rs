@@ -12,8 +12,8 @@ impl Set {
 
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error>{
 
-        let key = frame.get(1);
-        let val = frame.get(2);
+        let key = frame.get_arg(1);
+        let val = frame.get_arg(2);
 
         if key.is_none() {
             return Err(Error::msg("Key is missing"));
