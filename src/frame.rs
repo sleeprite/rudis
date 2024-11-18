@@ -13,7 +13,7 @@ pub enum Frame {
 
 impl Frame {
 
-    /*
+    /**
      * 将 frame 转换为 bytes
      * 
      * @param self 本身
@@ -42,7 +42,7 @@ impl Frame {
         }
     }
     
-    /*
+    /**
      * 通过解析 bytes 创建命令帧
      *
      * @param bytes 二进制
@@ -55,7 +55,7 @@ impl Frame {
         }
     }
 
-    /*
+    /**
      * 简单字符串
      *
      * @param bytes 二进制
@@ -66,7 +66,7 @@ impl Frame {
         Ok(Frame::SimpleString(content))
     }
 
-    /*
+    /**
      * 数组字符串
      *
      * @param bytes 二进制
@@ -91,7 +91,7 @@ impl Frame {
         Ok(Frame::Array(frames))
     }
 
-    /*
+    /**
      * 获取指定索引的内容
      *
      * @param index 索引
@@ -123,7 +123,7 @@ impl Frame {
         }
     }
 
-/**
+    /**
      * 获取从指定索引开始的内容集合
      * 
      * @param self 本身

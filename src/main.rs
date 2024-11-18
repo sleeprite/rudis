@@ -101,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     _ => {
                         
                         let (sender, receiver) = oneshot::channel();
-                        let target_sender = repository_clone.get(0);
+                        let target_sender = repository_clone.get(0); // 获取 Session 正在操作的数据库
                         match target_sender.send(Message {
                             sender: sender,
                             command,
