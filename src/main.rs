@@ -1,7 +1,8 @@
 use rudis_server::command::Command;
-use rudis_server::db::DbRepository;
+use rudis_server::db::DbManager;
 use rudis_server::frame::Frame;
 use rudis_server::message::Message;
+use rudis_server::session::SessionManager;
 use std::process::id;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -32,112 +33,144 @@ pub fn println_banner(port: String) {
 #[command(version, author, about, long_about = None)]
 struct Args {
 
-    #[arg(short, long, default_value = "127.0.0.1")] 
-    bind: String,
-
-    #[arg(short, long, default_value = "6379")]
-    port: String,
+    #[arg(short, long)] 
+    requirepass: Option<String>,
 
     #[arg(short, long, default_value = "16")]
     databases: usize,
 
+    #[arg(short, long, default_value = "127.0.0.1")] 
+    bind: String,
+
+    #[arg(short, long, default_value = "6379")]
+    port: String
+
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main()  {
 
-    let args = Args::parse();
-    let listener = TcpListener::bind(format!("{}:{}", args.bind, args.port)).await?;
-    let repository = Arc::new(DbRepository::new(args.databases));
-    
-    println_banner(args.port);
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
 
-    loop {
-        let (mut socket, _) = listener.accept().await?;
-        let repository_clone: Arc<DbRepository> = repository.clone();
+    let args = Arc::new(Args::parse());
+    let db_manager = Arc::new(DbManager::new(args.databases));
+    let session_manager = Arc::new(SessionManager::new());
+    match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
+        Ok(listener) => {
 
-        tokio::spawn(async move {
-            let mut buf = [0; 1024];
-
+            log::info!("Server initialized");
+            log::info!("Ready to accept connections");
+            
             loop {
-
-                let n = match socket.read(&mut buf).await {
-                    Ok(n) => {
-                        if n == 0 {
-                            return;
-                        }
-                        n
-                    }
-                    Err(e) => {
-                        eprintln!("failed to read from socket; err = {:?}", e);
-                        return;
-                    }
-                };
-
-                // TODO 是否认证
-
-                // （1）已登录：继续任务
-
-                // （2）未登录：响应错误
-
-                let bytes = &buf[0..n];
-                let frame = Frame::parse_from_bytes(bytes).unwrap();
-                let result_command = Command::parse_from_frame(frame);
-                let command = match result_command {
-                    Ok(cmd) => cmd,
-                    Err(e) => {
-                        let frame = Frame::Error(e.to_string());
-                        if let Err(e) = socket.write_all(&frame.as_bytes()).await {
-                            eprintln!("failed to write to socket; err = {:?}", e);
-                            return;
-                        }
-                        continue; 
-                    }
-                };
-
-                let result = match command {
-                    Command::Select(select) => select.apply(),
-                    Command::Auth(auth) => auth.apply(),
-                    _ => {
+                match listener.accept().await {
+                    Ok((mut stream, _address)) => {
                         
-                        let (sender, receiver) = oneshot::channel();
-                        let target_sender = repository_clone.get(0); // 获取 Session 正在操作的数据库
-                        match target_sender.send(Message {
-                            sender: sender,
-                            command,
-                        }).await {
-                            Ok(()) => {},
-                            Err(e) => {
-                                eprintln!("Failed to write to socket; err = {:?}", e);
+                        let address = stream.peer_addr().unwrap();
+                        let db_manager_clone: Arc<DbManager> = db_manager.clone();
+                        let session_manager_clone = session_manager.clone();
+                        let args_clone = args.clone();
+
+                        // TODO 创建会话
+
+                        tokio::spawn(async move {
+
+                            let mut buf = [0; 1024];
+                
+                            loop {
+                
+                                let n = match stream.read(&mut buf).await {
+                                    Ok(n) => {
+                                        if n == 0 {
+                                            return;
+                                        }
+                                        n
+                                    }
+                                    Err(e) => {
+                                        eprintln!("failed to read from socket; err = {:?}", e);
+                                        return;
+                                    }
+                                };
+                
+                                let bytes = &buf[0..n];
+                                let frame = Frame::parse_from_bytes(bytes).unwrap();
+                                let result_command = Command::parse_from_frame(frame);
+                                let command = match result_command {
+                                    Ok(cmd) => cmd,
+                                    Err(e) => {
+                                        let frame = Frame::Error(e.to_string());
+                                        if let Err(e) = stream.write_all(&frame.as_bytes()).await {
+                                            eprintln!("failed to write to socket; err = {:?}", e);
+                                            return;
+                                        }
+                                        continue; 
+                                    }
+                                };
+
+
+                                // 登录拦截器 
+
+                                if args_clone.requirepass.is_some() {
+                                    
+                                    //（1）已登录：继续任务
+                                
+                                    //（2）未登录：响应错误
+                                
+                                }
+                
+                                let result = match command {
+                                    Command::Select(select) => select.apply(),
+                                    Command::Auth(auth) => auth.apply(),
+                                    _ => {
+                                        
+                                        let (sender, receiver) = oneshot::channel();
+                                        let target_sender = db_manager_clone.get(0); // 获取 Session 正在操作的数据库
+                                        match target_sender.send(Message {
+                                            sender: sender,
+                                            command,
+                                        }).await {
+                                            Ok(()) => {},
+                                            Err(e) => {
+                                                eprintln!("Failed to write to socket; err = {:?}", e);
+                                            }
+                                        };
+                
+                                        let result = match receiver.await {
+                                            Ok(f) => {
+                                                f
+                                            },
+                                            Err(e) => {
+                                                Frame::Error(format!("{:?}", e))
+                                            }
+                                        };
+                
+                                        Ok(result) 
+                                    }
+                                };
+                
+                                // 接收 DB 响应
+                                match result {
+                                    Ok(f) => {
+                                        if let Err(e) = stream.write_all(&f.as_bytes()).await {
+                                            eprintln!("Failed to write to socket; err = {:?}", e);
+                                            return;
+                                        }
+                                    }
+                                    Err(e) => {
+                                        println!("Failed to receive; err = {:?}", e);
+                                    }
+                                }
                             }
-                        };
-
-                        let result = match receiver.await {
-                            Ok(f) => {
-                                f
-                            },
-                            Err(e) => {
-                                Frame::Error(format!("{:?}", e))
-                            }
-                        };
-
-                        Ok(result) 
-                    }
-                };
-
-                // 接收 DB 响应
-                match result {
-                    Ok(f) => {
-                        if let Err(e) = socket.write_all(&f.as_bytes()).await {
-                            eprintln!("Failed to write to socket; err = {:?}", e);
-                            return;
-                        }
-                    }
-                    Err(e) => {
-                        println!("Failed to receive; err = {:?}", e);
+                        });
+                    },
+                    Err(_e) => {  
+                        // TODO 连接异常
                     }
                 }
             }
-        });
+        },
+        Err(_e) => {
+            // TODO 创建失败
+        }
     }
 }

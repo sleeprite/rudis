@@ -7,11 +7,11 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::{command::Command, message::Message, structure::Structure};
 
 // Db 仓库
-pub struct DbRepository {
+pub struct DbManager {
     senders: Vec<Sender<Message>>,
 }
 
-impl DbRepository {
+impl DbManager {
     
     // 创建 Db 并维护 sender 对象
     pub fn new(size: usize) -> Self {
@@ -33,7 +33,7 @@ impl DbRepository {
             });
         }
 
-        DbRepository { senders }
+        DbManager { senders }
     }
 
     pub fn get(&self, idx: usize) -> Sender<Message> {

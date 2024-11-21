@@ -4,4 +4,5 @@ pub mod db;
 pub mod frame;
 pub mod message;
 pub mod structure;
+pub mod session;
 pub mod tools;
