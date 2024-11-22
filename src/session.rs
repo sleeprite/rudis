@@ -62,6 +62,11 @@ impl SessionManager {
         sessions.insert(session_id, session);
     }
 
+    pub fn destroy(&self, session_id: &str) {
+        let mut sessions = self.sessions.write().unwrap();
+        sessions.remove(session_id);
+    }
+
     pub fn get(&self, session_id: &str) -> Option<Session> {
         let sessions = self.sessions.read().unwrap();
         sessions.get(session_id).cloned()

@@ -13,7 +13,7 @@ use clap::Parser;
 /*
  * 启动服务
  */
-pub fn println_banner(port: String) {
+fn println_banner(args: Arc<Args>) {
     let version = env!("CARGO_PKG_VERSION");
     let pid = id();
     let pattern = format!(
@@ -25,7 +25,7 @@ pub fn println_banner(port: String) {
        (           )
       ( (  )   (  ) )
      (__(__)___(__)__)
-    "#, version, port, pid);
+    "#, version, args.port, pid);
     println!("{}", pattern);
 }
 
@@ -59,6 +59,7 @@ async fn main()  {
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
         Ok(listener) => {
 
+            println_banner(args.clone());
             log::info!("Server initialized");
             log::info!("Ready to accept connections");
             
@@ -66,14 +67,12 @@ async fn main()  {
                 match listener.accept().await {
                     Ok((mut stream, _address)) => {
                         
-                        let address = stream.peer_addr().unwrap();
                         let args_clone = args.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         let session_manager_clone = session_manager.clone();
-                        let session_id = address.to_string();
+                        let address = stream.peer_addr().unwrap();
                         let session = Session::new(args_clone.requirepass.is_none(), address);
-
-                        session_manager_clone.register(session_id, session);
+                        session_manager_clone.register(address.to_string(), session);
 
                         tokio::spawn(async move {
 
@@ -89,7 +88,12 @@ async fn main()  {
                                         n
                                     }
                                     Err(e) => {
-                                        eprintln!("failed to read from socket; err = {:?}", e);
+                                        if e.raw_os_error() == Some(10054) {
+                                            let session_id = stream.peer_addr().unwrap().to_string();
+                                            session_manager_clone.destroy(&session_id);
+                                        } else {
+                                            eprintln!("failed to read from socket; err = {:?}", e);
+                                        }
                                         return;
                                     }
                                 };
@@ -143,7 +147,7 @@ async fn main()  {
                                                 Frame::Error(format!("{:?}", e))
                                             }
                                         };
-                                        
+
                                         Ok(result) 
                                     }
                                 };
@@ -165,12 +169,14 @@ async fn main()  {
                     },
                     Err(_e) => {  
                         // TODO 连接异常
+                        println!("断开连接 1")
                     }
                 }
             }
         },
         Err(_e) => {
             // TODO 创建失败
+            println!("断开连接 2")
         }
     }
 }
