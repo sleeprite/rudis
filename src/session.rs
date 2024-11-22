@@ -1,20 +1,21 @@
 use std::collections::HashMap;
+use std::net::SocketAddr;
 use std::sync::RwLock;
 
 #[derive(Clone)]
 pub struct Session {
     authenticated: bool,
-    address: String,
+    address: SocketAddr,
     db: usize,
 }
 
 impl Session {
 
-    pub fn new(authenticated: bool, address: String, db: usize) -> Self {
+    pub fn new(authenticated: bool, address: SocketAddr) -> Self {
         Session {
             authenticated,
             address,
-            db,
+            db: 0,
         }
     }
 
@@ -26,11 +27,11 @@ impl Session {
         self.authenticated = authenticated;
     }
 
-    pub fn address(&self) -> &String {
+    pub fn address(&self) -> &SocketAddr {
         &self.address
     }
 
-    pub fn set_address(&mut self, address: String) {
+    pub fn set_address(&mut self, address: SocketAddr) {
         self.address = address;
     }
 
@@ -41,7 +42,7 @@ impl Session {
     pub fn set_db(&mut self, db: usize) {
         self.db = db;
     }
-    
+
 }
 
 pub struct SessionManager {

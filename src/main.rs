@@ -2,7 +2,7 @@ use rudis_server::command::Command;
 use rudis_server::db::DbManager;
 use rudis_server::frame::Frame;
 use rudis_server::message::Message;
-use rudis_server::session::SessionManager;
+use rudis_server::session::{Session, SessionManager};
 use std::process::id;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -67,11 +67,13 @@ async fn main()  {
                     Ok((mut stream, _address)) => {
                         
                         let address = stream.peer_addr().unwrap();
+                        let args_clone = args.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         let session_manager_clone = session_manager.clone();
-                        let args_clone = args.clone();
+                        let session_id = address.to_string();
+                        let session = Session::new(args_clone.requirepass.is_none(), address);
 
-                        // TODO 创建会话
+                        session_manager_clone.register(session_id, session);
 
                         tokio::spawn(async move {
 
@@ -109,13 +111,11 @@ async fn main()  {
 
 
                                 // 登录拦截器 
-
                                 if args_clone.requirepass.is_some() {
                                     
                                     //（1）已登录：继续任务
                                 
                                     //（2）未登录：响应错误
-                                
                                 }
                 
                                 let result = match command {
@@ -143,7 +143,7 @@ async fn main()  {
                                                 Frame::Error(format!("{:?}", e))
                                             }
                                         };
-                
+                                        
                                         Ok(result) 
                                     }
                                 };
