@@ -79,7 +79,8 @@ async fn main()  {
                             let mut buf = [0; 1024];
                 
                             loop {
-                
+                                
+                                // Read message
                                 let n = match stream.read(&mut buf).await {
                                     Ok(n) => {
                                         if n == 0 {
@@ -98,6 +99,7 @@ async fn main()  {
                                     }
                                 };
                 
+                                // Analyze command frames
                                 let bytes = &buf[0..n];
                                 let frame = Frame::parse_from_bytes(bytes).unwrap();
                                 let result_command = Command::parse_from_frame(frame);
@@ -122,6 +124,7 @@ async fn main()  {
                                     //（2）未登录：响应错误
                                 }
                 
+                                // Execute command
                                 let result = match command {
                                     Command::Select(select) => select.apply(),
                                     Command::Auth(auth) => auth.apply(),
@@ -169,14 +172,12 @@ async fn main()  {
                     },
                     Err(_e) => {  
                         // TODO 连接异常
-                        println!("断开连接 1")
                     }
                 }
             }
         },
         Err(_e) => {
             // TODO 创建失败
-            println!("断开连接 2")
         }
     }
 }
