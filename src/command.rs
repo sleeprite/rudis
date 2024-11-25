@@ -8,9 +8,9 @@ pub enum Command {
     Get(Get),
     Del(Del),
     Expire(Expire),
-    Auth(Auth),
     Unknown(Unknown),
     Select(Select),
+    Auth(Auth),
 }
 
 impl Command {

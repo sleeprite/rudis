@@ -64,12 +64,16 @@ async fn main()  {
             log::info!("Ready to accept connections");
             
             loop {
+
                 match listener.accept().await {
                     Ok((mut stream, _address)) => {
                         
+                        // 共享状态
                         let args_clone = args.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         let session_manager_clone = session_manager.clone();
+
+                        // 创建会话
                         let address = stream.peer_addr().unwrap();
                         let session = Session::new(args_clone.requirepass.is_none(), address);
                         session_manager_clone.register(address.to_string(), session);
@@ -120,7 +124,7 @@ async fn main()  {
                                 if args_clone.requirepass.is_some() {
                                     
                                     //（1）已登录：继续任务
-                                
+
                                     //（2）未登录：响应错误
                                 }
                 
@@ -132,6 +136,7 @@ async fn main()  {
                                         
                                         let (sender, receiver) = oneshot::channel();
                                         let target_sender = db_manager_clone.get(0); // 获取 Session 正在操作的数据库
+                                        
                                         match target_sender.send(Message {
                                             sender: sender,
                                             command,

@@ -126,7 +126,6 @@ impl Db {
      */
     pub fn remove(&mut self, key: &str) -> bool {
         if self.records.contains_key(key) {
-            // 清除 键值 和 过期数据
             self.expire_records.remove(key);
             self.records.remove(key);
             return true

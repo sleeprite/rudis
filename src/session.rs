@@ -57,14 +57,14 @@ impl SessionManager {
         }
     }
 
-    pub fn register(&self, session_id: String, session: Session) {
-        let mut sessions = self.sessions.write().unwrap();
-        sessions.insert(session_id, session);
-    }
-
     pub fn destroy(&self, session_id: &str) {
         let mut sessions = self.sessions.write().unwrap();
         sessions.remove(session_id);
+    }
+
+    pub fn register(&self, session_id: String, session: Session) {
+        let mut sessions = self.sessions.write().unwrap();
+        sessions.insert(session_id, session);
     }
 
     pub fn get(&self, session_id: &str) -> Option<Session> {
