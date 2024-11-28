@@ -58,6 +58,7 @@ pub struct Db {
 
 impl Db {
 
+
     pub fn new() -> Self {
         let (sender, receiver) = channel(1024);
 

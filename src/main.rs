@@ -44,7 +44,6 @@ struct Args {
 
     #[arg(short, long, default_value = "6379")]
     port: String
-
 }
 
 #[tokio::main]
@@ -119,7 +118,6 @@ async fn main()  {
                                     }
                                 };
 
-
                                 // 登录拦截器 
                                 if args_clone.requirepass.is_some() {
                                     
@@ -128,7 +126,6 @@ async fn main()  {
                                     //（2）未登录：响应错误
                                 }
                 
-                                // Execute command
                                 let result = match command {
                                     Command::Select(select) => select.apply(),
                                     Command::Auth(auth) => auth.apply(),

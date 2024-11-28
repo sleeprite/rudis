@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use crate::{db::Db, frame::Frame, tools::atom_integer::AtomInteger};
+use crate::{db::Db, frame::Frame, utils::atom_integer::AtomInteger};
 
 pub struct Del {
     keys: Vec<String>,
