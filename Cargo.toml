@@ -2,7 +2,7 @@
 name = "rudis-server"
 version = "0.0.6"
 authors = ["就眠儀式"]
-edition = "2024"
+edition = "2021"
 
 [dependencies]            
 bytes = "1.3.0"
