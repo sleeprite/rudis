@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use anyhow::Error;
 
-use crate::frame::Frame;
+use crate::{frame::Frame, session::SessionManager};
 
 pub struct Auth {}
 
@@ -10,7 +12,7 @@ impl Auth {
         Ok(Auth { })
     }
 
-    pub fn apply(self) -> Result<Frame, Error> {
+    pub fn apply(self, session_manager: Arc<SessionManager>, session_id: Arc<String>) -> Result<Frame, Error> {
         Ok(Frame::Ok)
     }
 }

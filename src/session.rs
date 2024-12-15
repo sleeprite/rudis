@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
+
+use crate::args::Args;
 
 #[derive(Clone)]
 pub struct Session {
@@ -11,9 +13,9 @@ pub struct Session {
 
 impl Session {
 
-    pub fn new(authenticated: bool, address: SocketAddr) -> Self {
+    pub fn new(address: SocketAddr) -> Self {
         Session {
-            authenticated,
+            authenticated: true,
             address,
             db: 0,
         }
@@ -47,13 +49,15 @@ impl Session {
 
 pub struct SessionManager {
     sessions: RwLock<HashMap<String, Session>>,
+    args: Arc<Args>
 }
 
 impl SessionManager {
 
-    pub fn new() -> Self {
+    pub fn new(args: Arc<Args>) -> Self {
         SessionManager {
             sessions: RwLock::new(HashMap::new()),
+            args
         }
     }
 
@@ -62,8 +66,11 @@ impl SessionManager {
         sessions.remove(session_id);
     }
 
-    pub fn register(&self, session_id: String, session: Session) {
+    pub fn register(&self, address: SocketAddr) {
+        let session_id = address.to_string();
         let mut sessions = self.sessions.write().unwrap();
+        let mut session = Session::new(address);
+        session.set_authenticated(self.args.requirepass.is_none());
         sessions.insert(session_id, session);
     }
 

@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Error;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{command::Command, message::Message, structure::Structure};
+use crate::{args::Args, command::Command, message::Message, structure::Structure};
 
 // Db 仓库
 pub struct DbManager {
@@ -14,13 +14,13 @@ pub struct DbManager {
 impl DbManager {
     
     // 创建 Db 并维护 sender 对象
-    pub fn new(size: usize) -> Self {
+    pub fn new(args: Arc<Args>) -> Self {
 
         // 创建 DB 实例（单线程）
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
 
-        for _ in 0..size {
+        for _ in 0..args.databases {
             let db = Db::new();
             senders.push(db.sender.clone());
             dbs.push(db);

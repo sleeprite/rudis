@@ -1,8 +1,9 @@
+use rudis_server::args::Args;
 use rudis_server::command::Command;
 use rudis_server::db::DbManager;
 use rudis_server::frame::Frame;
 use rudis_server::message::Message;
-use rudis_server::session::{Session, SessionManager};
+use rudis_server::session::{self, SessionManager};
 use std::process::id;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -29,23 +30,6 @@ fn println_banner(args: Arc<Args>) {
     println!("{}", pattern);
 }
 
-#[derive(Parser)]
-#[command(version, author, about, long_about = None)]
-struct Args {
-
-    #[arg(short, long)] 
-    requirepass: Option<String>,
-
-    #[arg(short, long, default_value = "16")]
-    databases: usize,
-
-    #[arg(short, long, default_value = "127.0.0.1")] 
-    bind: String,
-
-    #[arg(short, long, default_value = "6379")]
-    port: String
-}
-
 #[tokio::main]
 async fn main()  {
 
@@ -53,8 +37,9 @@ async fn main()  {
     env_logger::init();
 
     let args = Arc::new(Args::parse());
-    let db_manager = Arc::new(DbManager::new(args.databases));
-    let session_manager = Arc::new(SessionManager::new());
+    let db_manager = Arc::new(DbManager::new(args.clone()));
+    let session_manager = Arc::new(SessionManager::new(args.clone()));
+
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
         Ok(listener) => {
 
@@ -65,17 +50,16 @@ async fn main()  {
             loop {
 
                 match listener.accept().await {
+
                     Ok((mut stream, _address)) => {
-                        
-                        // 共享状态
-                        let args_clone = args.clone();
+                    
+                        let address = stream.peer_addr().unwrap();
+                        let session_id = Arc::new(address.to_string());
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         let session_manager_clone = session_manager.clone();
 
                         // 创建会话
-                        let address = stream.peer_addr().unwrap();
-                        let session = Session::new(args_clone.requirepass.is_none(), address);
-                        session_manager_clone.register(address.to_string(), session);
+                        session_manager_clone.register(address);
 
                         tokio::spawn(async move {
 
@@ -117,22 +101,14 @@ async fn main()  {
                                         continue; 
                                     }
                                 };
-
-                                // 登录拦截器 
-                                if args_clone.requirepass.is_some() {
-                                    
-                                    //（1）已登录：继续任务
-
-                                    //（2）未登录：响应错误
-                                }
                 
                                 let result = match command {
-                                    Command::Select(select) => select.apply(),
-                                    Command::Auth(auth) => auth.apply(),
+                                    Command::Select(select) => select.apply(session_manager_clone.clone(), session_id.clone()),
+                                    Command::Auth(auth) => auth.apply(session_manager_clone.clone(), session_id.clone()),
                                     _ => {
                                         
                                         let (sender, receiver) = oneshot::channel();
-                                        let target_sender = db_manager_clone.get(0); // 获取 Session 正在操作的数据库
+                                        let target_sender = db_manager_clone.get(0); 
                                         
                                         match target_sender.send(Message {
                                             sender: sender,
@@ -143,7 +119,7 @@ async fn main()  {
                                                 eprintln!("Failed to write to socket; err = {:?}", e);
                                             }
                                         };
-                
+
                                         let result = match receiver.await {
                                             Ok(f) => {
                                                 f
