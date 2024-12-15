@@ -78,4 +78,16 @@ impl SessionManager {
         let sessions = self.sessions.read().unwrap();
         sessions.get(session_id).cloned()
     }
+
+    pub fn set(&self, session_id: &str, authenticated: Option<bool>, db: Option<usize>) {
+        let mut sessions = self.sessions.write().unwrap();
+        if let Some(session) = sessions.get_mut(session_id) {
+            if let Some(a) = authenticated {
+                session.set_authenticated(a);
+            }
+            if let Some(d) = db {
+                session.set_db(d);
+            }
+        }
+    }
 }
