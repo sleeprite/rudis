@@ -9,10 +9,10 @@ pub struct Auth {}
 impl Auth {
 
     pub fn parse_from_frame(_frame: Frame) -> Result<Self, Error> {
-        Ok(Auth { })
+        Ok(Auth {})
     }
 
-    pub fn apply(self, session_manager: Arc<SessionManager>, session_id: Arc<String>) -> Result<Frame, Error> {
+    pub fn apply(self, _session_manager: Arc<SessionManager>, _session_id: Arc<String>) -> Result<Frame, Error> {
         Ok(Frame::Ok)
     }
 }

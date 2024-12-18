@@ -1,15 +1,16 @@
 use anyhow::Error;
 
-use crate::{cmd::{auth::Auth, del::Del, expire::Expire, select::Select, string::{get::Get, set::Set}, unknown::Unknown}, frame::Frame};
+use crate::{cmd::{auth::Auth, ttl::Ttl, del::Del, expire::Expire, select::Select, string::{get::Get, set::Set}, unknown::Unknown}, frame::Frame};
 
 // 命令
 pub enum Command {
     Set(Set),
     Get(Get),
     Del(Del),
+    Ttl(Ttl),
+    Unknown(Unknown),
     Expire(Expire),
     Select(Select),
-    Unknown(Unknown),
     Auth(Auth),
 }
 
@@ -22,6 +23,7 @@ impl Command {
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "DEL" => Command::Del(Del::parse_from_frame(frame)?),
             "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
+            "TTL" => Command::Ttl(Ttl::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

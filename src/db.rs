@@ -79,6 +79,7 @@ impl Db {
                 Command::Del(del) => del.apply(self),
                 Command::Expire(expire) => expire.apply(self),
                 Command::Unknown(unknown) => unknown.apply(self),
+                Command::Ttl(ttl) => ttl.apply(self),
                 _ => Err(Error::msg("program exception")),
             };
 
