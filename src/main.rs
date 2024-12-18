@@ -57,10 +57,10 @@ async fn main()  {
                     Ok((mut stream, _address)) => {
                     
                         let address = stream.peer_addr().unwrap();
-                        let session_id = Arc::new(address.to_string());
-                        let db_manager_clone: Arc<DbManager> = db_manager.clone();
+                        let session_id = address.to_string();
                         let session_manager_clone = session_manager.clone();
-                        session_manager_clone.register(address); // 创建会话
+                        let db_manager_clone: Arc<DbManager> = db_manager.clone();
+                        session_manager_clone.register(address); 
 
                         tokio::spawn(async move {
 
@@ -100,14 +100,16 @@ async fn main()  {
                                         continue; 
                                     }
                                 };
+
+                                let session = session_manager_clone.get(&session_id).unwrap();
                 
                                 let result = match command {
-                                    Command::Select(select) => select.apply(session_manager_clone.clone(), session_id.clone()),
-                                    Command::Auth(auth) => auth.apply(session_manager_clone.clone(), session_id.clone()),
+                                    Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id),
+                                    Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
                                     _ => {
                                         
                                         let (sender, receiver) = oneshot::channel();
-                                        let target_sender = db_manager_clone.get(0); 
+                                        let target_sender = db_manager_clone.get(session.db()); 
                                         
                                         match target_sender.send(Message {
                                             sender: sender,

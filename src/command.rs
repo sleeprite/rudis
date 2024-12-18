@@ -23,6 +23,7 @@ impl Command {
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "DEL" => Command::Del(Del::parse_from_frame(frame)?),
             "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
+            "SELECT" => Command::Select(Select::parse_from_frame(frame)?),
             "TTL" => Command::Ttl(Ttl::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };

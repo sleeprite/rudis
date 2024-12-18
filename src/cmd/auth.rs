@@ -12,7 +12,7 @@ impl Auth {
         Ok(Auth {})
     }
 
-    pub fn apply(self, _session_manager: Arc<SessionManager>, _session_id: Arc<String>) -> Result<Frame, Error> {
+    pub fn apply(self, _session_manager: Arc<SessionManager>, _session_id: &String) -> Result<Frame, Error> {
         Ok(Frame::Ok)
     }
 }

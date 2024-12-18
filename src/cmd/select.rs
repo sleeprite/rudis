@@ -31,10 +31,8 @@ impl Select {
         Ok(Select { db: db })
     }
 
-    pub fn apply(self, session_manager: Arc<SessionManager>, session_id: Arc<String>) -> Result<Frame, Error> {
-        
-        session_manager.set(&*session_id, None, Some(self.db));
-        
+    pub fn apply(self, session_manager: Arc<SessionManager>, session_id: &String) -> Result<Frame, Error> {
+        session_manager.set(session_id, None, Some(self.db));
         Ok(Frame::Ok)
     }
 }
