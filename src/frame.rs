@@ -3,12 +3,12 @@
  */
 pub enum Frame {
     Ok,
-    SimpleString(String),
     Integer(i64),
+    SimpleString(String),
     Array(Vec<String>),
     BulkString(Option<String>),
-    Null,
     Error(String),
+    Null
 }
 
 impl Frame {
@@ -143,5 +143,4 @@ impl Frame {
             _ => Vec::new()
         }
     }
-    
 }

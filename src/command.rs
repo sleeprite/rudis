@@ -8,8 +8,8 @@ pub enum Command {
     Get(Get),
     Del(Del),
     Expire(Expire),
-    Unknown(Unknown),
     Select(Select),
+    Unknown(Unknown),
     Auth(Auth),
 }
 

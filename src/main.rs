@@ -13,10 +13,12 @@ use clap::Parser;
 
 /*
  * 启动服务
+ * 
+ * @param args 启动参数
  */
 fn println_banner(args: Arc<Args>) {
-    let version = env!("CARGO_PKG_VERSION");
     let pid = id();
+    let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
     r#"
          /\_____/\
@@ -33,16 +35,17 @@ fn println_banner(args: Arc<Args>) {
 #[tokio::main]
 async fn main()  {
 
-    std::env::set_var("RUST_LOG", "info");
-    env_logger::init();
-
     let args = Arc::new(Args::parse()); // 启动参数
+
+    std::env::set_var("RUST_LOG", &args.loglevel);
+    env_logger::init(); // 设置日志级别
+
     let session_manager = Arc::new(SessionManager::new(args.clone())); // 会话管理器
     let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
 
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
         Ok(listener) => {
-
+            
             println_banner(args.clone());
             log::info!("Server initialized");
             log::info!("Ready to accept connections");
@@ -57,7 +60,7 @@ async fn main()  {
                         let session_id = Arc::new(address.to_string());
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         let session_manager_clone = session_manager.clone();
-                        session_manager_clone.register(address);
+                        session_manager_clone.register(address); // 创建会话
 
                         tokio::spawn(async move {
 
@@ -75,7 +78,7 @@ async fn main()  {
                                     Err(e) => {
                                         if e.raw_os_error() == Some(10054) {
                                             let session_id = stream.peer_addr().unwrap().to_string();
-                                            session_manager_clone.destroy(&session_id);
+                                            session_manager_clone.destroy(&session_id); // 销毁会话
                                         } else {
                                             eprintln!("failed to read from socket; err = {:?}", e);
                                         }
@@ -83,7 +86,7 @@ async fn main()  {
                                     }
                                 };
                 
-                                let bytes = &buf[0..n];
+                                let bytes = &buf[0..n]; 
                                 let frame = Frame::parse_from_bytes(bytes).unwrap();
                                 let result_command = Command::parse_from_frame(frame);
                                 let command = match result_command {

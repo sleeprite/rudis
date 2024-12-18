@@ -61,11 +61,17 @@ impl SessionManager {
         }
     }
 
+    /**
+     * 销毁会话
+     */
     pub fn destroy(&self, session_id: &str) {
         let mut sessions = self.sessions.write().unwrap();
         sessions.remove(session_id);
     }
 
+    /**
+     * 注册会话
+     */
     pub fn register(&self, address: SocketAddr) {
         let session_id = address.to_string();
         let mut sessions = self.sessions.write().unwrap();
@@ -74,11 +80,17 @@ impl SessionManager {
         sessions.insert(session_id, session);
     }
 
+    /**
+     * 查询会话
+     */
     pub fn get(&self, session_id: &str) -> Option<Session> {
         let sessions = self.sessions.read().unwrap();
         sessions.get(session_id).cloned()
     }
 
+    /**
+     * 修改会话
+     */
     pub fn set(&self, session_id: &str, authenticated: Option<bool>, db: Option<usize>) {
         let mut sessions = self.sessions.write().unwrap();
         if let Some(session) = sessions.get_mut(session_id) {

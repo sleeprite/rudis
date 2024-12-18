@@ -58,7 +58,6 @@ pub struct Db {
 
 impl Db {
 
-
     pub fn new() -> Self {
         let (sender, receiver) = channel(1024);
 
@@ -94,6 +93,9 @@ impl Db {
 
     /**
      * 保存键值
+     * 
+     * @param key 键名
+     * @param value 值
      */
     pub fn insert(&mut self, key: String, value: Structure) {
         self.records.insert(key, value);
