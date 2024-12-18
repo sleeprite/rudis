@@ -36,9 +36,9 @@ async fn main()  {
     std::env::set_var("RUST_LOG", "info");
     env_logger::init();
 
-    let args = Arc::new(Args::parse());
-    let db_manager = Arc::new(DbManager::new(args.clone()));
-    let session_manager = Arc::new(SessionManager::new(args.clone()));
+    let args = Arc::new(Args::parse()); // 启动参数
+    let session_manager = Arc::new(SessionManager::new(args.clone())); // 会话管理器
+    let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
 
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
         Ok(listener) => {
@@ -57,8 +57,6 @@ async fn main()  {
                         let session_id = Arc::new(address.to_string());
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         let session_manager_clone = session_manager.clone();
-
-                        // 创建会话
                         session_manager_clone.register(address);
 
                         tokio::spawn(async move {
@@ -67,7 +65,6 @@ async fn main()  {
                 
                             loop {
                                 
-                                // Read message
                                 let n = match stream.read(&mut buf).await {
                                     Ok(n) => {
                                         if n == 0 {
@@ -86,7 +83,6 @@ async fn main()  {
                                     }
                                 };
                 
-                                // Analyze command frames
                                 let bytes = &buf[0..n];
                                 let frame = Frame::parse_from_bytes(bytes).unwrap();
                                 let result_command = Command::parse_from_frame(frame);
