@@ -16,11 +16,11 @@ impl Set {
         let val = frame.get_arg(2);
 
         if key.is_none() {
-            return Err(Error::msg("Key is missing"));
+            return Err(Error::msg("ERR wrong number of arguments for 'set' command"));
         }
 
         if val.is_none() {
-            return Err(Error::msg("Val is missing"));
+            return Err(Error::msg("ERR wrong number of arguments for 'set' command"));
         }
 
         let fianl_key = key.unwrap().to_string();

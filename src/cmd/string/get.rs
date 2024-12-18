@@ -13,7 +13,7 @@ impl Get {
         let key = frame.get_arg(1);
 
         if key.is_none() {
-            return Err(Error::msg("Key is missing"));
+            return Err(Error::msg("ERR wrong number of arguments for 'get' command"));
         }
 
         let fianl_key = key.unwrap().to_string();

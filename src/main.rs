@@ -3,7 +3,7 @@ use rudis_server::command::Command;
 use rudis_server::db::DbManager;
 use rudis_server::frame::Frame;
 use rudis_server::message::Message;
-use rudis_server::session::{self, SessionManager};
+use rudis_server::session::SessionManager;
 use std::process::id;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
