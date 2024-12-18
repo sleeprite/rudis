@@ -37,7 +37,7 @@ impl Del {
                 true => counter.increment(),
                 false => (), // 键不存在，不增加计数器
             }
-        } // 响应 counter 值
+        } 
         let count = counter.get(); 
         Ok(Frame::Integer(count))
     }

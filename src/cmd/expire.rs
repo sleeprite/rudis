@@ -9,13 +9,6 @@ pub struct Expire {
 
 impl Expire {
 
-    /// Parses a `Frame` to create an `Expire` command.
-    /// 
-    /// # Arguments
-    /// * `frame` - A `Frame` representing the client's `EXPIRE` command.
-    ///
-    /// # Returns
-    /// A `Result` containing `Self` on success, or an `Error` on failure.
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
 
         let args = frame.get_args(); 
@@ -40,13 +33,6 @@ impl Expire {
         })
     }
 
-    /// Applies the `Expire` command to the database.
-    /// 
-    /// # Arguments
-    /// * `db` - A mutable reference to the `Db`.
-    ///
-    /// # Returns
-    /// A `Result` containing a `Frame` representing the response on success, or an `Error` on failure.
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
         db.expire(self.key.clone(), self.ttl);
         Ok(Frame::Ok)
