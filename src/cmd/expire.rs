@@ -21,7 +21,7 @@ impl Expire {
         let key = args[1].to_string();
 
         let ttl = match args[2].parse::<u64>() {
-            Ok(val) => val * 1000, // 如果解析成功，将值乘以 1000
+            Ok(val) => val * 1000, // 秒 -> 毫秒
             Err(_) => {
                 return Err(Error::msg("ERR value is not an integer or out of range"));
             }
@@ -34,7 +34,9 @@ impl Expire {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
+
         db.expire(self.key.clone(), self.ttl);
+        
         Ok(Frame::Ok)
     }
 }

@@ -63,6 +63,8 @@ impl SessionManager {
 
     /**
      * 销毁会话
+     * 
+     * @param session_id 会话编号
      */
     pub fn destroy(&self, session_id: &str) {
         let mut sessions = self.sessions.write().unwrap();
@@ -82,6 +84,8 @@ impl SessionManager {
 
     /**
      * 查询会话
+     * 
+     * @param session_id 会话编号
      */
     pub fn get(&self, session_id: &str) -> Option<Session> {
         let sessions = self.sessions.read().unwrap();

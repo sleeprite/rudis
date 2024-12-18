@@ -23,20 +23,15 @@ impl Set {
             return Err(Error::msg("ERR wrong number of arguments for 'set' command"));
         }
 
-        let fianl_key = key.unwrap().to_string();
-        let final_val = val.unwrap().to_string();
+        let fianl_key = key.unwrap().to_string(); // 键
+        let final_val = val.unwrap().to_string(); // 值
 
         let args = match frame {
             Frame::Array(args) => args,
             _ => return Err(Error::msg("Frame is not an Array variant")),
         };
 
-        // （1）遍历 frame 数组，检查是否包含 EX 与 PX 关键字
-
-        // （2）包含则取 idx + 1 位置作为 ttl
-        
-        // （3）EX 秒，PX 毫秒
-
+        // 检测 EX 和 PX 是否存在
         let mut ttl: Option<u64> = None; // 默认 ttl 为 0
         for (idx, item) in args.iter().enumerate() {
             if idx > 2 { // 从第三个参数开始检查，因为前两个是 key 和 val

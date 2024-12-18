@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use anyhow::Error;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
@@ -149,6 +149,33 @@ impl Db {
                 self.expire_records.remove(key);
                 self.records.remove(key);
             }
+        }
+    }
+
+ /**
+     * 获取过期毫秒数
+     * 
+     * @param key 键名
+     * @return 过期毫秒数，如果键不存在则返回 -2，如果键已过期则返回 -1
+     */
+    pub fn ttl_millis(&mut self, key: &str) -> i64 {
+        if let Some(expire_time) = self.expire_records.get(key) {
+            let now = SystemTime::now();
+            if now >= *expire_time {
+                // 键已过期，应该从数据库中移除
+                self.remove(key);
+                -1
+            } else {
+                // 计算剩余时间
+                let duration = expire_time.duration_since(now).unwrap_or(Duration::new(0, 0));
+                duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64
+            }
+        } else if self.records.contains_key(key) {
+            // 键存在但没有设置过期时间
+            -2
+        } else {
+            // 键不存在
+            -2
         }
     }
 }
