@@ -79,6 +79,7 @@ impl Db {
                 Command::Del(del) => del.apply(self),
                 Command::Expire(expire) => expire.apply(self),
                 Command::Unknown(unknown) => unknown.apply(self),
+                Command::Flushdb(flushdb) => flushdb.apply(self),
                 Command::Pttl(pttl) => pttl.apply(self),
                 Command::Ttl(ttl) => ttl.apply(self),
                 _ => Err(Error::msg("program exception")),
@@ -153,7 +154,7 @@ impl Db {
         }
     }
 
- /**
+    /**
      * 获取过期毫秒数
      * 
      * @param key 键名
@@ -178,5 +179,13 @@ impl Db {
             // 键不存在
             -2
         }
+    }
+
+    /**
+     * 清空数据库中的所有键值对和过期记录
+     */
+    pub fn clear(&mut self) {
+        self.records.clear(); 
+        self.expire_records.clear();
     }
 }
