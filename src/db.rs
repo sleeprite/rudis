@@ -21,7 +21,7 @@ impl DbManager {
         let mut senders = Vec::new();
 
         for _ in 0..args.databases {
-            let db = Db::new();
+            let db = Db::new(); // 创建数据库
             senders.push(db.sender.clone());
             dbs.push(db);
         }
@@ -36,6 +36,11 @@ impl DbManager {
         DbManager { senders }
     }
 
+    /**
+     * 获取发送者
+     * 
+     * @param idx 数据库索引
+     */
     pub fn get(&self, idx: usize) -> Sender<Message> {
         if let Some(sender) = self.senders.get(idx) {
             sender.clone()

@@ -35,10 +35,9 @@ fn println_banner(args: Arc<Args>) {
 #[tokio::main]
 async fn main()  {
 
-    let args = Arc::new(Args::parse()); // 启动参数
-
+    let args = Arc::new(Args::parse()); 
     std::env::set_var("RUST_LOG", &args.loglevel);
-    env_logger::init(); // 设置日志级别
+    env_logger::init();
 
     let session_manager = Arc::new(SessionManager::new(args.clone())); // 会话管理器
     let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
