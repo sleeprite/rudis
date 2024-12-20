@@ -17,7 +17,7 @@ impl Session {
         Session {
             authenticated: true,
             address,
-            db: 0,
+            db: 0
         }
     }
 
@@ -94,6 +94,10 @@ impl SessionManager {
 
     /**
      * 修改会话
+     * 
+     * @param session_id 编号
+     * @param authenticated 是否认证
+     * @param db 数据库索引
      */
     pub fn set(&self, session_id: &str, authenticated: Option<bool>, db: Option<usize>) {
         let mut sessions = self.sessions.write().unwrap();

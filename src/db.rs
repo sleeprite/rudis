@@ -185,7 +185,7 @@ impl Db {
      * 清空数据库中的所有键值对和过期记录
      */
     pub fn clear(&mut self) {
-        self.records.clear(); 
         self.expire_records.clear();
+        self.records.clear(); 
     }
 }
