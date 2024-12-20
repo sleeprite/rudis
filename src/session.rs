@@ -54,6 +54,11 @@ pub struct SessionManager {
 
 impl SessionManager {
 
+    /**
+     * 创建会话管理器
+     * 
+     * @param args 启动参数
+     */
     pub fn new(args: Arc<Args>) -> Self {
         SessionManager {
             sessions: RwLock::new(HashMap::new()),

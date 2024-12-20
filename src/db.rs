@@ -57,8 +57,8 @@ impl DbManager {
 pub struct Db {
     receiver: Receiver<Message>,
     sender: Sender<Message>,
-    pub records: HashMap<String, Structure>,
     pub expire_records: HashMap<String, SystemTime>,
+    pub records: HashMap<String, Structure>,
 }
 
 impl Db {
@@ -86,11 +86,13 @@ impl Db {
                 Command::Flushdb(flushdb) => flushdb.apply(self),
                 Command::Pttl(pttl) => pttl.apply(self),
                 Command::Ttl(ttl) => ttl.apply(self),
-                _ => Err(Error::msg("program exception")),
+                _ => Err(Error::msg("Unknown command")),
             };
 
             match result {
-                Ok(f) => if let Err(_) = sender.send(f) {},
+                Ok(f) => {
+                    if let Err(_) = sender.send(f) {}
+                },
                 Err(e) => {
                     eprintln!("Error applying command: {:?}", e);
                 }

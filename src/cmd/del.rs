@@ -18,7 +18,7 @@ impl Del {
 
         if keys.is_empty() {
             return Err(Error::msg("ERR wrong number of arguments for 'del' command"));
-        }
+        } 
        
         Ok(Del { 
             keys: keys 
