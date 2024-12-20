@@ -149,14 +149,15 @@ async fn main()  {
                             }
                         });
                     },
-                    Err(_e) => {  
-                        // TODO 连接异常
+                    Err(e) => {  
+                        log::error!("Failed to accept connection: {}", e);
                     }
                 }
             }
         },
         Err(_e) => {
-            // TODO 创建失败
+            log::error!("Failed to bind to address {}:{}", args.bind, args.port);
+            std::process::exit(1); // 退出程序
         }
     }
 }
