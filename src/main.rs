@@ -1,5 +1,4 @@
 use rudis_server::args::Args;
-use rudis_server::cmd::unknown;
 use rudis_server::command::Command;
 use rudis_server::db::DbManager;
 use rudis_server::frame::Frame;
