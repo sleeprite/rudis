@@ -1,4 +1,5 @@
 use rudis_server::args::Args;
+use rudis_server::cmd::unknown;
 use rudis_server::command::Command;
 use rudis_server::db::DbManager;
 use rudis_server::frame::Frame;
@@ -50,14 +51,14 @@ async fn main()  {
             log::info!("Server initialized");
             log::info!("Ready to accept connections");
             
-            loop {
+            loop { 
 
                 match listener.accept().await {
 
                     Ok((mut stream, _address)) => {
                     
                         let address = stream.peer_addr().unwrap();
-                        let session_id = address.to_string();
+                        let session_id = address.to_string(); // 会话编号
                         let session_manager_clone = session_manager.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         session_manager_clone.register(address); 
@@ -104,8 +105,10 @@ async fn main()  {
                                 let session = session_manager_clone.get(&session_id).unwrap();
                 
                                 let result = match command {
-                                    Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id),
                                     Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
+                                    Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
+                                    Command::Unknown(unknown) => unknown.apply(session_manager_clone.clone(), &session_id),
+                                    Command::Ping(ping) => ping.apply(session_manager_clone.clone(), &session_id),
                                     _ => {
                                         
                                         let (sender, receiver) = oneshot::channel();

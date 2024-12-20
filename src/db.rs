@@ -78,7 +78,6 @@ impl Db {
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
                 Command::Expire(expire) => expire.apply(self),
-                Command::Unknown(unknown) => unknown.apply(self),
                 Command::Flushdb(flushdb) => flushdb.apply(self),
                 Command::Pttl(pttl) => pttl.apply(self),
                 Command::Ttl(ttl) => ttl.apply(self),
