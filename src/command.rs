@@ -26,6 +26,7 @@ impl Command {
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "DEL" => Command::Del(Del::parse_from_frame(frame)?),
             "SELECT" => Command::Select(Select::parse_from_frame(frame)?),
+            "AUTH" => Command::Auth(Auth::parse_from_frame(frame)?),
             "FLUSHDB" => Command::Flushdb(Flushdb::parse_from_frame(frame)?),
             "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
             "PTTL" => Command::Pttl(Pttl::parse_from_frame(frame)?),
