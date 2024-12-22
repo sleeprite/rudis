@@ -5,5 +5,4 @@ pub mod db;
 pub mod frame;
 pub mod message;
 pub mod session;
-pub mod structure;
 pub mod utils;

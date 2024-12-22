@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use crate::{db::Db, frame::Frame, structure::Structure};
+use crate::{db::{Db, Structure}, frame::Frame};
 
 pub struct Get {
     key: String,

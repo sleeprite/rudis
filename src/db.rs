@@ -4,7 +4,12 @@ use anyhow::Error;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{args::Args, command::Command, message::Message, structure::Structure};
+use crate::{args::Args, command::Command, message::Message};
+
+pub enum Structure {
+    String(String),
+    Hash,
+}
 
 // Db 仓库
 pub struct DbManager {
