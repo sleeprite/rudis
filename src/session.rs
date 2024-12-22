@@ -114,7 +114,7 @@ impl SessionManager {
     }
 
     /**
-     * 登录验证
+     * 登录逻辑
      *
      * 检查输入的密码 `input_password` 是否与启动参数 `args` 中的 `requirepass` 一致。
      * 如果一致或者没有设置 `requirepass`，则将对应会话编号 `session_id` 的会话认证状态设置为 `true`。
@@ -137,4 +137,23 @@ impl SessionManager {
             true
         }
     }
+
+    /**
+     * 是否登录
+     * 
+     * @param session_id 会话编号
+     */
+    pub fn is_login(&self, session_id: &str) -> bool {
+        if self.args.requirepass.is_none() {
+            true
+        } else {
+            let sessions = self.sessions.read().unwrap();
+            if let Some(session) = sessions.get(session_id) {
+                session.is_authenticated()
+            } else {
+                false
+            }
+        }
+    }
+    
 }

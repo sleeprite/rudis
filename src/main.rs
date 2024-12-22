@@ -100,6 +100,22 @@ async fn main()  {
                                     }
                                 };
 
+                                match command {
+                                    Command::Auth(_) => {
+                                        // None
+                                    },
+                                    _ => {
+                                        // 不是 Auth 命令，验证拦截
+                                        if !session_manager_clone.is_login(&session_id) {
+                                            let f = Frame::Error("NOAUTH Authentication required.".to_string());
+                                            if let Err(e) = stream.write_all(&f.as_bytes()).await {
+                                                eprintln!("Failed to write to socket; err = {:?}", e);
+                                            }
+                                            continue;
+                                        }
+                                    },
+                                }
+
                                 let session = session_manager_clone.get(&session_id).unwrap();
                 
                                 let result = match command {
