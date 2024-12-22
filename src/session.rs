@@ -12,12 +12,11 @@ pub struct Session {
 }
 
 impl Session {
-
     pub fn new(address: SocketAddr) -> Self {
         Session {
             authenticated: true,
             address,
-            db: 0
+            db: 0,
         }
     }
 
@@ -44,31 +43,29 @@ impl Session {
     pub fn set_db(&mut self, db: usize) {
         self.db = db;
     }
-
 }
 
 pub struct SessionManager {
     sessions: RwLock<HashMap<String, Session>>,
-    args: Arc<Args>
+    args: Arc<Args>,
 }
 
 impl SessionManager {
-
     /**
      * 创建会话管理器
-     * 
+     *
      * @param args 启动参数
      */
     pub fn new(args: Arc<Args>) -> Self {
         SessionManager {
             sessions: RwLock::new(HashMap::new()),
-            args
+            args,
         }
     }
 
     /**
      * 销毁会话
-     * 
+     *
      * @param session_id 会话编号
      */
     pub fn destroy(&self, session_id: &str) {
@@ -89,7 +86,7 @@ impl SessionManager {
 
     /**
      * 查询会话
-     * 
+     *
      * @param session_id 会话编号
      */
     pub fn get(&self, session_id: &str) -> Option<Session> {
@@ -99,7 +96,7 @@ impl SessionManager {
 
     /**
      * 修改会话
-     * 
+     *
      * @param session_id 编号
      * @param authenticated 是否认证
      * @param db 数据库索引
@@ -113,6 +110,31 @@ impl SessionManager {
             if let Some(d) = db {
                 session.set_db(d);
             }
+        }
+    }
+
+    /**
+     * 登录验证
+     *
+     * 检查输入的密码 `input_password` 是否与启动参数 `args` 中的 `requirepass` 一致。
+     * 如果一致或者没有设置 `requirepass`，则将对应会话编号 `session_id` 的会话认证状态设置为 `true`。
+     * 返回密码验证的结果，如果密码正确或无需密码，则返回 `true`；否则返回 `false`。
+     *
+     * @param session_id     会话编号
+     * @param input_password 输入的密码
+     * @return bool          密码验证是否成功
+     */
+    pub fn login(&self, session_id: &str, input_password: &str) -> bool {
+        if let Some(ref requirepass) = self.args.requirepass {
+            if requirepass == input_password {
+                if let Some(session) = self.sessions.write().unwrap().get_mut(session_id) {
+                    session.set_authenticated(true);
+                }
+                return true;
+            }
+            return false;
+        } else {
+            true
         }
     }
 }
