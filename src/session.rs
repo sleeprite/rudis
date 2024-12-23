@@ -64,17 +64,9 @@ impl SessionManager {
     }
 
     /**
-     * 销毁会话
-     *
-     * @param session_id 会话编号
-     */
-    pub fn destroy(&self, session_id: &str) {
-        let mut sessions = self.sessions.write().unwrap();
-        sessions.remove(session_id);
-    }
-
-    /**
      * 注册会话
+     * 
+     * @param address 来源地址
      */
     pub fn register(&self, address: SocketAddr) {
         let session_id = address.to_string();
@@ -82,6 +74,16 @@ impl SessionManager {
         let mut session = Session::new(address);
         session.set_authenticated(self.args.requirepass.is_none());
         sessions.insert(session_id, session);
+    }
+
+    /**
+     * 销毁会话
+     *
+     * @param session_id 会话编号
+     */
+    pub fn destroy(&self, session_id: &str) {
+        let mut sessions = self.sessions.write().unwrap();
+        sessions.remove(session_id);
     }
 
     /**
