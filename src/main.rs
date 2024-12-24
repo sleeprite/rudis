@@ -100,68 +100,66 @@ async fn main()  {
                                     }
                                 };
 
-                                match command {
-                                    Command::Auth(_) => {
-                                        // None
-                                    },
+                                let is_login = match command {
+                                    Command::Auth(_) => true,
                                     _ => {
-                                        // 不是 Auth 命令，验证拦截
-                                        if !session_manager_clone.is_login(&session_id) {
-                                            let f = Frame::Error("NOAUTH Authentication required.".to_string());
-                                            if let Err(e) = stream.write_all(&f.as_bytes()).await {
-                                                eprintln!("Failed to write to socket; err = {:?}", e);
-                                            }
-                                            continue;
-                                        }
-                                    },
-                                }
-
-                                let session = session_manager_clone.get(&session_id).unwrap();
-                
-                                let result = match command {
-                                    Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
-                                    Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
-                                    Command::Unknown(unknown) => unknown.apply(session_manager_clone.clone(), &session_id),
-                                    Command::Ping(ping) => ping.apply(session_manager_clone.clone(), &session_id),
-                                    _ => {
-                                        
-                                        let (sender, receiver) = oneshot::channel();
-                                        let target_sender = db_manager_clone.get(session.db()); 
-                                        
-                                        match target_sender.send(Message {
-                                            sender: sender,
-                                            command,
-                                        }).await {
-                                            Ok(()) => {},
-                                            Err(e) => {
-                                                eprintln!("Failed to write to socket; err = {:?}", e);
-                                            }
-                                        };
-
-                                        let result = match receiver.await {
-                                            Ok(f) => {
-                                                f
-                                            },
-                                            Err(e) => {
-                                                Frame::Error(format!("{:?}", e))
-                                            }
-                                        };
-
-                                        Ok(result) 
+                                        session_manager_clone.is_login(&session_id)
                                     }
                                 };
-                
-                                // 接收 DB 响应
-                                match result {
-                                    Ok(f) => {
-                                        if let Err(e) = stream.write_all(&f.as_bytes()).await {
-                                            eprintln!("Failed to write to socket; err = {:?}", e);
-                                            return;
+
+                                if is_login {
+                                    let session = session_manager_clone.get(&session_id).unwrap();
+                                    let result = match command {
+                                        Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
+                                        Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
+                                        Command::Unknown(unknown) => unknown.apply(session_manager_clone.clone(), &session_id),
+                                        Command::Ping(ping) => ping.apply(session_manager_clone.clone(), &session_id),
+                                        _ => {
+                                            
+                                            let (sender, receiver) = oneshot::channel();
+                                            let target_sender = db_manager_clone.get(session.db()); 
+                                            
+                                            match target_sender.send(Message {
+                                                sender: sender,
+                                                command,
+                                            }).await {
+                                                Ok(()) => {},
+                                                Err(e) => {
+                                                    eprintln!("Failed to write to socket; err = {:?}", e);
+                                                }
+                                            };
+    
+                                            let result = match receiver.await {
+                                                Ok(f) => {
+                                                    f
+                                                },
+                                                Err(e) => {
+                                                    Frame::Error(format!("{:?}", e))
+                                                }
+                                            };
+    
+                                            Ok(result) 
+                                        }
+                                    };
+                    
+                                    // 接收 DB 响应
+                                    match result {
+                                        Ok(f) => {
+                                            if let Err(e) = stream.write_all(&f.as_bytes()).await {
+                                                eprintln!("Failed to write to socket; err = {:?}", e);
+                                                return;
+                                            }
+                                        }
+                                        Err(e) => {
+                                            println!("Failed to receive; err = {:?}", e);
                                         }
                                     }
-                                    Err(e) => {
-                                        println!("Failed to receive; err = {:?}", e);
+                                } else {
+                                    let f = Frame::Error("NOAUTH Authentication required.".to_string());
+                                    if let Err(e) = stream.write_all(&f.as_bytes()).await {
+                                        eprintln!("Failed to write to socket; err = {:?}", e);
                                     }
+                                    continue;
                                 }
                             }
                         });
