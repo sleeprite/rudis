@@ -1,10 +1,7 @@
 pub mod string;
-pub mod del;
+pub mod key;
 pub mod unknown;
 pub mod select;
 pub mod auth;
-pub mod expire;
-pub mod ttl;
 pub mod flushdb;
-pub mod pttl;
 pub mod ping;

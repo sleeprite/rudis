@@ -2,16 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth,
-        del::Del,
-        expire::Expire,
-        flushdb::Flushdb,
-        ping::Ping,
-        pttl::Pttl,
-        select::Select,
-        string::{get::Get, set::Set},
-        ttl::Ttl,
-        unknown::Unknown,
+        auth::Auth, flushdb::Flushdb, key::{del::Del, expire::Expire, pttl::Pttl, ttl::Ttl}, ping::Ping, select::Select, string::{get::Get, set::Set}, unknown::Unknown
     },
     frame::Frame,
 };
