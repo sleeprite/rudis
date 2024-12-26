@@ -109,14 +109,14 @@ async fn main()  {
 
                                 if is_login { 
                                     let session = session_manager_clone.get(&session_id).unwrap();
-                                    let result = match command { // 命令匹配
+                                    let result = match command { 
                                         Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
                                         Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
                                         Command::Unknown(unknown) => unknown.apply(session_manager_clone.clone(), &session_id),
                                         Command::Ping(ping) => ping.apply(session_manager_clone.clone(), &session_id),
                                         _ => {
                                             
-                                            let (sender, receiver) = oneshot::channel();
+                                            let (sender, receiver) = oneshot::channel(); // 创建通道
                                             let target_sender = db_manager_clone.get(session.db()); 
                                             
                                             match target_sender.send(Message {

@@ -51,6 +51,7 @@ pub struct SessionManager {
 }
 
 impl SessionManager {
+
     /**
      * 创建会话管理器
      *
@@ -123,8 +124,8 @@ impl SessionManager {
      * 返回密码验证的结果，如果密码正确或无需密码，则返回 `true`；否则返回 `false`。
      *
      * @param session_id     会话编号
-     * @param input_password 输入的密码
-     * @return bool          密码验证是否成功
+     * @param input_password 输入密码
+     * @return bool          是否成功
      */
     pub fn login(&self, session_id: &str, input_password: &str) -> bool {
         if let Some(ref requirepass) = self.args.requirepass {
