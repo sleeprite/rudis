@@ -141,7 +141,7 @@ impl SessionManager {
     }
 
     /**
-     * 是否登录
+     * 是否需要登录
      * 
      * @param session_id 会话编号
      */

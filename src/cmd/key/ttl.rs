@@ -17,8 +17,7 @@ impl Ttl {
         }
 
         let fianl_key = key.unwrap().to_string();
-        
-
+    
         Ok(Ttl {
             key: fianl_key
         })

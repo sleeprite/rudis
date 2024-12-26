@@ -174,29 +174,17 @@ impl Db {
     pub fn ttl_millis(&mut self, key: &str) -> i64 {
         if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
-            if now >= *expire_time {
-                // 键已过期，应该从数据库中移除
-                self.remove(key);
+            if now >= *expire_time { 
+                self.remove(key); // 键已过期，应该从数据库中移除
                 -1
             } else {
-                // 计算剩余时间
                 let duration = expire_time.duration_since(now).unwrap_or(Duration::new(0, 0));
-                duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64
+                duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64 // 计算剩余时间
             }
         } else if self.records.contains_key(key) {
-            // 键存在但没有设置过期时间
-            -2
+            -2 // 键存在但没有设置过期时间
         } else {
-            // 键不存在
-            -2
+            -2 // 键不存在
         }
-    }
-
-    /**
-     * 清空数据库中的所有键值对和过期记录
-     */
-    pub fn clear(&mut self) {
-        self.expire_records.clear();
-        self.records.clear(); 
     }
 }

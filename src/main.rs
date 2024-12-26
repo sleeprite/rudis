@@ -16,7 +16,7 @@ use clap::Parser;
  * 
  * @param args 启动参数
  */
-fn println_banner(args: Arc<Args>) {
+fn server_info(args: Arc<Args>) {
     let pid = id();
     let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
@@ -45,7 +45,7 @@ async fn main()  {
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
         Ok(listener) => {
             
-            println_banner(args.clone());
+            server_info(args.clone());
             log::info!("Server initialized");
             log::info!("Ready to accept connections");
             
@@ -59,7 +59,7 @@ async fn main()  {
                         let session_id = address.to_string(); // 会话编号
                         let session_manager_clone = session_manager.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
-                        session_manager_clone.register(address); 
+                        session_manager_clone.register(address);
 
                         tokio::spawn(async move {
 
@@ -85,7 +85,7 @@ async fn main()  {
                                     }
                                 };
                 
-                                let bytes = &buf[0..n]; 
+                                let bytes = &buf[0..n];
                                 let frame = Frame::parse_from_bytes(bytes).unwrap();
                                 let result_command = Command::parse_from_frame(frame);
                                 let command = match result_command {
@@ -107,9 +107,9 @@ async fn main()  {
                                     }
                                 };
 
-                                if is_login {
+                                if is_login { 
                                     let session = session_manager_clone.get(&session_id).unwrap();
-                                    let result = match command {
+                                    let result = match command { // 命令匹配
                                         Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
                                         Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
                                         Command::Unknown(unknown) => unknown.apply(session_manager_clone.clone(), &session_id),
