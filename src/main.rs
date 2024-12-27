@@ -1,8 +1,7 @@
 use rudis_server::args::Args;
 use rudis_server::command::Command;
-use rudis_server::db::DbManager;
+use rudis_server::db::{DbManager, Message};
 use rudis_server::frame::Frame;
-use rudis_server::message::Message;
 use rudis_server::session::SessionManager;
 use std::process::id;
 use std::sync::Arc;

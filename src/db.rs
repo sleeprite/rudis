@@ -2,9 +2,9 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use anyhow::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::sync::{mpsc::{channel, Receiver, Sender}, oneshot};
 
-use crate::{args::Args, command::Command, message::Message};
+use crate::{args::Args, command::Command, frame::Frame};
 
 pub enum Structure {
     String(String),
@@ -198,4 +198,15 @@ impl Db {
     pub fn exists(&self, key: &str) -> bool {
         self.records.contains_key(key)
     }
+}
+
+/**
+ * 消息
+ * 
+ * @param sender 发送者
+ * @param command 命令
+ */
+pub struct Message {
+    pub sender: oneshot::Sender<Frame>,
+    pub command: Command,
 }
