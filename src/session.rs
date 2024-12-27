@@ -20,26 +20,50 @@ impl Session {
         }
     }
 
+    /**
+     * 获取认证状态
+     * 
+     * @return 认证状态
+     */
     pub fn is_authenticated(&self) -> bool {
         self.authenticated
     }
 
+    /**
+     * 设置认证状态
+     * 
+     * @param authenticated 已认证
+     */
     pub fn set_authenticated(&mut self, authenticated: bool) {
         self.authenticated = authenticated;
     }
 
+    /**
+     * 获取客户端访问来源
+     */
     pub fn address(&self) -> &SocketAddr {
         &self.address
     }
 
+    /**
+     * 设置客户端访问来源
+     */
     pub fn set_address(&mut self, address: SocketAddr) {
         self.address = address;
     }
 
+    /**
+     * 获取当前访问的数据库
+     */
     pub fn db(&self) -> usize {
         self.db
     }
 
+    /**
+     * 设置当前访问的数据库
+     * 
+     * @param db 索引
+     */
     pub fn set_db(&mut self, db: usize) {
         self.db = db;
     }
@@ -158,5 +182,4 @@ impl SessionManager {
             }
         }
     }
-    
 }
