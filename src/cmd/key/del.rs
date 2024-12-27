@@ -34,8 +34,10 @@ impl Del {
         let mut counter = AtomInteger::new();
         for key in self.keys {
             match db.remove(&key) {
-                true => counter.increment(),
-                false => (), // 键不存在，不增加计数器
+                Some(_) => counter.increment(),
+                None => { 
+                    // 键不存在，不增加计数器
+                },
             }
         } 
         let count = counter.get(); 

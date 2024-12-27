@@ -1,8 +1,8 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use anyhow::Error;
-use tokio::sync::mpsc::{channel, Receiver, Sender};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::{args::Args, command::Command, message::Message};
 
@@ -17,10 +17,8 @@ pub struct DbManager {
 }
 
 impl DbManager {
-    
     // 创建 Db 并维护 sender 对象
     pub fn new(args: Arc<Args>) -> Self {
-
         // 创建 DB 实例（单线程）
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
@@ -43,7 +41,7 @@ impl DbManager {
 
     /**
      * 获取发送者
-     * 
+     *
      * @param idx 数据库索引
      */
     pub fn get(&self, idx: usize) -> Sender<Message> {
@@ -67,7 +65,6 @@ pub struct Db {
 }
 
 impl Db {
-
     pub fn new() -> Self {
         let (sender, receiver) = channel(1024);
 
@@ -80,9 +77,7 @@ impl Db {
     }
 
     async fn run(&mut self) {
-        
         while let Some(Message { sender, command }) = self.receiver.recv().await {
-        
             let result: Result<crate::frame::Frame, Error> = match command {
                 Command::Set(set) => set.apply(self),
                 Command::Get(get) => get.apply(self),
@@ -91,13 +86,13 @@ impl Db {
                 Command::Flushdb(flushdb) => flushdb.apply(self),
                 Command::Pttl(pttl) => pttl.apply(self),
                 Command::Ttl(ttl) => ttl.apply(self),
+                Command::Rename(rename) => rename.apply(self),
+                Command::Exists(exists) => exists.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
             match result {
-                Ok(f) => {
-                    if let Err(_) = sender.send(f) {}
-                },
+                Ok(f) => if let Err(_) = sender.send(f) {},
                 Err(e) => {
                     eprintln!("Error applying command: {:?}", e);
                 }
@@ -107,7 +102,7 @@ impl Db {
 
     /**
      * 保存键值
-     * 
+     *
      * @param key 键名
      * @param value 值
      */
@@ -117,17 +112,17 @@ impl Db {
 
     /**
      * 获取键值
-     * 
+     *
      * @param key 键名
      */
     pub fn get(&mut self, key: &str) -> Option<&Structure> {
-        self.expire_if_needed(key); 
+        self.expire_if_needed(key);
         self.records.get(key)
     }
 
     /**
      * 设置过期
-     * 
+     *
      * @param key 键名
      * @param ttl 过期时间（毫秒）
      */
@@ -138,27 +133,30 @@ impl Db {
 
     /**
      * 删除键值
-     * 
+     *
      * @param key 键名
+     * @return 如果删除成功，返回被删除的值；如果删除失败，返回 None
      */
-    pub fn remove(&mut self, key: &str) -> bool {
+    pub fn remove(&mut self, key: &str) -> Option<Structure> {
         if self.records.contains_key(key) {
             self.expire_records.remove(key);
-            self.records.remove(key);
-            return true
+            self.records.remove(key)
+        } else {
+            None
         }
-        false
     }
 
     /**
      * 过期检测
-     * 
+     *
      * @param key 键名
      */
     pub fn expire_if_needed(&mut self, key: &str) {
         if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
-            if now.duration_since(UNIX_EPOCH).unwrap().as_secs() > expire_time.duration_since(UNIX_EPOCH).unwrap().as_secs() {
+            if now.duration_since(UNIX_EPOCH).unwrap().as_secs()
+                > expire_time.duration_since(UNIX_EPOCH).unwrap().as_secs()
+            {
                 self.expire_records.remove(key);
                 self.records.remove(key);
             }
@@ -167,24 +165,37 @@ impl Db {
 
     /**
      * 获取过期毫秒数
-     * 
+     *
      * @param key 键名
      * @return 过期毫秒数，如果键不存在则返回 -2，如果键已过期则返回 -1
      */
     pub fn ttl_millis(&mut self, key: &str) -> i64 {
         if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
-            if now >= *expire_time { 
+            if now >= *expire_time {
                 self.remove(key); // 键已过期，应该从数据库中移除
                 -1
             } else {
-                let duration = expire_time.duration_since(now).unwrap_or(Duration::new(0, 0));
-                duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64 // 计算剩余时间
+                let duration = expire_time
+                    .duration_since(now)
+                    .unwrap_or(Duration::new(0, 0));
+                duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64
+                // 计算剩余时间
             }
         } else if self.records.contains_key(key) {
             -2 // 键存在但没有设置过期时间
         } else {
             -2 // 键不存在
         }
+    }
+
+    /**
+     * 检查键是否存在
+     *
+     * @param key 键名
+     * @return 如果键存在返回 true，否则返回 false
+     */
+    pub fn exists(&self, key: &str) -> bool {
+        self.records.contains_key(key)
     }
 }

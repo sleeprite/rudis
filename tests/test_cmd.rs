@@ -60,6 +60,9 @@ mod tests {
         let _: () = con.rename("rename-test", "rename-new-test").unwrap();
         
         let key_exists: bool = con.exists("rename-new-test").unwrap();
+
+        println!("是否存在：{}", key_exists);
+
         assert_eq!(key_exists, true);
     }
 

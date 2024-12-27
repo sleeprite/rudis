@@ -26,8 +26,6 @@ impl Set {
         let fianl_key = key.unwrap().to_string(); // 键
         let final_val = val.unwrap().to_string(); // 值
 
-        log::info!("值:{}", final_val);
-
         let args = match frame {
             Frame::Array(args) => args,
             _ => return Err(Error::msg("Frame is not an Array variant")),
