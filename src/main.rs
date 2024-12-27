@@ -1,6 +1,6 @@
 use rudis_server::args::Args;
 use rudis_server::command::Command;
-use rudis_server::db::{DbManager, Message};
+use rudis_server::db::{DbManager, DbMessage};
 use rudis_server::frame::Frame;
 use rudis_server::session::SessionManager;
 use std::process::id;
@@ -118,7 +118,7 @@ async fn main()  {
                                             let (sender, receiver) = oneshot::channel(); // 创建通道
                                             let target_sender = db_manager_clone.get(session.db()); 
                                             
-                                            match target_sender.send(Message {
+                                            match target_sender.send(DbMessage {
                                                 sender: sender,
                                                 command,
                                             }).await {

@@ -11,9 +11,20 @@ pub enum Structure {
     Hash,
 }
 
+/**
+ * 消息
+ * 
+ * @param sender 发送者
+ * @param command 命令
+ */
+pub struct DbMessage {
+    pub sender: oneshot::Sender<Frame>,
+    pub command: Command,
+}
+
 // Db 仓库
 pub struct DbManager {
-    senders: Vec<Sender<Message>>,
+    senders: Vec<Sender<DbMessage>>,
 }
 
 impl DbManager {
@@ -44,7 +55,7 @@ impl DbManager {
      *
      * @param idx 数据库索引
      */
-    pub fn get(&self, idx: usize) -> Sender<Message> {
+    pub fn get(&self, idx: usize) -> Sender<DbMessage> {
         if let Some(sender) = self.senders.get(idx) {
             sender.clone()
         } else {
@@ -58,8 +69,8 @@ impl DbManager {
  * @param sender
  */
 pub struct Db {
-    receiver: Receiver<Message>,
-    sender: Sender<Message>,
+    receiver: Receiver<DbMessage>,
+    sender: Sender<DbMessage>,
     pub expire_records: HashMap<String, SystemTime>,
     pub records: HashMap<String, Structure>,
 }
@@ -77,7 +88,7 @@ impl Db {
     }
 
     async fn run(&mut self) {
-        while let Some(Message { sender, command }) = self.receiver.recv().await {
+        while let Some(DbMessage { sender, command }) = self.receiver.recv().await {
             let result: Result<crate::frame::Frame, Error> = match command {
                 Command::Set(set) => set.apply(self),
                 Command::Get(get) => get.apply(self),
@@ -198,15 +209,4 @@ impl Db {
     pub fn exists(&self, key: &str) -> bool {
         self.records.contains_key(key)
     }
-}
-
-/**
- * 消息
- * 
- * @param sender 发送者
- * @param command 命令
- */
-pub struct Message {
-    pub sender: oneshot::Sender<Frame>,
-    pub command: Command,
 }
