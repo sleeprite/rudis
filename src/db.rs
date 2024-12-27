@@ -82,12 +82,12 @@ impl Db {
                 Command::Set(set) => set.apply(self),
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
+                Command::Rename(rename) => rename.apply(self),
+                Command::Exists(exists) => exists.apply(self),
                 Command::Expire(expire) => expire.apply(self),
                 Command::Flushdb(flushdb) => flushdb.apply(self),
                 Command::Pttl(pttl) => pttl.apply(self),
                 Command::Ttl(ttl) => ttl.apply(self),
-                Command::Rename(rename) => rename.apply(self),
-                Command::Exists(exists) => exists.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
