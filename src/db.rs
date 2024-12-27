@@ -28,19 +28,23 @@ pub struct DbManager {
 }
 
 impl DbManager {
-    // 创建 Db 并维护 sender 对象
+    
+    /**
+     * 创建 DB 管理器
+     * 
+     * @param args 参数
+     */
     pub fn new(args: Arc<Args>) -> Self {
-        // 创建 DB 实例（单线程）
+      
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
 
         for _ in 0..args.databases {
-            let db = Db::new(); // 创建数据库
+            let db = Db::new();
             senders.push(db.sender.clone());
             dbs.push(db);
         }
 
-        // 启动 DB 实例（多线程）
         for mut db in dbs {
             tokio::spawn(async move {
                 db.run().await;
