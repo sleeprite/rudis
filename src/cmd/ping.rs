@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use anyhow::Error;
 
-use crate::{ frame::Frame, session::SessionManager };
+use crate::frame::Frame;
 
 pub struct Ping;
 
@@ -12,7 +10,7 @@ impl Ping {
         Ok(Ping)
     }
 
-    pub fn apply(self, _session_manager: Arc<SessionManager>, _session_id: &String) -> Result<Frame, Error> {
+    pub fn apply(self) -> Result<Frame, Error> {
         Ok(Frame::SimpleString("PONG".to_string()))
     }
 }

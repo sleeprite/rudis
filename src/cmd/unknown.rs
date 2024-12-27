@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use anyhow::Error;
 
-use crate::{frame::Frame, session::SessionManager};
+use crate::frame::Frame;
 
 pub struct Unknown {
     command_name: String,
@@ -35,7 +33,7 @@ impl Unknown {
         })
     }
 
-    pub fn apply(self, _session_manager: Arc<SessionManager>, _session_id: &String) -> Result<Frame, Error> {
+    pub fn apply(self) -> Result<Frame, Error> {
         Ok(Frame::Error(format!("ERR unknown command `{}`, with args beginning with: `{}`", self.command_name, self.args)))
     }
 }

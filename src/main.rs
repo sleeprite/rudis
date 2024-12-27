@@ -111,8 +111,8 @@ async fn main()  {
                                     let result = match command { 
                                         Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
                                         Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
-                                        Command::Unknown(unknown) => unknown.apply(session_manager_clone.clone(), &session_id),
-                                        Command::Ping(ping) => ping.apply(session_manager_clone.clone(), &session_id),
+                                        Command::Unknown(unknown) => unknown.apply(),
+                                        Command::Ping(ping) => ping.apply(),
                                         _ => {
                                             
                                             let (sender, receiver) = oneshot::channel(); // 创建通道
