@@ -1,6 +1,6 @@
 pub mod args;
 pub mod cmd;
 pub mod command;
+pub mod session;
 pub mod db;
 pub mod frame;
-pub mod session;

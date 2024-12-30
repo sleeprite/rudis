@@ -55,7 +55,7 @@ async fn main()  {
                     Ok((mut stream, _address)) => {
                 
                         let address = stream.peer_addr().unwrap();
-                        let session_id = address.to_string(); // 会话编号
+                        let session_id = address.to_string(); 
                         let session_manager_clone = session_manager.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         session_manager_clone.register(address);
@@ -99,14 +99,14 @@ async fn main()  {
                                     }
                                 };
 
-                                let is_login = match command {
+                                let allow_access = match command {
                                     Command::Auth(_) => true,
                                     _ => {
                                         session_manager_clone.is_login(&session_id)
                                     }
                                 };
 
-                                if is_login { 
+                                if allow_access { 
                                     let session = session_manager_clone.get(&session_id).unwrap();
                                     let result = match command { 
                                         Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),

@@ -23,7 +23,6 @@ impl Frame {
             Frame::Ok => b"+OK\r\n".to_vec(),
             Frame::SimpleString(s) => format!("+{}\r\n", s).into_bytes(),
             Frame::Integer(i) => format!(":{}\r\n", i).into_bytes(),
-            Frame::BulkString(None) => b"$-1\r\n".to_vec(),
             Frame::Null => b"$-1\r\n".to_vec(),
             Frame::Error(e) => format!("-{}\r\n", e).into_bytes(),
             Frame::Array(arr) => {
@@ -33,6 +32,7 @@ impl Frame {
                 }
                 bytes
             },
+            Frame::BulkString(None) => b"$-1\r\n".to_vec(),
             Frame::BulkString(Some(s)) => {
                 let mut bytes = format!("${}\r\n", s.len()).into_bytes();
                 bytes.extend(s.as_bytes());
