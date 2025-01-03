@@ -4,7 +4,7 @@ use crate::{
     cmd::{
         auth::Auth, flushdb::Flushdb, key::{
             del::Del, exists::Exists, expire::Expire, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
-        }, ping::Ping, select::Select, string::{ get::Get,  set::Set}, unknown::Unknown 
+        }, ping::Ping, select::Select, string::{ get::Get, mget::Mget, mset::Mset, set::Set}, unknown::Unknown 
     }, frame::Frame
 };
 
@@ -21,6 +21,8 @@ pub enum Command {
     Set(Set),
     Ttl(Ttl),
     Unknown(Unknown),
+    Mset(Mset),
+    Mget(Mget),
     Rename(Rename),
     Exists(Exists),
     Type(Type)
@@ -43,6 +45,8 @@ impl Command {
             "TTL" => Command::Ttl(Ttl::parse_from_frame(frame)?),
             "RENAME" => Command::Rename(Rename::parse_from_frame(frame)?),
             "EXISTS" => Command::Exists(Exists::parse_from_frame(frame)?),
+            "MSET" => Command::Mset(Mset::parse_from_frame(frame)?),
+            "MGET" => Command::Mget(Mget::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
