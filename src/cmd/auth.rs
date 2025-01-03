@@ -9,6 +9,7 @@ pub struct Auth {
 }
 
 impl Auth {
+    
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let requirepass = frame.get_arg(1);
 

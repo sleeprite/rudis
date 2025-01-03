@@ -34,9 +34,7 @@ impl Expire {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-
         db.expire(self.key.clone(), self.ttl);
-        
         Ok(Frame::Ok)
     }
 }

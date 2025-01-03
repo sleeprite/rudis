@@ -15,11 +15,9 @@ impl Del {
      */
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let keys = frame.get_args_from_index(1);
-
         if keys.is_empty() {
             return Err(Error::msg("ERR wrong number of arguments for 'del' command"));
         } 
-       
         Ok(Del { 
             keys: keys 
         })
