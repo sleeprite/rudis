@@ -9,15 +9,11 @@ pub struct Ttl {
 impl Ttl {
 
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {      
-
         let key = frame.get_arg(1);
-
         if key.is_none() {
             return Err(Error::msg("ERR wrong number of arguments for 'ttl' command"));
         }
-
         let fianl_key = key.unwrap().to_string();
-    
         Ok(Ttl {
             key: fianl_key
         })

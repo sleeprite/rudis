@@ -17,7 +17,6 @@ impl Pttl {
         }
 
         let fianl_key = key.unwrap().to_string();
-        
 
         Ok(Pttl {
             key: fianl_key

@@ -6,6 +6,7 @@ pub struct Exists {
 }
 
 impl Exists {
+    
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let key = frame.get_arg(1);
         if key.is_none() {
