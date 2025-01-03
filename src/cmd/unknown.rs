@@ -19,10 +19,9 @@ impl Unknown {
         let mut args = String::new();
         for arg in frame.get_args().iter().skip(1) { 
             args.push_str(arg);
-            args.push(' '); // 参数之间加上空格
+            args.push(' ');
         }
 
-        // 移除最后的空格
         if !args.is_empty() {
             args.pop();
         }
