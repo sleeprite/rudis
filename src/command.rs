@@ -1,22 +1,11 @@
 use anyhow::Error;
 
 use crate::{
-    frame::Frame,
     cmd::{
-        auth::Auth, 
-        flushdb::Flushdb, 
-        key::{
-            del::Del, 
-            exists::Exists, 
-            expire::Expire,
-            rename::Rename,  
-            pttl::Pttl, 
-            ttl::Ttl
-        }, ping::Ping, 
-        unknown::Unknown,
-        string::{ get::Get,  set::Set}, 
-        select::Select, 
-    },
+        auth::Auth, flushdb::Flushdb, key::{
+            del::Del, exists::Exists, expire::Expire, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
+        }, ping::Ping, select::Select, string::{ get::Get,  set::Set}, unknown::Unknown 
+    }, frame::Frame
 };
 
 // 命令
@@ -33,7 +22,8 @@ pub enum Command {
     Ttl(Ttl),
     Unknown(Unknown),
     Rename(Rename),
-    Exists(Exists)
+    Exists(Exists),
+    Type(Type)
 }
 
 impl Command {
@@ -47,6 +37,7 @@ impl Command {
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "PING" => Command::Ping(Ping::parse_from_frame(frame)?),
             "PTTL" => Command::Pttl(Pttl::parse_from_frame(frame)?),
+            "TYPE" => Command::Type(Type::parse_from_frame(frame)?),
             "SELECT" => Command::Select(Select::parse_from_frame(frame)?),
             "SET" => Command::Set(Set::parse_from_frame(frame)?),
             "TTL" => Command::Ttl(Ttl::parse_from_frame(frame)?),

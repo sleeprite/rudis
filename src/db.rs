@@ -8,7 +8,8 @@ use crate::{args::Args, command::Command, frame::Frame};
 
 pub enum Structure {
     String(String),
-    Hash,
+    Hash(HashMap<String, String>),
+    List(Vec<String>)
 }
 
 /**
@@ -103,6 +104,7 @@ impl Db {
                 Command::Flushdb(flushdb) => flushdb.apply(self),
                 Command::Pttl(pttl) => pttl.apply(self),
                 Command::Ttl(ttl) => ttl.apply(self),
+                Command::Type(r#type) => r#type.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
