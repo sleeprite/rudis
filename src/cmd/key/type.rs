@@ -26,12 +26,15 @@ impl Type {
                     Structure::String(_) => {
                         Ok(Frame::SimpleString("string".to_string()))
                     },
+                    Structure::Set(_) => {
+                        Ok(Frame::SimpleString("set".to_string()))
+                    },
                     Structure::Hash(_) => {
                         Ok(Frame::SimpleString("hash".to_string()))
                     },
                     Structure::List(_) => {
                         Ok(Frame::SimpleString("list".to_string()))
-                    },
+                    }
                 }
             },
             None => {

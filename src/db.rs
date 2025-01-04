@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::{HashMap, HashSet}, sync::Arc, time::Duration};
 
 use anyhow::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -9,6 +9,7 @@ use crate::{args::Args, command::Command, frame::Frame};
 pub enum Structure {
     String(String),
     Hash(HashMap<String, String>),
+    Set(HashSet<String>),
     List(Vec<String>)
 }
 
