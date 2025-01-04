@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, flushdb::Flushdb, key::{
+        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, key::{
             del::Del, exists::Exists, expire::Expire, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
         }, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
@@ -12,6 +12,7 @@ use crate::{
 pub enum Command {
     Auth(Auth),
     Append(Append),
+    Dbsize(Dbsize),
     Del(Del),
     Expire(Expire),
     Flushdb(Flushdb),
@@ -51,6 +52,7 @@ impl Command {
             "MSET" => Command::Mset(Mset::parse_from_frame(frame)?),
             "MGET" => Command::Mget(Mget::parse_from_frame(frame)?),
             "APPEND" => Command::Append(Append::parse_from_frame(frame)?),
+            "DBSIZE" => Command::Dbsize(Dbsize::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

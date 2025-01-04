@@ -110,6 +110,7 @@ impl Db {
                 Command::Mget(mget) => mget.apply(self),
                 Command::Strlen(strlen) => strlen.apply(self),
                 Command::Append(append) => append.apply(self),
+                Command::Dbsize(dbsize) => dbsize.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
