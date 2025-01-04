@@ -108,6 +108,7 @@ impl Db {
                 Command::Mset(mset) => mset.apply(self),
                 Command::Mget(mget) => mget.apply(self),
                 Command::Strlen(strlen) => strlen.apply(self),
+                Command::Append(append) => append.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

@@ -4,13 +4,14 @@ use crate::{
     cmd::{
         auth::Auth, flushdb::Flushdb, key::{
             del::Del, exists::Exists, expire::Expire, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
-        }, ping::Ping, select::Select, string::{ get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
+        }, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
 };
 
 // 命令
 pub enum Command {
     Auth(Auth),
+    Append(Append),
     Del(Del),
     Expire(Expire),
     Flushdb(Flushdb),
@@ -49,6 +50,7 @@ impl Command {
             "STRLEN" => Command::Strlen(Strlen::parse_from_frame(frame)?),
             "MSET" => Command::Mset(Mset::parse_from_frame(frame)?),
             "MGET" => Command::Mget(Mget::parse_from_frame(frame)?),
+            "APPEND" => Command::Append(Append::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
