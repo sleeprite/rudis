@@ -15,7 +15,7 @@ pub enum Frame {
 impl Frame {
 
     /**
-     * 将 frame 转换为 Str
+     * 将 frame 转换为 String
      * 
      * @param self 本身
      */
@@ -116,7 +116,7 @@ impl Frame {
         }
         Ok(Frame::Array(frames))
     }
-    
+
     /**
      * 获取指定索引的内容
      *

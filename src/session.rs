@@ -12,6 +12,12 @@ pub struct Session {
 }
 
 impl Session {
+
+    /**
+     * 创建会话
+     * 
+     * @param address 来源地址
+     */
     pub fn new(address: SocketAddr) -> Self {
         Session {
             authenticated: true,
