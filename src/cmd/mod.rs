@@ -6,3 +6,4 @@ pub mod auth;
 pub mod flushdb;
 pub mod ping;
 pub mod dbsize;
+pub mod hash;

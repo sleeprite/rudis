@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, key::{
+        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hget::Hget, hset::Hset}, key::{
             del::Del, exists::Exists, expire::Expire, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
         }, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
@@ -28,6 +28,8 @@ pub enum Command {
     Strlen(Strlen),
     Rename(Rename),
     Exists(Exists),
+    Hset(Hset),
+    Hget(Hget),
     Type(Type)
 }
 
@@ -53,6 +55,8 @@ impl Command {
             "MGET" => Command::Mget(Mget::parse_from_frame(frame)?),
             "APPEND" => Command::Append(Append::parse_from_frame(frame)?),
             "DBSIZE" => Command::Dbsize(Dbsize::parse_from_frame(frame)?),
+            "HSET" => Command::Hset(Hset::parse_from_frame(frame)?),
+            "HGET" => Command::Hget(Hget::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
