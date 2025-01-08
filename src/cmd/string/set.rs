@@ -26,10 +26,7 @@ impl Set {
         let fianl_key = key.unwrap().to_string(); // 键
         let final_val = val.unwrap().to_string(); // 值
 
-        let args = match frame {
-            Frame::Array(args) => args,
-            _ => return Err(Error::msg("Frame is not an Array variant")),
-        };
+        let args = frame.get_args();
 
         // 检测 EX 和 PX 是否存在
         let mut ttl: Option<u64> = None; // 默认 ttl 为 0

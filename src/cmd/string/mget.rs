@@ -21,10 +21,6 @@ impl Mget {
                 None => results.push(Frame::Null), // 如果键不存在，返回 Null
             }
         }
-        Ok(Frame::Array(results.into_iter().map(|f| match f {
-            Frame::BulkString(Some(s)) => s,
-            Frame::Null => String::new(),
-            _ => unreachable!(),
-        }).collect()))
+        Ok(Frame::Array(results))
     }
 }

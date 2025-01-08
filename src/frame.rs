@@ -1,17 +1,43 @@
 /*
  * 命令帧枚举
  */
+#[derive(Clone)]
 pub enum Frame {
     Ok,
     Integer(i64),
     SimpleString(String),
-    Array(Vec<String>),
+    Array(Vec<Frame>),
     BulkString(Option<String>),
     Error(String),
     Null
 }
 
 impl Frame {
+
+    /**
+     * 将 frame 转换为 Str
+     * 
+     * @param self 本身
+     */
+    pub fn to_string(&self) -> String {
+        match self {
+            Frame::Ok => String::from("OK"),
+            Frame::Integer(i) => i.to_string(),
+            Frame::SimpleString(s) => s.clone(),
+            Frame::BulkString(Some(s)) => s.clone(),
+            Frame::BulkString(None) => "".to_string(),
+            Frame::Error(e) => e.clone(),
+            Frame::Null => String::new(),
+            Frame::Array(arr) => {
+                let mut result = String::new();
+                for item in arr {
+                    result.push_str(&item.to_string());
+                    result.push(' ');
+                }
+                result.trim_end().to_string()
+            },
+        }
+    }
 
     /**
      * 将 frame 转换为 bytes
@@ -28,7 +54,7 @@ impl Frame {
             Frame::Array(arr) => {
                 let mut bytes = format!("*{}\r\n", arr.len()).into_bytes();
                 for item in arr {
-                    bytes.extend(format!("${}\r\n{}\r\n", item.len(), item).into_bytes());
+                    bytes.extend(item.as_bytes());
                 }
                 bytes
             },
@@ -82,7 +108,7 @@ impl Frame {
                 };
 
                 if !(part.starts_with('*') || part.starts_with('$')) {
-                    frames.push(part.to_string());
+                    frames.push(Frame::SimpleString(part.to_string()));
                 }
 
                 start = i + 2;
@@ -90,17 +116,17 @@ impl Frame {
         }
         Ok(Frame::Array(frames))
     }
-
+    
     /**
      * 获取指定索引的内容
      *
      * @param index 索引
      */
-    pub fn get_arg(&self, index: usize) -> Option<&String> {
+    pub fn get_arg(&self, index: usize) -> Option<String> {
         match self {
             Frame::Array(array) => {
                 if index < array.len() {
-                    Some(&array[index])
+                    Some(array[index].to_string())
                 } else {
                     None
                 }
@@ -118,7 +144,7 @@ impl Frame {
      */
     pub fn get_args(&self) -> Vec<String> {
         match self {
-            Frame::Array(array) => array.clone(),
+            Frame::Array(array) => array.iter().map(|frame| frame.to_string()).collect(),
             _ => Vec::new(),
         }
     }
@@ -135,9 +161,9 @@ impl Frame {
         match self {
             Frame::Array(array) => {
                 if start_index < array.len() {
-                    array[start_index..].to_vec()
+                    array[start_index..].iter().map(|frame| frame.to_string()).collect()
                 } else {
-                    Vec::new() // 响应空数组
+                    Vec::new()
                 }
             },
             _ => Vec::new()
