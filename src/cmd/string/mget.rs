@@ -16,9 +16,13 @@ impl Mget {
         let mut results = Vec::new();
         for key in self.keys {
             match db.get(&key) {
-                Some(Structure::String(val)) => results.push(Frame::BulkString(Some(val.to_string()))),
-                Some(_) => results.push(Frame::Null), // 如果值不是字符串类型，返回 Null
-                None => results.push(Frame::Null), // 如果键不存在，返回 Null
+                Some(structure) => {
+                    match structure {
+                        Structure::String(str) => results.push(Frame::BulkString(Some(str.to_string()))),
+                        _ => results.push(Frame::BulkString(None)),
+                    }
+                }
+                None => results.push(Frame::BulkString(None)),
             }
         }
         Ok(Frame::Array(results))
