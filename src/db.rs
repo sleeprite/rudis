@@ -136,6 +136,7 @@ impl Db {
                 Command::Hgetall(hgetall) => hgetall.apply(self),
                 Command::Keys(keys) => keys.apply(self),
                 Command::Hlen(hlen) => hlen.apply(self),
+                Command::Hkeys(hkeys) => hkeys.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

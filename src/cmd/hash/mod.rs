@@ -8,3 +8,4 @@ pub mod hgetall;
 pub mod hdel;
 pub mod hlen;
 pub mod hsetnx;
+pub mod hkeys;
