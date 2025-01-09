@@ -107,7 +107,8 @@ impl Frame {
                     Err(_) => return Err("Invalid UTF-8 sequence".into()),
                 };
 
-                if !(part.starts_with('*') || part.starts_with('$')) {
+                // part.len()!= 1 处理 keys * 命令
+                if !((part.starts_with('*') && part.len()!= 1) || part.starts_with('$')) {
                     frames.push(Frame::SimpleString(part.to_string()));
                 }
 
