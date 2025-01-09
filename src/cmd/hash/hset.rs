@@ -10,6 +10,7 @@ pub struct Hset {
 }
 
 impl Hset {
+
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
 
         let key = frame.get_arg(1);
@@ -20,9 +21,9 @@ impl Hset {
             return Err(Error::msg("ERR wrong number of arguments for 'hset' command"));
         }
 
-        let final_key = key.unwrap().to_string(); // 键
-        let final_field = field.unwrap().to_string(); // 字段
-        let final_value = value.unwrap().to_string(); // 内容
+        let final_key = key.unwrap().to_string(); 
+        let final_field = field.unwrap().to_string(); 
+        let final_value = value.unwrap().to_string();
 
         Ok(Hset {
             key: final_key,

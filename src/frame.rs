@@ -15,7 +15,7 @@ pub enum Frame {
 impl Frame {
 
     /**
-     * 将 frame 转换为 String
+     * 将 frame 转换为 Str
      * 
      * @param self 本身
      */

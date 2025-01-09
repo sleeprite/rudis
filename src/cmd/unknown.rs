@@ -17,6 +17,7 @@ impl Unknown {
         };
 
         let mut args = String::new();
+        
         for arg in frame.get_args().iter().skip(1) { 
             args.push_str(arg);
             args.push(' ');

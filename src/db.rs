@@ -113,6 +113,9 @@ impl Db {
                 Command::Dbsize(dbsize) => dbsize.apply(self),
                 Command::Hset(hset) => hset.apply(self),
                 Command::Hget(hget) => hget.apply(self),
+                Command::Hmset(hmset) => hmset.apply(self),
+                Command::Hdel(hdel) => hdel.apply(self),
+                Command::Hexists(hexists) => hexists.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

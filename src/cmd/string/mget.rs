@@ -20,8 +20,8 @@ impl Mget {
                     match structure {
                         Structure::String(str) => results.push(Frame::BulkString(Some(str.to_string()))),
                         _ => results.push(Frame::BulkString(None)),
-                    }
-                }
+                    }   
+                } 
                 None => results.push(Frame::BulkString(None)),
             }
         }

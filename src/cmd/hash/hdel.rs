@@ -1,0 +1,65 @@
+use anyhow::Error;
+use crate::{db::{Db, Structure}, frame::Frame};
+
+pub struct Hdel {
+    key: String,
+    fields: Vec<String>,
+}
+
+impl Hdel {
+
+    pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
+    
+        let key = frame.get_arg(1);
+
+        if key.is_none() {
+            return Err(Error::msg("ERR wrong number of arguments for 'hdel' command"));
+        }
+
+        let args = frame.get_args();
+
+        if args.len() < 3 {
+            return Err(Error::msg("ERR wrong number of arguments for 'hdel' command"));
+        }
+
+        let fields = args[2..].iter().map(|arg| arg.to_string()).collect();
+
+        Ok(Hdel {
+            key: key.unwrap().to_string(),
+            fields,
+        })
+    }
+
+    pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
+        match db.get(&self.key) {
+            Some(structure) => {
+                match structure {
+                    Structure::Hash(hash) => {
+                        
+                        let mut new_hash = hash.clone();
+                        let mut deleted_count = 0;
+
+                        for field in &self.fields {
+                            if new_hash.remove(field).is_some() {
+                                deleted_count += 1;
+                            }
+                        }
+
+                        if deleted_count > 0 {
+                            db.insert(self.key, Structure::Hash(new_hash));
+                        }
+
+                        Ok(Frame::Integer(deleted_count as i64))
+                    },
+                    _ => {
+                        let f = "ERR Operation against a key holding the wrong kind of value";
+                        Ok(Frame::Error(f.to_string()))
+                    }
+                }
+            },
+            None => {
+                Ok(Frame::Integer(0))
+            }
+        }
+    }
+}

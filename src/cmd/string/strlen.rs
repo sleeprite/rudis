@@ -6,6 +6,7 @@ pub struct Strlen {
 }
 
 impl Strlen {
+    
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
         let key = frame.get_arg(1);
 
