@@ -9,3 +9,4 @@ pub mod hdel;
 pub mod hlen;
 pub mod hsetnx;
 pub mod hkeys;
+pub mod hvals;

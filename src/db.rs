@@ -138,6 +138,7 @@ impl Db {
                 Command::Keys(keys) => keys.apply(self),
                 Command::Hlen(hlen) => hlen.apply(self),
                 Command::Hkeys(hkeys) => hkeys.apply(self),
+                Command::Hvals(hvals) => hvals.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

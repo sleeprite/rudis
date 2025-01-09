@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen}, key::{
+        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals}, key::{
             del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
         }, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
@@ -41,7 +41,8 @@ pub enum Command {
     Hgetall(Hgetall),
     Hsetnx(Hsetnx),
     Hkeys(Hkeys),
-    Persist(Persist)
+    Persist(Persist),
+    Hvals(Hvals)
 }
 
 impl Command {
@@ -79,6 +80,7 @@ impl Command {
             "HSETNX" => Command::Hsetnx(Hsetnx::parse_from_frame(frame)?),
             "HKEYS" => Command::Hkeys(Hkeys::parse_from_frame(frame)?),
             "PERSIST" => Command::Persist(Persist::parse_from_frame(frame)?),
+            "HVALS" => Command::Hvals(Hvals::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
