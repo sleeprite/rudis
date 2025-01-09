@@ -76,6 +76,8 @@ impl DbManager {
 }
 
 /**
+ * 数据库结构
+ * 
  * @param receiver
  * @param sender
  */
@@ -87,6 +89,10 @@ pub struct Db {
 }
 
 impl Db {
+
+    /**
+     * 创建数据库
+     */
     pub fn new() -> Self {
         let (sender, receiver) = channel(1024);
 
@@ -98,6 +104,9 @@ impl Db {
         }
     }
 
+    /**
+     * 运行数据库
+     */
     async fn run(&mut self) {
         while let Some(DbMessage { sender, command }) = self.receiver.recv().await {
             let result: Result<crate::frame::Frame, Error> = match command {
