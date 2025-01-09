@@ -39,15 +39,13 @@ impl Hmset {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        match db.get(&self.key) {
+        match db.get_mut(&self.key) {
             Some(structure) => {
                 match structure {
                     Structure::Hash(hash) => {
-                        let mut new_hash = hash.clone();
                         for (field, value) in self.fields {
-                            new_hash.insert(field, value);
+                            hash.insert(field, value);
                         }
-                        db.insert(self.key, Structure::Hash(new_hash));
                         Ok(Frame::SimpleString("OK".to_string()))
                     },
                     _ => {

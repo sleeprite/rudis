@@ -25,22 +25,17 @@ impl Hdel {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        match db.get(&self.key) {
+        match db.get_mut(&self.key) {
             Some(structure) => {
                 match structure {
                     Structure::Hash(hash) => {
 
-                        let mut new_hash = hash.clone();
                         let mut deleted_count = 0;
 
                         for field in &self.fields {
-                            if new_hash.remove(field).is_some() {
+                            if hash.remove(field).is_some() {
                                 deleted_count += 1;
                             }
-                        }
-
-                        if deleted_count > 0 {
-                            db.insert(self.key, Structure::Hash(new_hash));
                         }
 
                         Ok(Frame::Integer(deleted_count as i64))

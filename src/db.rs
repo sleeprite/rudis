@@ -172,6 +172,16 @@ impl Db {
     }
 
     /**
+     * 获取键值【引用】
+     *
+     * @param key 键名
+     */
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Structure> {
+        self.expire_if_needed(key);
+        self.records.get_mut(key)
+    }
+
+    /**
      * 设置过期
      *
      * @param key 键名

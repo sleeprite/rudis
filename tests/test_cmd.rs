@@ -103,6 +103,7 @@ mod tests {
         let _: () = con.rpush("rpush-test", "Helloworld3").unwrap();
 
         let value: String = con.lindex("rpush-test",0).unwrap();
+
         assert_eq!(value, "Helloworld1");
     }
     
@@ -117,6 +118,7 @@ mod tests {
         let _: () = con.lpush("lpush-test", "Helloworld3").unwrap();
 
         let value: String = con.lindex("lpush-test",0).unwrap();
+        
         assert_eq!(value, "Helloworld3");
     }
 

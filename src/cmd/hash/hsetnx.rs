@@ -33,16 +33,14 @@ impl Hsetnx {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        match db.get(&self.key) {
+        match db.get_mut(&self.key) {
             Some(structure) => {
                 match structure {
                     Structure::Hash(hash) => {
                         if hash.contains_key(&self.field) {
                             Ok(Frame::Integer(0))
                         } else {
-                            let mut new_hash = hash.clone();
-                            new_hash.insert(self.field, self.value);
-                            db.insert(self.key, Structure::Hash(new_hash));
+                            hash.insert(self.field, self.value);
                             Ok(Frame::Integer(1))
                         }
                     },
@@ -53,8 +51,7 @@ impl Hsetnx {
                 }
             },
             None => {
-                let mut hash = HashMap::new();
-                hash.insert(self.field, self.value);
+                let hash = HashMap::from([(self.field, self.value)]);
                 db.insert(self.key.clone(), Structure::Hash(hash));
                 Ok(Frame::Integer(1))
             }

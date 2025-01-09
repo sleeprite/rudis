@@ -38,7 +38,7 @@ impl Hkeys {
                         Ok(Frame::Error(f.to_string()))
                     }
                 }
-            }, // 当键不存在时返回空列表
+            }, 
             None => Ok(Frame::Array(vec![])), 
         }
     }
