@@ -55,7 +55,7 @@ async fn main()  {
                     Ok((mut stream, _address)) => {
                 
                         let address = stream.peer_addr().unwrap();
-                        let session_id = address.to_string(); 
+                        let session_id = address.to_string();
                         let session_manager_clone = session_manager.clone();
                         let db_manager_clone: Arc<DbManager> = db_manager.clone();
                         session_manager_clone.register(address);

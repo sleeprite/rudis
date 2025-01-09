@@ -132,6 +132,7 @@ impl Db {
                 Command::Hexists(hexists) => hexists.apply(self),
                 Command::Hmget(hmget) => hmget.apply(self),
                 Command::Keys(keys) => keys.apply(self),
+                Command::Hlen(hlen) => hlen.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
