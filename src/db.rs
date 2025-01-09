@@ -129,6 +129,7 @@ impl Db {
                 Command::Hget(hget) => hget.apply(self),
                 Command::Hmset(hmset) => hmset.apply(self),
                 Command::Hdel(hdel) => hdel.apply(self),
+                Command::Persist(persist) => persist.apply(self),
                 Command::Hexists(hexists) => hexists.apply(self),
                 Command::Hstrlen(hstrlen) => hstrlen.apply(self),
                 Command::Hsetnx(hsetnx) => hsetnx.apply(self),
