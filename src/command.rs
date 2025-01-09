@@ -3,7 +3,7 @@ use anyhow::Error;
 use crate::{
     cmd::{
         auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hmget::Hmget, hmset::Hmset, hset::Hset}, key::{
-            del::Del, exists::Exists, expire::Expire, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
+            del::Del, exists::Exists, expire::Expire, keys::Keys, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
         }, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
 };
@@ -15,6 +15,7 @@ pub enum Command {
     Dbsize(Dbsize),
     Del(Del),
     Expire(Expire),
+    Keys(Keys),
     Flushdb(Flushdb),
     Get(Get),
     Ping(Ping),
@@ -64,6 +65,7 @@ impl Command {
             "HMSET" => Command::Hmset(Hmset::parse_from_frame(frame)?),
             "HDEL" => Command::Hdel(Hdel::parse_from_frame(frame)?),
             "HEXISTS" => Command::Hexists(Hexists::parse_from_frame(frame)?),
+            "KEYS" => Command::Keys(Keys::parse_from_frame(frame)?),
             "HMGET" => Command::Hmget(Hmget::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };

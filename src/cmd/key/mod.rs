@@ -5,3 +5,4 @@ pub mod exists;
 pub mod ttl;
 pub mod pttl;
 pub mod r#type;
+pub mod keys;

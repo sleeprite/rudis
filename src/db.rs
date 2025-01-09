@@ -1,8 +1,15 @@
-use std::{collections::{HashMap, HashSet}, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+    time::Duration,
+};
 
 use anyhow::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::sync::{mpsc::{channel, Receiver, Sender}, oneshot};
+use tokio::sync::{
+    mpsc::{channel, Receiver, Sender},
+    oneshot,
+};
 
 use crate::{args::Args, command::Command, frame::Frame};
 
@@ -10,12 +17,12 @@ pub enum Structure {
     String(String),
     Hash(HashMap<String, String>),
     Set(HashSet<String>),
-    List(Vec<String>)
+    List(Vec<String>),
 }
 
 /**
  * 消息
- * 
+ *
  * @param sender 发送者
  * @param command 命令
  */
@@ -30,14 +37,12 @@ pub struct DbManager {
 }
 
 impl DbManager {
-    
     /**
      * 创建 DB 管理器
-     * 
+     *
      * @param args 参数
      */
     pub fn new(args: Arc<Args>) -> Self {
-      
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
 
@@ -117,6 +122,7 @@ impl Db {
                 Command::Hdel(hdel) => hdel.apply(self),
                 Command::Hexists(hexists) => hexists.apply(self),
                 Command::Hmget(hmget) => hmget.apply(self),
+                Command::Keys(keys) => keys.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
@@ -205,9 +211,7 @@ impl Db {
                 self.remove(key); // 键已过期，应该从数据库中移除
                 -1
             } else {
-                let duration = expire_time
-                    .duration_since(now)
-                    .unwrap_or(Duration::new(0, 0));
+                let duration = expire_time.duration_since(now).unwrap_or(Duration::new(0, 0));
                 duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64
                 // 计算剩余时间
             }
@@ -226,5 +230,99 @@ impl Db {
      */
     pub fn exists(&self, key: &str) -> bool {
         self.records.contains_key(key)
+    }
+
+    /**
+     * 获取符合给定模式的所有键
+     *
+     * @param pattern 模式
+     * @return 符合模式的所有键的列表
+     */
+    pub fn keys(&self, pattern: &str) -> Vec<String> {
+        self.records.keys().filter(|key| self.match_pattern(key, pattern)).cloned().collect()
+    }
+
+
+     /**
+     * 简单的模式匹配函数
+     *
+     * @param key 键
+     * @param pattern 模式
+     * @return 如果键符合模式返回 true，否则返回 false
+     */
+    fn match_pattern(&self, key: &str, pattern: &str) -> bool {
+        fn is_match(key: &str, pattern: &str) -> bool {
+            let mut key_chars = key.chars().peekable();
+            let mut pattern_chars = pattern.chars().peekable();
+    
+            while let Some(p) = pattern_chars.next() {
+                match p {
+                    '*' => {
+                        if pattern_chars.peek().is_none() {
+                            // 如果模式中 '*' 是最后一个字符，那么剩下的 key 都是匹配的
+                            return true;
+                        }
+                        // 尝试匹配 '*' 后面的模式
+                        let mut next_pattern = String::new();
+                        while let Some(ch) = pattern_chars.next() {
+                            if ch == '*' {
+                                break;
+                            }
+                            next_pattern.push(ch);
+                        }
+                        if next_pattern.is_empty() {
+                            return true;
+                        }
+                        // 尝试在 key 的剩余部分中找到匹配
+                        let mut key_start = 0;
+                        while let Some(_k) = key_chars.next() {
+                            key_start += 1;
+                            if is_match(&key[key_start - 1..], &next_pattern) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    '?' => {
+                        if key_chars.next().is_none() {
+                            return false;
+                        }
+                    }
+                    '[' => {
+                        let mut set = String::new();
+                        let mut negate = false;
+                        if let Some(ch) = pattern_chars.next() {
+                            if ch == '^' {
+                                negate = true;
+                            } else {
+                                set.push(ch);
+                            }
+                        }
+                        while let Some(ch) = pattern_chars.next() {
+                            if ch == ']' {
+                                break;
+                            }
+                            set.push(ch);
+                        }
+                        if let Some(k) = key_chars.next() {
+                            if (negate && set.contains(k)) || (!negate && !set.contains(k)) {
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                    _ => {
+                        if key_chars.next() != Some(p) {
+                            return false;
+                        }
+                    }
+                }
+            }
+    
+            key_chars.next().is_none()
+        }
+    
+        is_match(key, pattern)
     }
 }

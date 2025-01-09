@@ -26,7 +26,6 @@ mod tests {
         let get_set_result: String = con.get("del-test").unwrap();
         assert_eq!(get_set_result, "Helloword");
 
-
         let _: () = con.del("del-test").unwrap();
         let get_del_result: Option<String> = con.get("del-test").unwrap();
         assert_eq!(get_del_result, None);

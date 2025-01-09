@@ -29,7 +29,6 @@ impl Hmget {
                 match structure {
                     Structure::Hash(hash) => {
                         let mut values = Vec::new();
-
                         for field in &self.fields {
                             if let Some(value) = hash.get(field) {
                                 values.push(Frame::BulkString(Some(value.clone())));
@@ -37,7 +36,6 @@ impl Hmget {
                                 values.push(Frame::Null);
                             }
                         }
-
                         Ok(Frame::Array(values))
                     },
                     _ => {
