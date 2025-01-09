@@ -131,6 +131,7 @@ impl Db {
                 Command::Hdel(hdel) => hdel.apply(self),
                 Command::Hexists(hexists) => hexists.apply(self),
                 Command::Hstrlen(hstrlen) => hstrlen.apply(self),
+                Command::Hsetnx(hsetnx) => hsetnx.apply(self),
                 Command::Hmget(hmget) => hmget.apply(self),
                 Command::Keys(keys) => keys.apply(self),
                 Command::Hlen(hlen) => hlen.apply(self),
