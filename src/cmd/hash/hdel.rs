@@ -9,23 +9,17 @@ pub struct Hdel {
 impl Hdel {
 
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
-    
-        let key = frame.get_arg(1);
-
-        if key.is_none() {
-            return Err(Error::msg("ERR wrong number of arguments for 'hdel' command"));
-        }
-
         let args = frame.get_args();
 
         if args.len() < 3 {
             return Err(Error::msg("ERR wrong number of arguments for 'hdel' command"));
         }
 
+        let key = args[1].to_string();
         let fields = args[2..].iter().map(|arg| arg.to_string()).collect();
 
         Ok(Hdel {
-            key: key.unwrap().to_string(),
+            key,
             fields,
         })
     }
@@ -35,7 +29,7 @@ impl Hdel {
             Some(structure) => {
                 match structure {
                     Structure::Hash(hash) => {
-                        
+
                         let mut new_hash = hash.clone();
                         let mut deleted_count = 0;
 

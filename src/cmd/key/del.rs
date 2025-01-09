@@ -38,7 +38,7 @@ impl Del {
                 },
             }
         } 
-        // 将 usize 转换为 i64 以符合 Frame::Integer 的要求
+        // 将 usize 转换为 i64 类型
         Ok(Frame::Integer(counter as i64))
     }
 }

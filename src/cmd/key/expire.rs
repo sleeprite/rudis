@@ -13,7 +13,6 @@ impl Expire {
 
         let args = frame.get_args(); 
 
-        // Check if the frame has at least two arguments: key and ttl
         if args.len() < 3 {
             return Err(Error::msg("ERR wrong number of arguments for 'expire' command"));
         }

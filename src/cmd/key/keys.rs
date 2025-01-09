@@ -8,13 +8,10 @@ pub struct Keys {
 impl Keys {
 
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
-        
         let args = frame.get_args_from_index(1);
-
         if args.len() != 1 {
             return Err(Error::msg("KEYS command requires exactly one argument"));
         }
-
         Ok(Keys { pattern: args[0].clone() })
     }
 
