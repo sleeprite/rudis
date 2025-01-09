@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen}, key::{
+        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen}, key::{
             del::Del, exists::Exists, expire::Expire, keys::Keys, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
         }, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
@@ -38,6 +38,7 @@ pub enum Command {
     Hmget(Hmget),
     Hdel(Hdel),
     Hlen(Hlen),
+    Hgetall(Hgetall),
     Hsetnx(Hsetnx)
 }
 
@@ -72,6 +73,7 @@ impl Command {
             "KEYS" => Command::Keys(Keys::parse_from_frame(frame)?),
             "HMGET" => Command::Hmget(Hmget::parse_from_frame(frame)?),
             "HLEN" => Command::Hlen(Hlen::parse_from_frame(frame)?),
+            "HGETALL" => Command::Hgetall(Hgetall::parse_from_frame(frame)?),
             "HSETNX" => Command::Hsetnx(Hsetnx::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };

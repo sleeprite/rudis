@@ -133,6 +133,7 @@ impl Db {
                 Command::Hstrlen(hstrlen) => hstrlen.apply(self),
                 Command::Hsetnx(hsetnx) => hsetnx.apply(self),
                 Command::Hmget(hmget) => hmget.apply(self),
+                Command::Hgetall(hgetall) => hgetall.apply(self),
                 Command::Keys(keys) => keys.apply(self),
                 Command::Hlen(hlen) => hlen.apply(self),
                 _ => Err(Error::msg("Unknown command")),

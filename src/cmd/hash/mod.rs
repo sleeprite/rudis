@@ -4,6 +4,7 @@ pub mod hset;
 pub mod hget;
 pub mod hstrlen;
 pub mod hexists;
+pub mod hgetall;
 pub mod hdel;
 pub mod hlen;
 pub mod hsetnx;
