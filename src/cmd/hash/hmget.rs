@@ -33,7 +33,7 @@ impl Hmget {
                             if let Some(value) = hash.get(field) {
                                 values.push(Frame::BulkString(Some(value.clone())));
                             } else {
-                                values.push(Frame::Null);
+                                values.push(Frame::BulkString(None));
                             }
                         }
                         Ok(Frame::Array(values))

@@ -21,7 +21,29 @@ impl Lpush {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        // todo
-        Ok(Frame::Integer(0))
+        match db.get_mut(&self.key) {
+            Some(structure) => {
+                match structure {
+                    Structure::List(list) => {
+                        for value in self.values.into_iter().rev() {
+                            list.insert(0, value);
+                        }
+                        Ok(Frame::Integer(list.len() as i64))
+                    },
+                    _ => {
+                        let f = "ERR Operation against a key holding the wrong kind of value";
+                        Ok(Frame::Error(f.to_string()))
+                    }
+                }
+            },
+            None => {
+                let mut list = Vec::new(); // 倒序遍历
+                for value in self.values.into_iter().rev() {
+                    list.insert(0, value);
+                }
+                db.insert(self.key.clone(), Structure::List(list.clone()));
+                Ok(Frame::Integer(list.len() as i64))
+            }
+        }
     }
 }

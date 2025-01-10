@@ -15,6 +15,7 @@ impl Mset {
         }
 
         let mut key_vals = Vec::new();
+        
         for i in (0..args.len()).step_by(2) {
             let key = args[i].to_string();
             let val = args[i + 1].to_string();
