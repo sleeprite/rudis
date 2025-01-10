@@ -9,7 +9,9 @@ pub struct Lpush {
 impl Lpush {
     
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
+
         let args = frame.get_args();
+        
         if args.len() < 3 {
             return Err(Error::msg("ERR wrong number of arguments for 'lpush' command"));
         }
@@ -26,7 +28,7 @@ impl Lpush {
                 match structure {
                     Structure::List(list) => {
                         for value in self.values.into_iter().rev() {
-                            list.insert(0, value);
+                            list.insert(0, value); // 向引用 mut 中添加数据
                         }
                         Ok(Frame::Integer(list.len() as i64))
                     },

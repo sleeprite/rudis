@@ -11,8 +11,8 @@ impl Flushdb {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        db.records.clear();
         db.expire_records.clear();
+        db.records.clear();
         Ok(Frame::Ok)
     }
 }

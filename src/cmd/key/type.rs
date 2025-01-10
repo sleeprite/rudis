@@ -23,11 +23,11 @@ impl Type {
         match db.get(&self.key) {
             Some(structure) => {
                 match structure {
-                    Structure::String(_) => {
-                        Ok(Frame::SimpleString("string".to_string()))
-                    },
                     Structure::Set(_) => {
                         Ok(Frame::SimpleString("set".to_string()))
+                    },
+                    Structure::String(_) => {
+                        Ok(Frame::SimpleString("string".to_string()))
                     },
                     Structure::Hash(_) => {
                         Ok(Frame::SimpleString("hash".to_string()))

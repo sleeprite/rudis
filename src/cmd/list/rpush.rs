@@ -24,7 +24,7 @@ impl Rpush {
                 match structure {
                     Structure::List(list) => {
                         for value in self.values {
-                            list.push(value);
+                            list.push(value); // 向引用 mut 中添加数据
                         }
                         Ok(Frame::Integer(list.len() as i64))
                     },

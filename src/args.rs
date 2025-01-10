@@ -11,16 +11,16 @@ pub struct Args {
     pub requirepass: Option<String>,
 
     /**
-     * 数据库
-     */
-    #[arg(short, long, default_value = "16")]
-    pub databases: usize,
-
-    /**
      * 绑定地址
      */
     #[arg(short, long, default_value = "127.0.0.1")] 
     pub bind: String,
+
+    /**
+     * 数据库
+     */
+    #[arg(short, long, default_value = "16")]
+    pub databases: usize,
 
     /**
      * 监听端口
