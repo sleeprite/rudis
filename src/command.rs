@@ -4,7 +4,7 @@ use crate::{
     cmd::{
         auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals}, key::{
             del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
-        }, list::{lpop::Lpop, lpush::Lpush, rpop::Rpop, rpush::Rpush}, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
+        }, list::{lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, rpop::Rpop, rpush::Rpush}, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
 };
 
@@ -45,8 +45,10 @@ pub enum Command {
     Hvals(Hvals),
     Rpush(Rpush),
     Lpush(Lpush),
+    Lindex(Lindex),
     Rpop(Rpop),
-    Lpop(Lpop)
+    Lpop(Lpop),
+    Llen(Llen)
 }
 
 impl Command {
@@ -84,11 +86,13 @@ impl Command {
             "HSETNX" => Command::Hsetnx(Hsetnx::parse_from_frame(frame)?),
             "HKEYS" => Command::Hkeys(Hkeys::parse_from_frame(frame)?),
             "PERSIST" => Command::Persist(Persist::parse_from_frame(frame)?),
+            "LINDEX" => Command::Lindex(Lindex::parse_from_frame(frame)?),
+            "RPOP" => Command::Rpop(Rpop::parse_from_frame(frame)?),
+            "LPOP" => Command::Lpop(Lpop::parse_from_frame(frame)?),
+            "LLEN" => Command::Llen(Llen::parse_from_frame(frame)?),
             "HVALS" => Command::Hvals(Hvals::parse_from_frame(frame)?),
             "RPUSH" => Command::Rpush(Rpush::parse_from_frame(frame)?),
             "LPUSH" => Command::Lpush(Lpush::parse_from_frame(frame)?),
-            "RPOP" => Command::Rpop(Rpop::parse_from_frame(frame)?),
-            "LPOP" => Command::Lpop(Lpop::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
