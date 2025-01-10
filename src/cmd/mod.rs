@@ -7,4 +7,5 @@ pub mod flushdb;
 pub mod ping;
 pub mod dbsize;
 pub mod hash;
+pub mod set;
 pub mod list;

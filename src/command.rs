@@ -2,40 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        dbsize::Dbsize, 
-        select::Select, 
-        ping::Ping, 
-        auth::Auth, 
-        flushdb::Flushdb, 
-        unknown::Unknown,
-        string::{ 
-            append::Append, 
-            get::Get,
-            mget::Mget, 
-            mset::Mset, 
-            set::Set, 
-            strlen::Strlen
-        },
-        list::{
-            lindex::Lindex, 
-            llen::Llen, 
-            lpop::Lpop, 
-            lpush::Lpush, 
-            rpop::Rpop, 
-            rpush::Rpush
-        }, 
-        key::{
-            del::Del, 
-            exists::Exists, 
-            expire::Expire, 
-            keys::Keys, 
-            persist::Persist, 
-            pttl::Pttl,
-            rename::Rename, 
-            ttl::Ttl, 
-            r#type::Type
-        }, 
-        hash::{
+        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{
             hdel::Hdel, 
             hexists::Hexists, 
             hget::Hget, 
@@ -48,7 +15,31 @@ use crate::{
             hsetnx::Hsetnx, 
             hstrlen::Hstrlen, 
             hvals::Hvals
-        }, 
+        }, key::{
+            del::Del, 
+            exists::Exists, 
+            expire::Expire, 
+            keys::Keys, 
+            persist::Persist, 
+            pttl::Pttl,
+            rename::Rename, 
+            ttl::Ttl, 
+            r#type::Type
+        }, list::{
+            lindex::Lindex, 
+            llen::Llen, 
+            lpop::Lpop, 
+            lpush::Lpush, 
+            rpop::Rpop, 
+            rpush::Rpush
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers}, string::{ 
+            append::Append, 
+            get::Get,
+            mget::Mget, 
+            mset::Mset, 
+            set::Set, 
+            strlen::Strlen
+        }, unknown::Unknown 
     }, frame::Frame
 };
 
@@ -92,7 +83,10 @@ pub enum Command {
     Llen(Llen),
     Hvals(Hvals),
     Rpush(Rpush),
-    Lpush(Lpush)
+    Lpush(Lpush),
+    Sadd(Sadd),
+    Smembers(Smembers),
+    Scard(Scard)
 }
 
 impl Command {
@@ -101,8 +95,8 @@ impl Command {
         let command = match command_name.to_uppercase().as_str() {
             "AUTH" => Command::Auth(Auth::parse_from_frame(frame)?),
             "DEL" => Command::Del(Del::parse_from_frame(frame)?),
-            "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
             "FLUSHDB" => Command::Flushdb(Flushdb::parse_from_frame(frame)?),
+            "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "PING" => Command::Ping(Ping::parse_from_frame(frame)?),
             "PTTL" => Command::Pttl(Pttl::parse_from_frame(frame)?),
@@ -137,6 +131,9 @@ impl Command {
             "HVALS" => Command::Hvals(Hvals::parse_from_frame(frame)?),
             "RPUSH" => Command::Rpush(Rpush::parse_from_frame(frame)?),
             "LPUSH" => Command::Lpush(Lpush::parse_from_frame(frame)?),
+            "SADD" => Command::Sadd(Sadd::parse_from_frame(frame)?),
+            "SCARD" => Command::Scard(Scard::parse_from_frame(frame)?),
+            "SMEMBERS" => Command::Smembers(Smembers::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

@@ -11,14 +11,7 @@ use tokio::sync::{
     oneshot,
 };
 
-use crate::{args::Args, command::Command, frame::Frame};
-
-pub enum Structure {
-    String(String),
-    Hash(HashMap<String, String>),
-    Set(HashSet<String>),
-    List(Vec<String>),
-}
+use crate::{args::Args,  command::Command, frame::Frame};
 
 /**
  * 消息
@@ -73,6 +66,13 @@ impl DbManager {
             panic!("Index out of bounds");
         }
     }
+}
+
+pub enum Structure {
+    String(String),
+    Hash(HashMap<String, String>),
+    Set(HashSet<String>),
+    List(Vec<String>),
 }
 
 /**
@@ -145,6 +145,9 @@ impl Db {
                 Command::Lpop(lpop) => lpop.apply(self),
                 Command::Rpop(rpop) => rpop.apply(self),
                 Command::Llen(llen) => llen.apply(self),
+                Command::Sadd(sadd) => sadd.apply(self),
+                Command::Smembers(smembers) => smembers.apply(self),
+                Command::Scard(scard) => scard.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
