@@ -1,21 +1,23 @@
 use anyhow::Error;
 use crate::{db::{Db, Structure}, frame::Frame};
 
-pub struct Rpush {
+pub struct Lpop {
     key: String,
-    values: Vec<String>,
 }
 
-impl Rpush {
+impl Lpop {
     
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
+
         let args = frame.get_args();
-        if args.len() < 3 {
-            return Err(Error::msg("ERR wrong number of arguments for 'rpush' command"));
+
+        if args.len() != 2 {
+            return Err(Error::msg("ERR wrong number of arguments for 'lpop' command"));
         }
+
         let key = args[1].to_string(); // 键
-        let values: Vec<String> = args.iter().skip(2).map(|v| v.to_string()).collect(); // 值
-        Ok(Rpush { key, values })
+        
+        Ok(Lpop { key })
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
@@ -23,10 +25,12 @@ impl Rpush {
             Some(structure) => {
                 match structure {
                     Structure::List(list) => {
-                        for value in self.values {
-                            list.push(value); // 向引用 mut 中添加数据
+                        if list.is_empty() {
+                            Ok(Frame::Null)
+                        } else {
+                            let value = list.remove(0); // 移除列表的第一个元素
+                            Ok(Frame::BulkString(Some(value)))
                         }
-                        Ok(Frame::Integer(list.len() as i64))
                     },
                     _ => {
                         let f = "ERR Operation against a key holding the wrong kind of value";
@@ -35,12 +39,7 @@ impl Rpush {
                 }
             },
             None => {
-                let mut list = Vec::new();
-                for value in self.values {
-                    list.push(value); // 正序遍历
-                }
-                db.insert(self.key.clone(), Structure::List(list.clone()));
-                Ok(Frame::Integer(list.len() as i64))
+                Ok(Frame::Null)
             }
         }
     }

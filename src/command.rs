@@ -4,7 +4,7 @@ use crate::{
     cmd::{
         auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals}, key::{
             del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
-        }, list::{lpush::Lpush, rpush::Rpush}, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
+        }, list::{lpop::Lpop, lpush::Lpush, rpop::Rpop, rpush::Rpush}, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
     }, frame::Frame
 };
 
@@ -44,7 +44,9 @@ pub enum Command {
     Persist(Persist),
     Hvals(Hvals),
     Rpush(Rpush),
-    Lpush(Lpush)
+    Lpush(Lpush),
+    Rpop(Rpop),
+    Lpop(Lpop)
 }
 
 impl Command {
@@ -85,6 +87,8 @@ impl Command {
             "HVALS" => Command::Hvals(Hvals::parse_from_frame(frame)?),
             "RPUSH" => Command::Rpush(Rpush::parse_from_frame(frame)?),
             "LPUSH" => Command::Lpush(Lpush::parse_from_frame(frame)?),
+            "RPOP" => Command::Rpop(Rpop::parse_from_frame(frame)?),
+            "LPOP" => Command::Lpop(Lpop::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

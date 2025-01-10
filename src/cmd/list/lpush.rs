@@ -11,7 +11,7 @@ impl Lpush {
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
 
         let args = frame.get_args();
-        
+
         if args.len() < 3 {
             return Err(Error::msg("ERR wrong number of arguments for 'lpush' command"));
         }
@@ -39,9 +39,9 @@ impl Lpush {
                 }
             },
             None => {
-                let mut list = Vec::new(); // 倒序遍历
+                let mut list = Vec::new(); 
                 for value in self.values.into_iter().rev() {
-                    list.insert(0, value);
+                    list.insert(0, value); // 倒序遍历
                 }
                 db.insert(self.key.clone(), Structure::List(list.clone()));
                 Ok(Frame::Integer(list.len() as i64))
