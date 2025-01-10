@@ -38,17 +38,17 @@ pub enum Command {
     Hmget(Hmget),
     Hdel(Hdel),
     Hlen(Hlen),
-    Hgetall(Hgetall),
     Hsetnx(Hsetnx),
+    Hgetall(Hgetall),
     Hkeys(Hkeys),
-    Persist(Persist),
-    Hvals(Hvals),
-    Rpush(Rpush),
-    Lpush(Lpush),
     Lindex(Lindex),
+    Persist(Persist),
     Rpop(Rpop),
     Lpop(Lpop),
-    Llen(Llen)
+    Llen(Llen),
+    Hvals(Hvals),
+    Rpush(Rpush),
+    Lpush(Lpush)
 }
 
 impl Command {
