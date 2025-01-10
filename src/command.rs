@@ -2,9 +2,53 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen, hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals}, key::{
-            del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
-        }, list::{lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, rpop::Rpop, rpush::Rpush}, ping::Ping, select::Select, string::{ append::Append, get::Get, mget::Mget, mset::Mset, set::Set, strlen::Strlen}, unknown::Unknown 
+        dbsize::Dbsize, 
+        select::Select, 
+        ping::Ping, 
+        auth::Auth, 
+        flushdb::Flushdb, 
+        unknown::Unknown,
+        string::{ 
+            append::Append, 
+            get::Get,
+            mget::Mget, 
+            mset::Mset, 
+            set::Set, 
+            strlen::Strlen
+        },
+        list::{
+            lindex::Lindex, 
+            llen::Llen, 
+            lpop::Lpop, 
+            lpush::Lpush, 
+            rpop::Rpop, 
+            rpush::Rpush
+        }, 
+        key::{
+            del::Del, 
+            exists::Exists, 
+            expire::Expire, 
+            keys::Keys, 
+            persist::Persist, 
+            pttl::Pttl,
+            rename::Rename, 
+            ttl::Ttl, 
+            r#type::Type
+        }, 
+        hash::{
+            hdel::Hdel, 
+            hexists::Hexists, 
+            hget::Hget, 
+            hgetall::Hgetall, 
+            hkeys::Hkeys, 
+            hlen::Hlen, 
+            hmget::Hmget, 
+            hmset::Hmset, 
+            hset::Hset, 
+            hsetnx::Hsetnx, 
+            hstrlen::Hstrlen, 
+            hvals::Hvals
+        }, 
     }, frame::Frame
 };
 
