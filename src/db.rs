@@ -148,6 +148,7 @@ impl Db {
                 Command::Sadd(sadd) => sadd.apply(self),
                 Command::Smembers(smembers) => smembers.apply(self),
                 Command::Scard(scard) => scard.apply(self),
+                Command::Spop(spop) => spop.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

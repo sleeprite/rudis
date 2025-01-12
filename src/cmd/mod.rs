@@ -9,3 +9,4 @@ pub mod dbsize;
 pub mod hash;
 pub mod set;
 pub mod list;
+pub mod zset;
