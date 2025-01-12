@@ -32,7 +32,7 @@ use crate::{
             lpush::Lpush, 
             rpop::Rpop, 
             rpush::Rpush
-        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop}, string::{ 
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem}, string::{ 
             append::Append, 
             get::Get,
             mget::Mget, 
@@ -88,6 +88,7 @@ pub enum Command {
     Smembers(Smembers),
     Scard(Scard),
     Spop(Spop),
+    Srem(Srem)
 }
 
 impl Command {
@@ -136,7 +137,8 @@ impl Command {
             "SCARD" => Command::Scard(Scard::parse_from_frame(frame)?),
             "SMEMBERS" => Command::Smembers(Smembers::parse_from_frame(frame)?),
             "SPOP" => Command::Spop(Spop::parse_from_frame(frame)?),
-            _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
+            "SREM" => Command::Srem(Srem::parse_from_frame(frame)?),
+             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
     }
