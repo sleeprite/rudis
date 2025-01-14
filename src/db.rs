@@ -152,6 +152,8 @@ impl Db {
                 Command::Srem(srem) => srem.apply(self),
                 Command::Rpushx(rpushx) => rpushx.apply(self),
                 Command::Lpushx(lpushx) => lpushx.apply(self),
+                Command::Incr(incr) => incr.apply(self),
+                Command::Decr(decr) => decr.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
