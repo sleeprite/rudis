@@ -26,12 +26,7 @@ use crate::{
             ttl::Ttl, 
             r#type::Type
         }, list::{
-            lindex::Lindex, 
-            llen::Llen, 
-            lpop::Lpop, 
-            lpush::Lpush, 
-            rpop::Rpop, 
-            rpush::Rpush
+            lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, rpop::Rpop, rpush::Rpush, rpushx::Rpushx
         }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem}, string::{ 
             append::Append, 
             get::Get,
@@ -88,7 +83,9 @@ pub enum Command {
     Smembers(Smembers),
     Scard(Scard),
     Spop(Spop),
-    Srem(Srem)
+    Srem(Srem),
+    Lpushx(Lpushx),
+    Rpushx(Rpushx)
 }
 
 impl Command {
@@ -138,6 +135,8 @@ impl Command {
             "SMEMBERS" => Command::Smembers(Smembers::parse_from_frame(frame)?),
             "SPOP" => Command::Spop(Spop::parse_from_frame(frame)?),
             "SREM" => Command::Srem(Srem::parse_from_frame(frame)?),
+            "LPUSHX" => Command::Lpushx(Lpushx::parse_from_frame(frame)?),
+            "RPUSHX" => Command::Rpushx(Rpushx::parse_from_frame(frame)?),
              _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
