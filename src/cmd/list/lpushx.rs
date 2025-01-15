@@ -39,7 +39,6 @@ impl Lpushx {
                 }
             },
             None => {
-                // 如果键不存在，则不执行任何操作，返回 0
                 Ok(Frame::Integer(0))
             }
         }
