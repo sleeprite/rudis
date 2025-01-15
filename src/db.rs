@@ -154,6 +154,7 @@ impl Db {
                 Command::Lpushx(lpushx) => lpushx.apply(self),
                 Command::Incr(incr) => incr.apply(self),
                 Command::Decr(decr) => decr.apply(self),
+                Command::Lset(lset) => lset.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

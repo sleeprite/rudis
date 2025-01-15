@@ -26,7 +26,7 @@ use crate::{
             ttl::Ttl, 
             r#type::Type
         }, list::{
-            lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, rpop::Rpop, rpush::Rpush, rpushx::Rpushx
+            lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx
         }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem}, string::{ 
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set, strlen::Strlen
         }, unknown::Unknown 
@@ -82,7 +82,8 @@ pub enum Command {
     Lpushx(Lpushx),
     Rpushx(Rpushx),
     Decr(Decr),
-    Incr(Incr)
+    Incr(Incr),
+    Lset(Lset)
 }
 
 impl Command {
@@ -136,6 +137,7 @@ impl Command {
             "RPUSHX" => Command::Rpushx(Rpushx::parse_from_frame(frame)?),
             "INCR" => Command::Incr(Incr::parse_from_frame(frame)?),
             "DECR" => Command::Decr(Decr::parse_from_frame(frame)?),
+            "LSET" => Command::Lset(Lset::parse_from_frame(frame)?),
              _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
