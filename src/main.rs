@@ -111,6 +111,7 @@ async fn main()  {
                                     let result = match command { 
                                         Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
                                         Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
+                                        Command::Flushall(flushall) => flushall.apply(db_manager_clone.clone()).await,
                                         Command::Unknown(unknown) => unknown.apply(),
                                         Command::Ping(ping) => ping.apply(),
                                         _ => {

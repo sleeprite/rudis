@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushdb::Flushdb, hash::{
+        auth::Auth, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, 
             hexists::Hexists, 
             hget::Hget, 
@@ -79,6 +79,7 @@ pub enum Command {
     Scard(Scard),
     Spop(Spop),
     Srem(Srem),
+    Flushall(Flushall),
     Lpushx(Lpushx),
     Rpushx(Rpushx),
     Decr(Decr),
@@ -93,6 +94,7 @@ impl Command {
             "AUTH" => Command::Auth(Auth::parse_from_frame(frame)?),
             "DEL" => Command::Del(Del::parse_from_frame(frame)?),
             "FLUSHDB" => Command::Flushdb(Flushdb::parse_from_frame(frame)?),
+            "FLUSHALL" => Command::Flushall(Flushall::parse_from_frame(frame)?),
             "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "PING" => Command::Ping(Ping::parse_from_frame(frame)?),

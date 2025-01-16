@@ -66,6 +66,13 @@ impl DbManager {
             panic!("Index out of bounds");
         }
     }
+
+    /**
+     * 获取发送者【所有】
+     */
+    pub fn get_senders(&self) -> Vec<Sender<DbMessage>> {
+        self.senders.clone()
+    }
 }
 
 pub enum Structure {

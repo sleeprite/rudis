@@ -6,6 +6,11 @@ pub struct Flushdb {}
 
 impl Flushdb {
 
+    pub fn new() -> Flushdb {
+
+        Flushdb {  }
+    }
+
     pub fn parse_from_frame(_frame: Frame) -> Result<Self, Error> {      
         Ok(Flushdb {})
     }

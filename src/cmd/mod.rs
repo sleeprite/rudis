@@ -4,6 +4,7 @@ pub mod unknown;
 pub mod select;
 pub mod auth;
 pub mod flushdb;
+pub mod flushall;
 pub mod ping;
 pub mod dbsize;
 pub mod hash;
