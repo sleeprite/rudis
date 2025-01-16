@@ -116,8 +116,8 @@ async fn main()  {
                                         Command::Ping(ping) => ping.apply(),
                                         _ => {
                                             
-                                            let (sender, receiver) = oneshot::channel(); // 创建通道
                                             let target_sender = db_manager_clone.get(session.db()); 
+                                            let (sender, receiver) = oneshot::channel();
                                             
                                             match target_sender.send(DbMessage {
                                                 sender: sender,
