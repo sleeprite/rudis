@@ -22,12 +22,17 @@ impl Flushall {
                 command: Command::Flushdb(Flushdb {}),
                 sender: sender
             }).await {
-                Ok(()) => {},
+                Ok(()) => {
+                    // todo 异常处理
+                },
                 Err(e) => {
                     eprintln!("Failed to write to socket; err = {:?}", e);
                 }
             };
         }
+
+        // _receiver 异常处理
+
         Ok(Frame::Ok)
     }
 }
