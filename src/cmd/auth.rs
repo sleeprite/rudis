@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use anyhow::Error;
 
-use crate::{frame::Frame, session::SessionManager};
+use crate::{frame::Frame, handler::Handler};
 
 pub struct Auth {
     requirepass: String,
@@ -24,8 +22,8 @@ impl Auth {
         })
     }
 
-    pub fn apply(self, session_manager: Arc<SessionManager>, session_id: &String) -> Result<Frame, Error> {
-        if session_manager.login(session_id, &self.requirepass) {
+    pub fn apply(self, handler:&mut Handler) -> Result<Frame, Error> {
+        if handler.login(&self.requirepass) {
             Ok(Frame::Ok)
         } else {
             Ok(Frame::Error("ERR invalid password".to_string()))

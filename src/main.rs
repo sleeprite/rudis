@@ -1,13 +1,9 @@
 use rudis_server::args::Args;
-use rudis_server::command::Command;
-use rudis_server::db::{DbManager, DbMessage};
-use rudis_server::frame::Frame;
-use rudis_server::session::SessionManager;
+use rudis_server::db::DbManager;
+use rudis_server::handler::Handler;
 use std::process::id;
 use std::sync::Arc;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
-use tokio::sync::oneshot;
 use clap::Parser;
 
 /*
@@ -38,7 +34,6 @@ async fn main()  {
     std::env::set_var("RUST_LOG", &args.loglevel);
     env_logger::init();
 
-    let session_manager = Arc::new(SessionManager::new(args.clone())); // 会话管理器
     let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
 
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
@@ -49,119 +44,11 @@ async fn main()  {
             log::info!("Ready to accept connections");
             
             loop { 
-
                 match listener.accept().await {
-
-                    Ok((mut stream, _address)) => {
-                
-                        let address = stream.peer_addr().unwrap();
-                        let session_id = address.to_string();
-                        let session_manager_clone = session_manager.clone();
-                        let db_manager_clone: Arc<DbManager> = db_manager.clone();
-                        session_manager_clone.register(address);
-
+                    Ok((stream, _address)) => {
+                        let mut handler =  Handler::new(db_manager.clone(), stream, args.clone());
                         tokio::spawn(async move {
-
-                            let mut buf = [0; 1024];
-                
-                            loop {
-                                
-                                let n = match stream.read(&mut buf).await {
-                                    Ok(n) => {
-                                        if n == 0 {
-                                            return;
-                                        }
-                                        n
-                                    }
-                                    Err(e) => {
-                                        if e.raw_os_error() == Some(10054) {
-                                            let session_id = stream.peer_addr().unwrap().to_string();
-                                            session_manager_clone.destroy(&session_id); // 销毁会话
-                                        } else {
-                                            eprintln!("failed to read from socket; err = {:?}", e);
-                                        }
-                                        return;
-                                    }
-                                };
-                
-                                let bytes = &buf[0..n];
-                                let frame = Frame::parse_from_bytes(bytes).unwrap();
-                                let result_command = Command::parse_from_frame(frame);
-                                let command = match result_command {
-                                    Ok(cmd) => cmd,
-                                    Err(e) => {
-                                        let frame = Frame::Error(e.to_string());
-                                        if let Err(e) = stream.write_all(&frame.as_bytes()).await {
-                                            eprintln!("failed to write to socket; err = {:?}", e);
-                                            return;
-                                        }
-                                        continue; 
-                                    }
-                                };
-
-                                let allow_access = match command {
-                                    Command::Auth(_) => true,
-                                    _ => {
-                                        session_manager_clone.is_login(&session_id)
-                                    }
-                                };
-
-                                if allow_access { 
-                                    let session = session_manager_clone.get(&session_id).unwrap();
-                                    let result = match command { 
-                                        Command::Auth(auth) => auth.apply(session_manager_clone.clone(), &session_id),
-                                        Command::Select(select) => select.apply(session_manager_clone.clone(), &session_id), 
-                                        Command::Flushall(flushall) => flushall.apply(db_manager_clone.clone()).await,
-                                        Command::Unknown(unknown) => unknown.apply(),
-                                        Command::Ping(ping) => ping.apply(),
-                                        _ => {
-                                            
-                                            let target_sender = db_manager_clone.get(session.db()); 
-                                            let (sender, receiver) = oneshot::channel();
-                                            
-                                            match target_sender.send(DbMessage {
-                                                sender: sender,
-                                                command,
-                                            }).await {
-                                                Ok(()) => {},
-                                                Err(e) => {
-                                                    eprintln!("Failed to write to socket; err = {:?}", e);
-                                                }
-                                            };
-    
-                                            let result = match receiver.await {
-                                                Ok(f) => {
-                                                    f
-                                                },
-                                                Err(e) => {
-                                                    Frame::Error(format!("{:?}", e))
-                                                }
-                                            };
-    
-                                            Ok(result) 
-                                        }
-                                    };
-                    
-                                    // 接收 DB 响应
-                                    match result {
-                                        Ok(f) => {
-                                            if let Err(e) = stream.write_all(&f.as_bytes()).await {
-                                                eprintln!("Failed to write to socket; err = {:?}", e);
-                                                return;
-                                            }
-                                        }
-                                        Err(e) => {
-                                            println!("Failed to receive; err = {:?}", e);
-                                        }
-                                    }
-                                } else {
-                                    let f = Frame::Error("NOAUTH Authentication required.".to_string());
-                                    if let Err(e) = stream.write_all(&f.as_bytes()).await {
-                                        eprintln!("Failed to write to socket; err = {:?}", e);
-                                    }
-                                    continue;
-                                }
-                            }
+                            handler.run().await;
                         });
                     },
                     Err(e) => {  

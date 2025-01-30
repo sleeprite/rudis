@@ -59,7 +59,7 @@ impl DbManager {
      *
      * @param idx 数据库索引
      */
-    pub fn get(&self, idx: usize) -> Sender<DbMessage> {
+    pub fn get_sender(&self, idx: usize) -> Sender<DbMessage> {
         if let Some(sender) = self.senders.get(idx) {
             sender.clone()
         } else {

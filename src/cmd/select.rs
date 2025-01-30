@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use anyhow::Error;
 
-use crate::{frame::Frame, session::SessionManager};
+use crate::{frame::Frame, handler::Handler};
 
 pub struct Select {
     db: usize,
@@ -31,8 +29,8 @@ impl Select {
         Ok(Select { db: db })
     }
 
-    pub fn apply(self, session_manager: Arc<SessionManager>, session_id: &String) -> Result<Frame, Error> {
-        session_manager.set(session_id, None, Some(self.db));
+    pub fn apply(self, handler:&mut Handler) -> Result<Frame, Error> {
+        handler.change_sender(self.db);
         Ok(Frame::Ok)
     }
 }

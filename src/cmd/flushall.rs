@@ -14,25 +14,15 @@ impl Flushall {
         Ok(Flushall { })
     }
 
-    pub async fn apply(self, db_manager: Arc<DbManager>) -> Result<Frame, Error> {
+    pub fn apply(self, db_manager: Arc<DbManager>) -> Result<Frame, Error> {
         let senders = db_manager.get_senders();
         for target_sender in senders {
             let (sender, _receiver) = oneshot::channel(); // 创建通道
-            match target_sender.send(DbMessage {
+            let _result = target_sender.send(DbMessage {
                 command: Command::Flushdb(Flushdb {}),
                 sender: sender
-            }).await {
-                Ok(()) => {
-                    // todo 异常处理
-                },
-                Err(e) => {
-                    eprintln!("Failed to write to socket; err = {:?}", e);
-                }
-            };
+            });
         }
-
-        // _receiver 异常处理
-
         Ok(Frame::Ok)
     }
 }
