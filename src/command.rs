@@ -6,6 +6,9 @@ use crate::{
         dbsize::Dbsize,
         flushall::Flushall,
         flushdb::Flushdb,
+        unknown::Unknown,
+        select::Select,
+        ping::Ping,
         hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
@@ -18,14 +21,11 @@ use crate::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
         },
-        ping::Ping,
-        select::Select,
         set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem},
         string::{
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
             strlen::Strlen,
         },
-        unknown::Unknown,
     },
     frame::Frame,
 };

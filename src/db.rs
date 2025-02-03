@@ -292,13 +292,6 @@ impl Db {
     }
 
 
-     /**
-     * 简单的模式匹配函数
-     *
-     * @param key 键
-     * @param pattern 模式
-     * @return 如果键符合模式返回 true，否则返回 false
-     */
     fn match_pattern(&self, key: &str, pattern: &str) -> bool {
         fn is_match(key: &str, pattern: &str) -> bool {
             let mut key_chars = key.chars().peekable();
@@ -307,12 +300,11 @@ impl Db {
             while let Some(p) = pattern_chars.next() {
                 match p {
                     '*' => {
+                          // 如果模式中 '*' 是最后一个字符，那么剩下的 key 都是匹配的
                         if pattern_chars.peek().is_none() {
-                            // 如果模式中 '*' 是最后一个字符，那么剩下的 key 都是匹配的
                             return true;
                         }
-                        // 尝试匹配 '*' 后面的模式
-                        let mut next_pattern = String::new();
+                        let mut next_pattern = String::new(); // 尝试匹配 '*' 后面的模式
                         while let Some(ch) = pattern_chars.next() {
                             if ch == '*' {
                                 break;
@@ -322,12 +314,9 @@ impl Db {
                         if next_pattern.is_empty() {
                             return true;
                         }
-                        // 尝试在 key 的剩余部分中找到匹配
-                        let mut key_start = 0;
-                        while let Some(_k) = key_chars.next() {
-                            key_start += 1;
-                            if is_match(&key[key_start - 1..], &next_pattern) {
-                                return true;
+                        for (i, _) in key.chars().enumerate() {
+                            if is_match(&key[i..], &next_pattern) {
+                                return true; // 尝试在 key 的剩余部分中找到匹配
                             }
                         }
                         return false;
@@ -338,23 +327,23 @@ impl Db {
                         }
                     }
                     '[' => {
-                        let mut set = String::new();
+                        let mut set = std::collections::HashSet::new();
                         let mut negate = false;
                         if let Some(ch) = pattern_chars.next() {
                             if ch == '^' {
                                 negate = true;
                             } else {
-                                set.push(ch);
+                                set.insert(ch);
                             }
                         }
                         while let Some(ch) = pattern_chars.next() {
                             if ch == ']' {
                                 break;
                             }
-                            set.push(ch);
+                            set.insert(ch);
                         }
                         if let Some(k) = key_chars.next() {
-                            if (negate && set.contains(k)) || (!negate && !set.contains(k)) {
+                            if (negate && set.contains(&k)) || (!negate && !set.contains(&k)) {
                                 return false;
                             }
                         } else {
@@ -368,10 +357,8 @@ impl Db {
                     }
                 }
             }
-    
             key_chars.next().is_none()
         }
-    
         is_match(key, pattern)
     }
 }
