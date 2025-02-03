@@ -37,12 +37,10 @@ async fn main()  {
     let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
 
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
-        Ok(listener) => {
-            
+        Ok(listener) => {      
             server_info(args.clone());
             log::info!("Server initialized");
             log::info!("Ready to accept connections");
-            
             loop { 
                 match listener.accept().await {
                     Ok((stream, _address)) => {

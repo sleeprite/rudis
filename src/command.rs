@@ -2,35 +2,32 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, hash::{
-            hdel::Hdel, 
-            hexists::Hexists, 
-            hget::Hget, 
-            hgetall::Hgetall, 
-            hkeys::Hkeys, 
-            hlen::Hlen, 
-            hmget::Hmget, 
-            hmset::Hmset, 
-            hset::Hset, 
-            hsetnx::Hsetnx, 
-            hstrlen::Hstrlen, 
-            hvals::Hvals
-        }, key::{
-            del::Del, 
-            exists::Exists, 
-            expire::Expire, 
-            keys::Keys, 
-            persist::Persist, 
-            pttl::Pttl,
-            rename::Rename, 
-            ttl::Ttl, 
-            r#type::Type
-        }, list::{
-            lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx
-        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem}, string::{ 
-            append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set, strlen::Strlen
-        }, unknown::Unknown 
-    }, frame::Frame
+        auth::Auth,
+        dbsize::Dbsize,
+        flushall::Flushall,
+        flushdb::Flushdb,
+        hash::{
+            hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
+            hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
+        },
+        key::{
+            del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl,
+            r#type::Type, rename::Rename, ttl::Ttl,
+        },
+        list::{
+            lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
+            rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
+        },
+        ping::Ping,
+        select::Select,
+        set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem},
+        string::{
+            append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
+            strlen::Strlen,
+        },
+        unknown::Unknown,
+    },
+    frame::Frame,
 };
 
 // 命令
@@ -59,7 +56,7 @@ pub enum Command {
     Type(Type),
     Hmset(Hmset),
     Hexists(Hexists),
-    Hstrlen(Hstrlen), 
+    Hstrlen(Hstrlen),
     Hmget(Hmget),
     Hdel(Hdel),
     Hlen(Hlen),
@@ -84,7 +81,7 @@ pub enum Command {
     Rpushx(Rpushx),
     Decr(Decr),
     Incr(Incr),
-    Lset(Lset)
+    Lset(Lset),
 }
 
 impl Command {
@@ -140,7 +137,7 @@ impl Command {
             "INCR" => Command::Incr(Incr::parse_from_frame(frame)?),
             "DECR" => Command::Decr(Decr::parse_from_frame(frame)?),
             "LSET" => Command::Lset(Lset::parse_from_frame(frame)?),
-             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
+            _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
     }

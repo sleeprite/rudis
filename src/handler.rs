@@ -68,9 +68,6 @@ impl Handler {
         }
     }
 
-    /**
-     * 切换 Sender 发送器
-     */
     pub fn change_sender(&mut self, idx: usize) {
         self.db_sender = self.db_manager.get_sender(idx);
     }
