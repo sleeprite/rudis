@@ -30,6 +30,7 @@ pub struct DbManager {
 }
 
 impl DbManager {
+    
     /**
      * 创建 DB 管理器
      *
@@ -47,7 +48,7 @@ impl DbManager {
 
         for mut db in dbs {
             tokio::spawn(async move {
-                db.run().await;
+                db.run().await; // 运行项目 - 独立线程
             });
         }
 
