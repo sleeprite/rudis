@@ -2,30 +2,18 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth,
-        dbsize::Dbsize,
-        flushall::Flushall,
-        flushdb::Flushdb,
-        unknown::Unknown,
-        select::Select,
-        ping::Ping,
-        hash::{
+        auth::Auth, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
-        },
-        key::{
-            del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl,
-            r#type::Type, rename::Rename, ttl::Ttl,
-        },
-        list::{
+        }, key::{
+            del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, ttl::Ttl, r#type::Type
+        }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        },
-        set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem},
-        string::{
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, string::{
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
             strlen::Strlen,
-        },
+        }, unknown::Unknown
     },
     frame::Frame,
 };
@@ -82,6 +70,7 @@ pub enum Command {
     Decr(Decr),
     Incr(Incr),
     Lset(Lset),
+    Sunion(Sunion)
 }
 
 impl Command {
@@ -137,6 +126,7 @@ impl Command {
             "INCR" => Command::Incr(Incr::parse_from_frame(frame)?),
             "DECR" => Command::Decr(Decr::parse_from_frame(frame)?),
             "LSET" => Command::Lset(Lset::parse_from_frame(frame)?),
+            "SUNION" => Command::Sunion(Sunion::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

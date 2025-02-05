@@ -30,7 +30,7 @@ pub struct DbManager {
 }
 
 impl DbManager {
-    
+
     /**
      * 创建 DB 管理器
      *
@@ -158,6 +158,7 @@ impl Db {
                 Command::Scard(scard) => scard.apply(self),
                 Command::Spop(spop) => spop.apply(self),
                 Command::Srem(srem) => srem.apply(self),
+                Command::Sunion(sunion) => sunion.apply(self),
                 Command::Rpushx(rpushx) => rpushx.apply(self),
                 Command::Lpushx(lpushx) => lpushx.apply(self),
                 Command::Incr(incr) => incr.apply(self),

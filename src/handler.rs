@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub struct Handler {
-    logged_in: bool,
+    authenticated: bool,
     db_sender: Sender<DbMessage>,
     db_manager: Arc<DbManager>,
     stream: TcpStream,
@@ -25,7 +25,7 @@ impl Handler {
         let db_manager_ref = db_manager.as_ref();
 
         Handler {
-            logged_in: args_ref.requirepass.is_none(),
+            authenticated: args_ref.requirepass.is_none(),
             db_sender: db_manager_ref.get_sender(0),
             db_manager,
             stream,
@@ -41,7 +41,7 @@ impl Handler {
     pub fn login(&mut self, input_requirepass: &String) -> bool {
         if let Some(ref requirepass) = self.args.requirepass {
             if requirepass == input_requirepass {
-                self.logged_in = true;
+                self.authenticated = true;
                 return true;
             }
             return false;
@@ -60,7 +60,7 @@ impl Handler {
             Command::Auth(_) => true,
             _ => {
                 if self.args.requirepass.is_some() {
-                    self.logged_in
+                    self.authenticated
                 } else {
                     true
                 }
@@ -72,9 +72,6 @@ impl Handler {
         self.db_sender = self.db_manager.get_sender(idx);
     }
 
-    /**
-     * 运行处理器
-     */
     pub async fn run(&mut self) {
 
         let mut buf = [0; 1024]; 
@@ -110,7 +107,7 @@ impl Handler {
                 }
             };
 
-            if !self.is_logged_in(&command) {
+            if !self.is_logged_in(&command) { // Not Logged In
                 let frame = Frame::Error("NOAUTH Authentication required.".to_string());
                 if let Err(e) = self.stream.write_all(&frame.as_bytes()).await {
                     eprintln!("Failed to write to socket; err = {:?}", e);
