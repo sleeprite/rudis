@@ -29,6 +29,9 @@ impl Type {
                     Structure::String(_) => {
                         Ok(Frame::SimpleString("string".to_string()))
                     },
+                    Structure::SortedSet(_) => {
+                        Ok(Frame::SimpleString("zset".to_string()))
+                    },
                     Structure::Hash(_) => {
                         Ok(Frame::SimpleString("hash".to_string()))
                     },

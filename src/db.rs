@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     sync::Arc,
     time::Duration,
 };
@@ -79,6 +79,7 @@ impl DbManager {
 pub enum Structure {
     String(String),
     Hash(HashMap<String, String>),
+    SortedSet(BTreeMap<String, f64>),
     Set(HashSet<String>),
     List(Vec<String>),
 }
@@ -145,11 +146,11 @@ impl Db {
                 Command::Hdel(hdel) => hdel.apply(self),
                 Command::Keys(keys) => keys.apply(self),
                 Command::Hlen(hlen) => hlen.apply(self),
+                Command::Lindex(lindex) => lindex.apply(self),
                 Command::Hkeys(hkeys) => hkeys.apply(self),
                 Command::Hvals(hvals) => hvals.apply(self),
                 Command::Lpush(lpush) => lpush.apply(self),
                 Command::Rpush(rpush) => rpush.apply(self),
-                Command::Lindex(lindex) => lindex.apply(self),
                 Command::Lpop(lpop) => lpop.apply(self),
                 Command::Rpop(rpop) => rpop.apply(self),
                 Command::Llen(llen) => llen.apply(self),
@@ -161,6 +162,7 @@ impl Db {
                 Command::Sunion(sunion) => sunion.apply(self),
                 Command::Rpushx(rpushx) => rpushx.apply(self),
                 Command::Lpushx(lpushx) => lpushx.apply(self),
+                Command::Zcount(zcount) => zcount.apply(self),
                 Command::Incr(incr) => incr.apply(self),
                 Command::Decr(decr) => decr.apply(self),
                 Command::Lset(lset) => lset.apply(self),
