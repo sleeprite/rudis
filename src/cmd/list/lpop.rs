@@ -29,7 +29,7 @@ impl Lpop {
                             Ok(Frame::Null)
                         } else {
                             let value = list.remove(0); // 移除列表的第一个元素
-                            Ok(Frame::BulkString(Some(value)))
+                            Ok(Frame::BulkString(value))
                         }
                     },
                     _ => {

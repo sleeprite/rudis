@@ -17,7 +17,7 @@ impl Keys {
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
         let keys = db.keys(&self.pattern);
-        let results: Vec<Frame> = keys.into_iter().map(|key| Frame::BulkString(Some(key))).collect();
+        let results: Vec<Frame> = keys.into_iter().map(|key| Frame::BulkString(key)).collect();
         Ok(Frame::Array(results))
     }
 }

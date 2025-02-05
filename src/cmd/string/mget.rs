@@ -18,11 +18,11 @@ impl Mget {
             match db.get(&key) {
                 Some(structure) => {
                     match structure {
-                        Structure::String(str) => result.push(Frame::BulkString(Some(str.to_string()))),
-                        _ => result.push(Frame::BulkString(None)),
+                        Structure::String(str) => result.push(Frame::BulkString(str.to_string())),
+                        _ => result.push(Frame::Null),
                     }   
                 } 
-                None => result.push(Frame::BulkString(None)),
+                None => result.push(Frame::Null),
             }
         }
         Ok(Frame::Array(result))

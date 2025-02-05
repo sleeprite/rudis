@@ -46,7 +46,7 @@ impl Sunion {
 
         // 将结果转换为 Frame::Array
         let members: Vec<Frame> = result_set.into_iter()
-            .map(|member| Frame::BulkString(Some(member)))
+            .map(|member| Frame::BulkString(member))
             .collect();
 
         Ok(Frame::Array(members))

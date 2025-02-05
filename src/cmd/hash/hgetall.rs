@@ -29,8 +29,8 @@ impl Hgetall {
                     Structure::Hash(hash) => {
                         let mut result = Vec::new();
                         for (field, value) in hash.iter() {
-                            result.push(Frame::BulkString(Some(field.clone())));
-                            result.push(Frame::BulkString(Some(value.clone())));
+                            result.push(Frame::BulkString(field.clone()));
+                            result.push(Frame::BulkString(value.clone()));
                         }
                         Ok(Frame::Array(result))
                     },

@@ -31,7 +31,7 @@ impl Rpop {
                         } else {
                             let value = list.pop(); // 移除列表的最后一个元素
                             match value {
-                                Some(val) => Ok(Frame::BulkString(Some(val))),
+                                Some(val) => Ok(Frame::BulkString(val)),
                                 None => Ok(Frame::Null), // 理论上不会执行到这，因为前面已经判断过列表不为空
                             }
                         }

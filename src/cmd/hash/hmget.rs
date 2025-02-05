@@ -31,9 +31,9 @@ impl Hmget {
                         let mut values = Vec::new();
                         for field in &self.fields {
                             if let Some(value) = hash.get(field) {
-                                values.push(Frame::BulkString(Some(value.clone())));
+                                values.push(Frame::BulkString(value.clone()));
                             } else {
-                                values.push(Frame::BulkString(None));
+                                values.push(Frame::Null);
                             }
                         }
                         Ok(Frame::Array(values))

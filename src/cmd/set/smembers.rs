@@ -27,7 +27,7 @@ impl Smembers {
                     Structure::Set(set) => {
                         let mut members = Vec::new();
                         for member in set.iter() {
-                            members.push(Frame::BulkString(Some(member.clone())));
+                            members.push(Frame::BulkString(member.clone()));
                         }
                         Ok(Frame::Array(members))
                     },

@@ -29,7 +29,7 @@ impl Hvals {
                     Structure::Hash(hash) => {
                         let mut vals = Vec::new();
                         for val in hash.values() {
-                            vals.push(Frame::BulkString(Some(val.clone())));
+                            vals.push(Frame::BulkString(val.clone()));
                         }
                         Ok(Frame::Array(vals))
                     },

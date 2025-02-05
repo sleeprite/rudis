@@ -36,12 +36,12 @@ impl Lindex {
                             if index < 0 || index as usize >= list.len() {
                                 Ok(Frame::Null)
                             } else {
-                                Ok(Frame::BulkString(Some(list[index as usize].clone())))
+                                Ok(Frame::BulkString(list[index as usize].clone()))
                             }
                         } else if self.index as usize >= list.len() {
                             Ok(Frame::Null)
                         } else {
-                            Ok(Frame::BulkString(Some(list[self.index as usize].clone())))
+                            Ok(Frame::BulkString(list[self.index as usize].clone()))
                         }
                     },
                     _ => {

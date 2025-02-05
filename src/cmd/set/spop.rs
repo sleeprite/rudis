@@ -35,20 +35,20 @@ impl Spop {
                 match structure {
                     Structure::Set(set) => {
                         if set.is_empty() {
-                            Ok(Frame::BulkString(None))
+                            Ok(Frame::Null)
                         } else {
                             let pop_count = self.count.unwrap_or(1);
                             let mut popped_members = Vec::new();
                             for _ in 0..pop_count {
                                 if let Some(member) = set.iter().next().cloned() {
                                     set.remove(&member);
-                                    popped_members.push(Frame::BulkString(Some(member)));
+                                    popped_members.push(Frame::BulkString(member));
                                 } else {
                                     break;
                                 }
                             }
                             if pop_count == 1 {
-                                Ok(popped_members.pop().unwrap_or(Frame::BulkString(None)))
+                                Ok(popped_members.pop().unwrap_or(Frame::Null))
                             } else {
                                 Ok(Frame::Array(popped_members))
                             }
@@ -61,7 +61,7 @@ impl Spop {
                 }
             },
             None => {
-                Ok(Frame::BulkString(None))
+                Ok(Frame::Null)
             }
         }
     }

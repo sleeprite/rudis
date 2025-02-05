@@ -7,7 +7,7 @@ pub enum Frame {
     Integer(i64),
     SimpleString(String),
     Array(Vec<Frame>),
-    BulkString(Option<String>),
+    BulkString(String),
     Error(String),
     Null
 }
@@ -24,8 +24,7 @@ impl Frame {
             Frame::Ok => String::from("OK"),
             Frame::Integer(i) => i.to_string(),
             Frame::SimpleString(s) => s.clone(),
-            Frame::BulkString(Some(s)) => s.clone(),
-            Frame::BulkString(None) => "".to_string(),
+            Frame::BulkString(s) => s.clone(),
             Frame::Error(e) => e.clone(),
             Frame::Null => String::new(),
             Frame::Array(arr) => {
@@ -58,8 +57,7 @@ impl Frame {
                 }
                 bytes
             },
-            Frame::BulkString(None) => b"$-1\r\n".to_vec(),
-            Frame::BulkString(Some(s)) => {
+            Frame::BulkString(s) => {
                 let mut bytes = format!("${}\r\n", s.len()).into_bytes();
                 bytes.extend(s.as_bytes());
                 bytes.extend(b"\r\n");

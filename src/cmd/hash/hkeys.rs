@@ -29,7 +29,7 @@ impl Hkeys {
                     Structure::Hash(hash) => {
                         let mut keys = Vec::new();
                         for key in hash.keys() {
-                            keys.push(Frame::BulkString(Some(key.clone())));
+                            keys.push(Frame::BulkString(key.clone()));
                         }
                         Ok(Frame::Array(keys))
                     },

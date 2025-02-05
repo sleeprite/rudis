@@ -32,7 +32,7 @@ impl Hget {
                 match structure {
                     Structure::Hash(hash) => {
                         match hash.get(&self.field) {
-                            Some(value) => Ok(Frame::BulkString(Some(value.clone()))),
+                            Some(value) => Ok(Frame::BulkString(value.clone())),
                             None => Ok(Frame::Null),
                         }
                     },
