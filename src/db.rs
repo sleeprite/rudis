@@ -169,6 +169,7 @@ impl Db {
                 Command::Zadd(zadd) => zadd.apply(self),
                 Command::Zscore(zscore) => zscore.apply(self),
                 Command::Zcard(zcard) => zcard.apply(self),
+                Command::Zrem(zrem) => zrem.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

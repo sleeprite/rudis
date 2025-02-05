@@ -15,6 +15,7 @@ impl Zadd {
         if args.len() < 4 || args.len() % 2 != 0 {
             return Err(Error::msg("ERR wrong number of arguments for 'zadd' command"));
         }
+        
         let key = args[1].to_string(); // 键
         let mut members = Vec::new();
 
@@ -38,7 +39,7 @@ impl Zadd {
                 match structure {
                     Structure::SortedSet(set) => {
                         for (score, member) in self.members {
-                            if set.insert(member.clone(), score).is_none() {
+                            if set.insert(member, score).is_none() {
                                 added_count += 1; // 成员新增成功
                             }
                         }
