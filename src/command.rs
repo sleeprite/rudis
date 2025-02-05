@@ -10,7 +10,7 @@ use crate::{
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
             strlen::Strlen,
         }, unknown::Unknown
@@ -61,6 +61,7 @@ pub enum Command {
     Lpush(Lpush),
     Sadd(Sadd),
     Smembers(Smembers),
+    Sismember(Sismember),
     Scard(Scard),
     Spop(Spop),
     Srem(Srem),
@@ -124,6 +125,7 @@ impl Command {
             "LPUSH" => Command::Lpush(Lpush::parse_from_frame(frame)?),
             "SADD" => Command::Sadd(Sadd::parse_from_frame(frame)?),
             "SCARD" => Command::Scard(Scard::parse_from_frame(frame)?),
+            "SISMEMBER" => Command::Sismember(Sismember::parse_from_frame(frame)?),
             "SMEMBERS" => Command::Smembers(Smembers::parse_from_frame(frame)?),
             "SPOP" => Command::Spop(Spop::parse_from_frame(frame)?),
             "SREM" => Command::Srem(Srem::parse_from_frame(frame)?),
