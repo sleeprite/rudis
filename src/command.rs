@@ -10,7 +10,7 @@ use crate::{
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcount::Zcount}, string::{
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount}, string::{
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
             strlen::Strlen,
         }, unknown::Unknown
@@ -72,7 +72,8 @@ pub enum Command {
     Lset(Lset),
     Sunion(Sunion),
     Zcount(Zcount),
-    Zadd(Zadd)
+    Zadd(Zadd),
+    Zcard(Zcard)
 }
 
 impl Command {
@@ -131,6 +132,7 @@ impl Command {
             "SUNION" => Command::Sunion(Sunion::parse_from_frame(frame)?),
             "ZCOUNT" => Command::Zcount(Zcount::parse_from_frame(frame)?),
             "ZADD" => Command::Zadd(Zadd::parse_from_frame(frame)?),
+            "ZCARD" => Command::Zcard(Zcard::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

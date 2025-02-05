@@ -11,7 +11,7 @@ use tokio::sync::{
     oneshot,
 };
 
-use crate::{args::Args,  command::Command, frame::Frame};
+use crate::{args::Args, command::Command, frame::Frame};
 
 /**
  * 消息
@@ -167,6 +167,7 @@ impl Db {
                 Command::Decr(decr) => decr.apply(self),
                 Command::Lset(lset) => lset.apply(self),
                 Command::Zadd(zadd) => zadd.apply(self),
+                Command::Zcard(zcard) => zcard.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
