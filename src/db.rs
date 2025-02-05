@@ -170,6 +170,7 @@ impl Db {
                 Command::Zscore(zscore) => zscore.apply(self),
                 Command::Zcard(zcard) => zcard.apply(self),
                 Command::Zrem(zrem) => zrem.apply(self),
+                Command::Zrank(zrank) => zrank.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

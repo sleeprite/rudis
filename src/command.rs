@@ -10,7 +10,7 @@ use crate::{
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrem::Zrem, zscore::Zscore}, string::{
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
             strlen::Strlen,
         }, unknown::Unknown
@@ -75,7 +75,8 @@ pub enum Command {
     Zadd(Zadd),
     Zscore(Zscore),
     Zcard(Zcard),
-    Zrem(Zrem)
+    Zrem(Zrem),
+    Zrank(Zrank)
 }
 
 impl Command {
@@ -137,6 +138,7 @@ impl Command {
             "ZCARD" => Command::Zcard(Zcard::parse_from_frame(frame)?),
             "ZSCORE" => Command::Zscore(Zscore::parse_from_frame(frame)?),
             "ZREM" => Command::Zrem(Zrem::parse_from_frame(frame)?),
+            "ZRANK" => Command::Zrank(Zrank::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
