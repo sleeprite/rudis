@@ -167,6 +167,7 @@ impl Db {
                 Command::Decr(decr) => decr.apply(self),
                 Command::Lset(lset) => lset.apply(self),
                 Command::Zadd(zadd) => zadd.apply(self),
+                Command::Zscore(zscore) => zscore.apply(self),
                 Command::Zcard(zcard) => zcard.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
