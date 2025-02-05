@@ -166,6 +166,7 @@ impl Db {
                 Command::Incr(incr) => incr.apply(self),
                 Command::Decr(decr) => decr.apply(self),
                 Command::Lset(lset) => lset.apply(self),
+                Command::Zadd(zadd) => zadd.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
