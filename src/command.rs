@@ -10,7 +10,7 @@ use crate::{
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
+        }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
             append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
             strlen::Strlen,
         }, unknown::Unknown
@@ -63,6 +63,7 @@ pub enum Command {
     Smembers(Smembers),
     Sismember(Sismember),
     Scard(Scard),
+    Sinter(Sinter),
     Spop(Spop),
     Srem(Srem),
     Flushall(Flushall),
@@ -140,6 +141,7 @@ impl Command {
             "ZCARD" => Command::Zcard(Zcard::parse_from_frame(frame)?),
             "ZSCORE" => Command::Zscore(Zscore::parse_from_frame(frame)?),
             "ZREM" => Command::Zrem(Zrem::parse_from_frame(frame)?),
+            "SINTER" => Command::Sinter(Sinter::parse_from_frame(frame)?),
             "ZRANK" => Command::Zrank(Zrank::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };

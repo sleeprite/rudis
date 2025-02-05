@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::Error;
 use crate::{db::{Db, Structure}, frame::Frame};
 
@@ -42,7 +44,7 @@ impl Sadd {
                 }
             },
             None => {
-                let mut set = std::collections::HashSet::new(); 
+                let mut set = HashSet::new(); 
                 let mut added_count = 0;
                 for member in self.members {
                     if set.insert(member) {

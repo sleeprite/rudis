@@ -158,6 +158,7 @@ impl Db {
                 Command::Scard(scard) => scard.apply(self),
                 Command::Spop(spop) => spop.apply(self),
                 Command::Srem(srem) => srem.apply(self),
+                Command::Sinter(sinter) => sinter.apply(self),
                 Command::Sismember(sismember) => sismember.apply(self),
                 Command::Smembers(smembers) => smembers.apply(self),
                 Command::Sunion(sunion) => sunion.apply(self),
