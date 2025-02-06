@@ -22,10 +22,11 @@ impl Handler {
     pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, args: Arc<Args>) -> Self {
 
         let args_ref = args.as_ref();
+        let authenticated = args_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
 
         Handler {
-            authenticated: args_ref.requirepass.is_none(),
+            authenticated,
             db_sender: db_manager_ref.get_sender(0),
             db_manager,
             stream,

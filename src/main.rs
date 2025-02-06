@@ -35,7 +35,7 @@ async fn main()  {
     env_logger::init();
 
     let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
-
+    
     match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
         Ok(listener) => {      
             server_info(args.clone());

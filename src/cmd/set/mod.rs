@@ -1,8 +1,9 @@
 pub mod sadd;
-pub mod sismember;
 pub mod smembers;
+pub mod sismember;
 pub mod scard;
 pub mod spop;
 pub mod srem;
 pub mod sunion;
 pub mod sinter;
+pub mod sunionstore;
