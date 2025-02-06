@@ -122,6 +122,7 @@ impl Handler {
                 Command::Select(select) => select.apply(self),
                 Command::Unknown(unknown) => unknown.apply(),
                 Command::Ping(ping) => ping.apply(),
+                Command::Echo(echo) => echo.apply(),
                 _ => {
                     let (sender, receiver) = oneshot::channel();
                     match self.db_sender.send(DbMessage {

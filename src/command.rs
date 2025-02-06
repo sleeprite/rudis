@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, hash::{
+        auth::Auth, dbsize::Dbsize, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
@@ -81,6 +81,7 @@ pub enum Command {
     Zrank(Zrank),
     Incrby(Incrby),
     Decrby(Decrby),
+    Echo(Echo)
 }
 
 impl Command {
@@ -148,6 +149,7 @@ impl Command {
             "ZRANK" => Command::Zrank(Zrank::parse_from_frame(frame)?),
             "INCRBY" => Command::Incrby(Incrby::parse_from_frame(frame)?),
             "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
+            "ECHO" => Command::Echo(Echo::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
