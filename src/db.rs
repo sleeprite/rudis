@@ -174,6 +174,8 @@ impl Db {
                 Command::Zcard(zcard) => zcard.apply(self),
                 Command::Zrank(zrank) => zrank.apply(self),
                 Command::Zrem(zrem) => zrem.apply(self),
+                Command::Incrby(incrby) => incrby.apply(self),
+                Command::Decrby(decrby) => decrby.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

@@ -5,4 +5,6 @@ pub mod get;
 pub mod strlen;
 pub mod mget;
 pub mod incr;
+pub mod incrby;
+pub mod decrby;
 pub mod decr;

@@ -11,8 +11,7 @@ use crate::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
         }, ping::Ping, select::Select, set::{sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
-            append::Append, decr::Decr, get::Get, incr::Incr, mget::Mget, mset::Mset, set::Set,
-            strlen::Strlen,
+            append::Append, decr::Decr, decrby::Decrby, get::Get, incr::Incr, incrby::Incrby, mget::Mget, mset::Mset, set::Set, strlen::Strlen
         }, unknown::Unknown
     },
     frame::Frame,
@@ -79,7 +78,9 @@ pub enum Command {
     Zscore(Zscore),
     Zcard(Zcard),
     Zrem(Zrem),
-    Zrank(Zrank)
+    Zrank(Zrank),
+    Incrby(Incrby),
+    Decrby(Decrby),
 }
 
 impl Command {
@@ -145,6 +146,8 @@ impl Command {
             "ZREM" => Command::Zrem(Zrem::parse_from_frame(frame)?),
             "SINTER" => Command::Sinter(Sinter::parse_from_frame(frame)?),
             "ZRANK" => Command::Zrank(Zrank::parse_from_frame(frame)?),
+            "INCRBY" => Command::Incrby(Incrby::parse_from_frame(frame)?),
+            "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
