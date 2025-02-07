@@ -6,7 +6,7 @@ use crate::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
-            del::Del, exists::Exists, expire::Expire, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
+            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
@@ -78,10 +78,11 @@ pub enum Command {
     Zadd(Zadd),
     Zscore(Zscore),
     Zcard(Zcard),
-    Zrem(Zrem),
     Zrank(Zrank),
+    Zrem(Zrem),
     Incrby(Incrby),
     Decrby(Decrby),
+    ExpireAt(ExpireAt),
     Echo(Echo)
 }
 
@@ -152,6 +153,7 @@ impl Command {
             "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
             "ECHO" => Command::Echo(Echo::parse_from_frame(frame)?),
             "RENAMENX" => Command::Renamenx(Renamenx::parse_from_frame(frame)?),
+            "EXPIREAT" => Command::ExpireAt(ExpireAt::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
