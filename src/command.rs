@@ -6,7 +6,7 @@ use crate::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
-            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pttl::Pttl, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
+            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lset::Lset,
             rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
@@ -83,7 +83,8 @@ pub enum Command {
     Incrby(Incrby),
     Decrby(Decrby),
     ExpireAt(ExpireAt),
-    Echo(Echo)
+    Echo(Echo),
+    RandomKey(RandomKey)
 }
 
 impl Command {
@@ -102,6 +103,7 @@ impl Command {
             "SELECT" => Command::Select(Select::parse_from_frame(frame)?),
             "SET" => Command::Set(Set::parse_from_frame(frame)?),
             "TTL" => Command::Ttl(Ttl::parse_from_frame(frame)?),
+            "RANDOMKEY" => Command::RandomKey(RandomKey::parse_from_frame(frame)?),
             "RENAME" => Command::Rename(Rename::parse_from_frame(frame)?),
             "EXISTS" => Command::Exists(Exists::parse_from_frame(frame)?),
             "STRLEN" => Command::Strlen(Strlen::parse_from_frame(frame)?),

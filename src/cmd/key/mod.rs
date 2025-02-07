@@ -6,6 +6,7 @@ pub mod persist;
 pub mod ttl;
 pub mod pttl;
 pub mod expireat;
+pub mod randomkey;
 pub mod renamenx;
 pub mod r#type;
 pub mod keys;

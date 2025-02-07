@@ -123,6 +123,7 @@ impl Db {
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
                 Command::Flushdb(flushdb) => flushdb.apply(self),
+                Command::RandomKey(randomkey) => randomkey.apply(self),
                 Command::Renamenx(renamenx) => renamenx.apply(self),
                 Command::Rename(rename) => rename.apply(self),
                 Command::Exists(exists) => exists.apply(self),
@@ -295,6 +296,19 @@ impl Db {
      */
     pub fn exists(&self, key: &str) -> bool {
         self.records.contains_key(key)
+    }
+
+    /**
+     * 随机返回一个键
+     */
+    pub fn random_key(&self) -> Option<String> {
+        let keys: Vec<String> = self.records.keys().cloned().collect();
+        if keys.is_empty() {
+            return None;
+        }
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let random_index = (now as usize) % keys.len();
+        Some(keys[random_index].clone())
     }
 
     /**
