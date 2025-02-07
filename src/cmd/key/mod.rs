@@ -5,5 +5,6 @@ pub mod exists;
 pub mod persist;
 pub mod ttl;
 pub mod pttl;
+pub mod renamenx;
 pub mod r#type;
 pub mod keys;

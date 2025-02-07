@@ -123,6 +123,7 @@ impl Db {
                 Command::Get(get) => get.apply(self),
                 Command::Del(del) => del.apply(self),
                 Command::Flushdb(flushdb) => flushdb.apply(self),
+                Command::Renamenx(renamenx) => renamenx.apply(self),
                 Command::Rename(rename) => rename.apply(self),
                 Command::Exists(exists) => exists.apply(self),
                 Command::Expire(expire) => expire.apply(self),
