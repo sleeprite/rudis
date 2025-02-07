@@ -133,6 +133,8 @@ impl Command {
             "LPUSH" => Command::Lpush(Lpush::parse_from_frame(frame)?),
             "SADD" => Command::Sadd(Sadd::parse_from_frame(frame)?),
             "SCARD" => Command::Scard(Scard::parse_from_frame(frame)?),
+            "RENAMENX" => Command::Renamenx(Renamenx::parse_from_frame(frame)?),
+            "EXPIREAT" => Command::ExpireAt(ExpireAt::parse_from_frame(frame)?),
             "SUNIONSTORE" => Command::Sunionstore(Sunionstore::parse_from_frame(frame)?),
             "SISMEMBER" => Command::Sismember(Sismember::parse_from_frame(frame)?),
             "SMEMBERS" => Command::Smembers(Smembers::parse_from_frame(frame)?),
@@ -154,8 +156,6 @@ impl Command {
             "INCRBY" => Command::Incrby(Incrby::parse_from_frame(frame)?),
             "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
             "ECHO" => Command::Echo(Echo::parse_from_frame(frame)?),
-            "RENAMENX" => Command::Renamenx(Renamenx::parse_from_frame(frame)?),
-            "EXPIREAT" => Command::ExpireAt(ExpireAt::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
