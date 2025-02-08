@@ -322,7 +322,12 @@ impl Db {
         self.records.keys().filter(|key| self.match_pattern(key, pattern)).cloned().collect()
     }
 
-
+    /**
+     * 匹配 key 的逻辑
+     * 
+     * @param key 键名称
+     * @param pattern 表达式
+     */
     fn match_pattern(&self, key: &str, pattern: &str) -> bool {
         fn convert_pattern(pattern: &str) -> String {
             let mut regex_pattern = String::new();
@@ -347,12 +352,11 @@ impl Db {
                         }
                         regex_pattern.push(']');
                     }
-                    _ => regex_pattern.push(p), // 其他字符直接添加
+                    _ => regex_pattern.push(p) // 其他字符直接添加
                 }
             }
             regex_pattern
         }
-    
         let regex_pattern = convert_pattern(pattern);
         let regex = Regex::new(&regex_pattern).unwrap();
         regex.is_match(key)
