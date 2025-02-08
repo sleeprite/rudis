@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::Error;
+use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{
     mpsc::{channel, Receiver, Sender},
@@ -323,72 +324,37 @@ impl Db {
 
 
     fn match_pattern(&self, key: &str, pattern: &str) -> bool {
-        fn is_match(key: &str, pattern: &str) -> bool {
-            let mut key_chars = key.chars().peekable();
-            let mut pattern_chars = pattern.chars().peekable();
-    
-            while let Some(p) = pattern_chars.next() {
+        fn convert_pattern(pattern: &str) -> String {
+            let mut regex_pattern = String::new();
+            let mut chars = pattern.chars().peekable();
+            while let Some(p) = chars.next() {
                 match p {
-                    '*' => {
-                          // 如果模式中 '*' 是最后一个字符，那么剩下的 key 都是匹配的
-                        if pattern_chars.peek().is_none() {
-                            return true;
-                        }
-                        let mut next_pattern = String::new(); // 尝试匹配 '*' 后面的模式
-                        while let Some(ch) = pattern_chars.next() {
-                            if ch == '*' {
-                                break;
-                            }
-                            next_pattern.push(ch);
-                        }
-                        if next_pattern.is_empty() {
-                            return true;
-                        }
-                        for (i, _) in key.chars().enumerate() {
-                            if is_match(&key[i..], &next_pattern) {
-                                return true; // 尝试在 key 的剩余部分中找到匹配
-                            }
-                        }
-                        return false;
-                    }
-                    '?' => {
-                        if key_chars.next().is_none() {
-                            return false;
-                        }
-                    }
+                    '*' => regex_pattern.push_str(".*"), // 匹配任意字符任意次
+                    '?' => regex_pattern.push('.'),     // 匹配任意单个字符
                     '[' => {
-                        let mut set = std::collections::HashSet::new();
-                        let mut negate = false;
-                        if let Some(ch) = pattern_chars.next() {
-                            if ch == '^' {
-                                negate = true;
-                            } else {
-                                set.insert(ch);
+                        regex_pattern.push('[');
+                        if let Some(next) = chars.peek() {
+                            if *next == '^' {
+                                regex_pattern.push('^');
+                                chars.next(); // 跳过 '^'
                             }
                         }
-                        while let Some(ch) = pattern_chars.next() {
+                        while let Some(ch) = chars.next() {
                             if ch == ']' {
                                 break;
                             }
-                            set.insert(ch);
+                            regex_pattern.push(ch);
                         }
-                        if let Some(k) = key_chars.next() {
-                            if (negate && set.contains(&k)) || (!negate && !set.contains(&k)) {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
+                        regex_pattern.push(']');
                     }
-                    _ => {
-                        if key_chars.next() != Some(p) {
-                            return false;
-                        }
-                    }
+                    _ => regex_pattern.push(p), // 其他字符直接添加
                 }
             }
-            key_chars.next().is_none()
+            regex_pattern
         }
-        is_match(key, pattern)
+    
+        let regex_pattern = convert_pattern(pattern);
+        let regex = Regex::new(&regex_pattern).unwrap();
+        regex.is_match(key)
     }
 }

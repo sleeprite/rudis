@@ -455,6 +455,7 @@ dependencies = [
  "env_logger",
  "log",
  "redis",
+ "regex",
  "tokio",
 ]
 
