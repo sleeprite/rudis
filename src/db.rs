@@ -180,6 +180,8 @@ impl Db {
                 Command::ExpireAt(expireat) => expireat.apply(self),
                 Command::Incrby(incrby) => incrby.apply(self),
                 Command::Decrby(decrby) => decrby.apply(self),
+                Command::PexpireAt(pexpireat) => pexpireat.apply(self),
+                Command::Pexpire(pexpire) => pexpire.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
@@ -226,7 +228,7 @@ impl Db {
      * 设置过期
      *
      * @param key 键名
-     * @param ttl 过期时间（毫秒）
+     * @param ttl 距离现在多少【毫秒】后过期
      */
     pub fn expire(&mut self, key: String, ttl: u64) {
         let expire_time = SystemTime::now() + std::time::Duration::from_millis(ttl);

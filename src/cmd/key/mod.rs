@@ -10,3 +10,5 @@ pub mod randomkey;
 pub mod renamenx;
 pub mod r#type;
 pub mod keys;
+pub mod pexpire;
+pub mod pexpireat;
