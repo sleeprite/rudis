@@ -106,13 +106,20 @@ impl Handler {
                 }
             };
 
-            if !self.is_logged_in(&command) { // Not Logged In
-                let frame = Frame::Error("NOAUTH Authentication required.".to_string());
-                if let Err(e) = self.stream.write_all(&frame.as_bytes()).await {
-                    eprintln!("Failed to write to socket; err = {:?}", e);
-                }
-                continue;
-            }
+            match command {
+                Command::Auth(_) => {},
+                _ => { 
+                    if self.args.requirepass.is_some() {
+                        if self.authenticated == false {
+                            let f = Frame::Error("NOAUTH Authentication required.".to_string());
+                            if let Err(e) = self.stream.write_all(&f.as_bytes()).await {
+                                eprintln!("Failed to write to socket; err = {:?}", e);
+                            }
+                            continue;
+                        }
+                    } 
+                },
+            };
 
             let result = match command {
                 Command::Auth(auth) => auth.apply(self),
