@@ -8,8 +8,8 @@ use crate::{
 
 pub struct Handler {
     authenticated: bool,
-    db_sender: Sender<DbMessage>,
     db_manager: Arc<DbManager>,
+    db_sender: Sender<DbMessage>,
     stream: TcpStream,
     args: Arc<Args>
 }
@@ -23,10 +23,11 @@ impl Handler {
         let args_ref = args.as_ref();
         let authenticated = args_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
+        let db_sender = db_manager_ref.get_sender(0);
         Handler {
             authenticated,
-            db_sender: db_manager_ref.get_sender(0),
             db_manager,
+            db_sender,
             stream,
             args,
         }
