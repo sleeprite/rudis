@@ -182,6 +182,7 @@ impl Db {
                 Command::Decrby(decrby) => decrby.apply(self),
                 Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                 Command::Pexpire(pexpire) => pexpire.apply(self),
+                Command::Lrange(lrange) => lrange.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
