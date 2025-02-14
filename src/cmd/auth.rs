@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use crate::{frame::Frame, handler::Handler};
+use crate::{frame::Frame, server_handler::ServerHandler};
 
 pub struct Auth {
     requirepass: String,
@@ -22,7 +22,7 @@ impl Auth {
         })
     }
 
-    pub fn apply(self, handler:&mut Handler) -> Result<Frame, Error> {
+    pub fn apply(self, handler:&mut ServerHandler) -> Result<Frame, Error> {
         if handler.login(&self.requirepass) {
             Ok(Frame::Ok)
         } else {

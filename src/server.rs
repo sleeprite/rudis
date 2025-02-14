@@ -4,7 +4,7 @@ use tokio::net::TcpListener;
 
 use crate::config::Config;
 use crate::db::DbManager;
-use crate::handler::Handler;
+use crate::server_handler::ServerHandler;
 
 pub struct Server {
     config: Arc<Config>,
@@ -26,7 +26,7 @@ impl Server {
                 loop {
                     match listener.accept().await {
                         Ok((stream, _address)) => {
-                            let mut handler = Handler::new(self.db_manager.clone(), stream, self.config.clone());
+                            let mut handler = ServerHandler::new(self.db_manager.clone(), stream, self.config.clone());
                             tokio::spawn(async move {
                                 handler.run().await;
                             });

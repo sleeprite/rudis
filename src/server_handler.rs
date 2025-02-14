@@ -6,7 +6,7 @@ use crate::{
     config::Config, command::Command, db::{DbManager, DbMessage}, frame::Frame
 };
 
-pub struct Handler {
+pub struct ServerHandler {
     authenticated: bool,
     db_manager: Arc<DbManager>,
     db_sender: Sender<DbMessage>,
@@ -14,7 +14,7 @@ pub struct Handler {
     config: Arc<Config>
 }
 
-impl Handler {
+impl ServerHandler {
 
     /**
      * 创建会话处理器
@@ -24,7 +24,7 @@ impl Handler {
         let authenticated = config_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
         let db_sender = db_manager_ref.get_sender(0);
-        Handler {
+        ServerHandler {
             authenticated,
             db_manager,
             db_sender,
