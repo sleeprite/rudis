@@ -50,24 +50,6 @@ impl Handler {
         }
     }
 
-    /**
-     * 拦截器，是否登录
-     * 
-     * @param command 当前命令【只读】
-     */
-    pub fn is_logged_in(&mut self, command: &Command) -> bool {
-        match command {
-            Command::Auth(_) => true,
-            _ => {
-                if self.args.requirepass.is_some() {
-                    self.authenticated
-                } else {
-                    true
-                }
-            },
-        }
-    }
-
     pub fn change_sender(&mut self, idx: usize) {
         self.db_sender = self.db_manager.get_sender(idx);
     }
