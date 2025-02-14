@@ -1,17 +1,17 @@
-use rudis_server::args::Args;
+use clap::Parser;
+use rudis_server::config::Config;
 use rudis_server::db::DbManager;
 use rudis_server::handler::Handler;
 use std::process::id;
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use clap::Parser;
 
 /*
  * 启动服务
  * 
  * @param args 启动参数
  */
-fn server_info(args: Arc<Args>) {
+fn server_info(config: Arc<Config>) {
     let pid = id();
     let version = env!("CARGO_PKG_VERSION");
     let pattern = format!(
@@ -23,28 +23,28 @@ fn server_info(args: Arc<Args>) {
        (           )
       ( (  )   (  ) )
      (__(__)___(__)__)
-    "#, version, args.port, pid);
+    "#, version, config.port, pid);
     println!("{}", pattern);
 }
 
 #[tokio::main]
 async fn main()  {
 
-    let args = Arc::new(Args::parse()); 
-    std::env::set_var("RUST_LOG", &args.loglevel);
+    let config = Arc::new(Config::parse()); 
+    std::env::set_var("RUST_LOG", &config.loglevel);
     env_logger::init();
 
-    let db_manager = Arc::new(DbManager::new(args.clone())); // 数据库管理器
+    let db_manager = Arc::new(DbManager::new(config.clone())); // 数据库管理器
     
-    match TcpListener::bind(format!("{}:{}", args.bind, args.port)).await {
+    match TcpListener::bind(format!("{}:{}", config.bind, config.port)).await {
         Ok(listener) => {      
-            server_info(args.clone());
+            server_info(config.clone());
             log::info!("Server initialized");
             log::info!("Ready to accept connections");
             loop { 
                 match listener.accept().await {
                     Ok((stream, _address)) => {
-                        let mut handler =  Handler::new(db_manager.clone(), stream, args.clone());
+                        let mut handler =  Handler::new(db_manager.clone(), stream, config.clone());
                         tokio::spawn(async move {
                             handler.run().await;
                         });
@@ -56,7 +56,7 @@ async fn main()  {
             }
         },
         Err(_e) => {
-            log::error!("Failed to bind to address {}:{}", args.bind, args.port);
+            log::error!("Failed to bind to address {}:{}", config.bind, config.port);
             std::process::exit(1); // 退出程序
         }
     }

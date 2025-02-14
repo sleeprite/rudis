@@ -1,4 +1,4 @@
-pub mod args;
+pub mod config;
 pub mod cmd;
 pub mod handler;
 pub mod command;

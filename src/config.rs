@@ -2,7 +2,7 @@ use clap::Parser;
 
 #[derive(Parser)]
 #[command(version, author, about, long_about = None)]
-pub struct Args {
+pub struct Config {
 
     /**
      * 认证密码

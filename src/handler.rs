@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream, sync::{mpsc::Sender, oneshot}};
 
 use crate::{
-    args::Args, command::Command, db::{DbManager, DbMessage}, frame::Frame
+    config::Config, command::Command, db::{DbManager, DbMessage}, frame::Frame
 };
 
 pub struct Handler {
@@ -11,7 +11,7 @@ pub struct Handler {
     db_manager: Arc<DbManager>,
     db_sender: Sender<DbMessage>,
     stream: TcpStream,
-    args: Arc<Args>
+    config: Arc<Config>
 }
 
 impl Handler {
@@ -19,9 +19,9 @@ impl Handler {
     /**
      * 创建会话处理器
      */
-    pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, args: Arc<Args>) -> Self {
-        let args_ref = args.as_ref();
-        let authenticated = args_ref.requirepass.is_none();
+    pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, config: Arc<Config>) -> Self {
+        let config_ref = config.as_ref();
+        let authenticated = config_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
         let db_sender = db_manager_ref.get_sender(0);
         Handler {
@@ -29,7 +29,7 @@ impl Handler {
             db_manager,
             db_sender,
             stream,
-            args,
+            config,
         }
     }
 
@@ -39,7 +39,7 @@ impl Handler {
      * @param input_requirepass 输入密码【只读】
      */
     pub fn login(&mut self, input_requirepass: &String) -> bool {
-        if let Some(ref requirepass) = self.args.requirepass {
+        if let Some(ref requirepass) = self.config.requirepass {
             if requirepass == input_requirepass {
                 self.authenticated = true;
                 return true;
@@ -92,7 +92,7 @@ impl Handler {
             match command {
                 Command::Auth(_) => {},
                 _ => { 
-                    if self.args.requirepass.is_some() {
+                    if self.config.requirepass.is_some() {
                         if self.authenticated == false {
                             let f = Frame::Error("NOAUTH Authentication required.".to_string());
                             if let Err(e) = self.stream.write_all(&f.as_bytes()).await {
