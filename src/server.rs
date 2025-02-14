@@ -1,0 +1,62 @@
+use std::process::id;
+use std::sync::Arc;
+use tokio::net::TcpListener;
+
+use crate::config::Config;
+use crate::db::DbManager;
+use crate::handler::Handler;
+
+pub struct Server {
+    config: Arc<Config>,
+    db_manager: Arc<DbManager>,
+}
+
+impl Server {
+
+    pub fn new(config: Arc<Config>, db_manager: Arc<DbManager>) -> Self {
+        Server { config, db_manager }
+    }
+
+    pub async fn start(&self) {
+        match TcpListener::bind(format!("{}:{}", self.config.bind, self.config.port)).await {
+            Ok(listener) => {
+                self.server_info();
+                log::info!("Server initialized");
+                log::info!("Ready to accept connections");
+                loop {
+                    match listener.accept().await {
+                        Ok((stream, _address)) => {
+                            let mut handler = Handler::new(self.db_manager.clone(), stream, self.config.clone());
+                            tokio::spawn(async move {
+                                handler.run().await;
+                            });
+                        }
+                        Err(e) => {
+                            log::error!("Failed to accept connection: {}", e);
+                        }
+                    }
+                }
+            }
+            Err(_e) => {
+                log::error!("Failed to bind to address {}:{}", self.config.bind, self.config.port);
+                std::process::exit(1);
+            }
+        }
+    }
+
+    fn server_info(&self) {
+        let pid = id();
+        let version = env!("CARGO_PKG_VERSION");
+        let pattern = format!(
+            r#"
+             /\_____/\
+            /  o   o  \          Rudis {}
+           ( ==  ^  == )
+            )         (          Bind: {} PID: {}
+           (           )
+          ( (  )   (  ) )
+         (__(__)___(__)__)
+        "#, version, self.config.port, pid);
+        println!("{}", pattern);
+    }
+}
