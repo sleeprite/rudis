@@ -29,7 +29,11 @@ impl Select {
     }
 
     pub fn apply(self, handler:&mut ServerHandler) -> Result<Frame, Error> {
-        handler.change_sender(self.db);
-        Ok(Frame::Ok)
+        match handler.change_sender(self.db) {
+            Ok(_) => Ok(Frame::Ok),
+            Err(e) => {
+                Ok(Frame::Error(e.to_string()))
+            }
+        }
     }
 }

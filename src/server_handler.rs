@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Error;
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream, sync::{mpsc::Sender, oneshot}};
 
 use crate::{
@@ -16,16 +17,12 @@ pub struct ServerHandler {
 
 impl ServerHandler {
 
-    /**
-     * 创建会话处理器
-     */
     pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, config: Arc<Config>) -> Self {
-        let config_ref = config.as_ref();
-        let authenticated = config_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
         let db_sender = db_manager_ref.get_sender(0);
+        let config_ref = config.as_ref();
         ServerHandler {
-            authenticated,
+            authenticated: config_ref.requirepass.is_none(),
             db_manager,
             db_sender,
             stream,
@@ -36,25 +33,38 @@ impl ServerHandler {
     /**
      * 登录认证 - 方法
      * 
+     * 如果 "密码" 不匹配，响应 ERR invalid password 错误
+     * 
      * @param input_requirepass 输入密码【只读】
      */
-    pub fn login(&mut self, input_requirepass: &String) -> bool {
+    pub fn login(&mut self, input_requirepass: &String) -> Result<(), Error> {
         if let Some(ref requirepass) = self.config.requirepass {
             if requirepass == input_requirepass {
                 self.authenticated = true;
-                return true;
-            }
-            return false;
+                return Ok(())
+            } 
+            return Err(Error::msg("ERR invalid password"));
         } else {
-            true
+            Ok(())
         }
     }
 
-    pub fn change_sender(&mut self, idx: usize) {
+    /**
+     * 切换 db_sender 发送器
+     * 
+     * 如果索引超出，响应 ERR DB index is out of range 错误
+     * 
+     * @param idx 索引
+     */
+    pub fn change_sender(&mut self, idx: usize) -> Result<(), Error> {
+        if self.config.databases - 1 < idx {
+            return Err(Error::msg("ERR DB index is out of range"));
+        }
         self.db_sender = self.db_manager.get_sender(idx);
+        Ok(())
     }
 
-    pub async fn run(&mut self) {
+    pub async fn handle(&mut self) {
 
         let mut buf = [0; 1024]; 
 

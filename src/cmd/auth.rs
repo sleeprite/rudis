@@ -23,10 +23,11 @@ impl Auth {
     }
 
     pub fn apply(self, handler:&mut ServerHandler) -> Result<Frame, Error> {
-        if handler.login(&self.requirepass) {
-            Ok(Frame::Ok)
-        } else {
-            Ok(Frame::Error("ERR invalid password".to_string()))
+        match handler.login(&self.requirepass) {
+            Ok(_) => Ok(Frame::Ok),
+            Err(e) => {
+                Ok(Frame::Error(e.to_string()))
+            }
         }
     }
 }

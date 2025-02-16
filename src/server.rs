@@ -28,7 +28,7 @@ impl Server {
                         Ok((stream, _address)) => {
                             let mut handler = ServerHandler::new(self.db_manager.clone(), stream, self.config.clone());
                             tokio::spawn(async move {
-                                handler.run().await;
+                                handler.handle().await;
                             });
                         }
                         Err(e) => {

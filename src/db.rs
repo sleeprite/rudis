@@ -25,7 +25,9 @@ pub struct DbMessage {
     pub command: Command,
 }
 
-// Db 仓库
+/**
+ * DB 管理器
+ */
 pub struct DbManager {
     senders: Vec<Sender<DbMessage>>,
 }
