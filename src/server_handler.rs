@@ -64,37 +64,63 @@ impl ServerHandler {
         Ok(())
     }
 
-    pub async fn handle(&mut self) {
+    /**
+     * 读取 Stream 字节
+     * 
+     * 通过 loop 和 n < temp_buf.len()，读取完整命令
+     * 
+     * @param self.stream 客户端
+     */
+    async fn read_bytes(&mut self) -> Result<Vec<u8>, Error> {
+        let mut buffer = Vec::new();
+        let mut temp_buf = [0; 1024];
+        loop {
+            let n = match self.stream.read(&mut temp_buf).await {
+                Ok(n) => n,
+                Err(e) => {  
+                    return Err(Error::msg(format!("Failed to read from stream: {:?}", e)));
+                }
+            };
+            buffer.extend_from_slice(&temp_buf[..n]);
+            if n < temp_buf.len() {
+                break;
+            }
+        }
+        Ok(buffer)
+    }
 
-        let mut buf = [0; 1024]; 
+    /**
+     * 写入 Frame 到客户端
+     * 
+     * 如果写入失败，会记录错误并直接返回，不会抛出错误。
+     * 
+     * @param frame
+     */
+    async fn write_frame(&mut self, frame: Frame) {
+        let bytes = frame.as_bytes();
+        if let Err(e) = self.stream.write_all(&bytes).await {
+            eprintln!("Failed to write to socket; err = {:?}", e);
+        }
+    }
+
+    pub async fn handle(&mut self) {
 
         loop {
             
-            let n = match self.stream.read(&mut buf).await {
-                Ok(n) => {
-                    if n == 0 {
-                        return;
-                    } 
-                    n
-                }
+            let bytes = match self.read_bytes().await {
+                Ok(bytes) => bytes,
                 Err(e) => {
-                    if e.raw_os_error() == Some(10054) {
-                        return; 
-                    } 
+                    eprintln!("Failed to read from stream; err = {:?}", e);
                     return;
                 }
             };
 
-            let bytes = &buf[0..n];
-            let frame = Frame::parse_from_bytes(bytes).unwrap();
+            let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
                     let frame = Frame::Error(e.to_string());
-                    if let Err(e) = self.stream.write_all(&frame.as_bytes()).await {
-                        eprintln!("failed to write to socket; err = {:?}", e);
-                        return;
-                    }
+                    self.write_frame(frame).await;
                     continue;
                 }
             };
@@ -104,10 +130,8 @@ impl ServerHandler {
                 _ => { 
                     if self.config.requirepass.is_some() {
                         if self.authenticated == false {
-                            let f = Frame::Error("NOAUTH Authentication required.".to_string());
-                            if let Err(e) = self.stream.write_all(&f.as_bytes()).await {
-                                eprintln!("Failed to write to socket; err = {:?}", e);
-                            }
+                            let frame = Frame::Error("NOAUTH Authentication required.".to_string());
+                            self.write_frame(frame).await;
                             continue;
                         }
                     } 
@@ -122,6 +146,7 @@ impl ServerHandler {
                 Command::Ping(ping) => ping.apply(),
                 Command::Echo(echo) => echo.apply(),
                 _ => {
+                    
                     let (sender, receiver) = oneshot::channel();
                     match self.db_sender.send(DbMessage {
                             sender: sender,
@@ -142,11 +167,8 @@ impl ServerHandler {
             };
 
             match result {
-                Ok(f) => {
-                    if let Err(e) = self.stream.write_all(&f.as_bytes()).await {
-                        eprintln!("Failed to write to socket; err = {:?}", e);
-                        return;
-                    }
+                Ok(frame) => {
+                    self.write_frame(frame).await;
                 }
                 Err(e) => {
                     println!("Failed to receive; err = {:?}", e);
