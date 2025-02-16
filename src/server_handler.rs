@@ -4,7 +4,7 @@ use anyhow::Error;
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream, sync::{mpsc::Sender, oneshot}};
 
 use crate::{
-    config::Config, command::Command, db::{DbManager, DbMessage}, frame::Frame
+    args::Args, command::Command, db::{DbManager, DbMessage}, frame::Frame
 };
 
 pub struct ServerHandler {
@@ -12,21 +12,21 @@ pub struct ServerHandler {
     db_manager: Arc<DbManager>,
     db_sender: Sender<DbMessage>,
     stream: TcpStream,
-    config: Arc<Config>
+    args: Arc<Args>
 }
 
 impl ServerHandler {
 
-    pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, config: Arc<Config>) -> Self {
+    pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, args: Arc<Args>) -> Self {
         let db_manager_ref = db_manager.as_ref();
         let db_sender = db_manager_ref.get_sender(0);
-        let config_ref = config.as_ref();
+        let args_ref = args.as_ref();
         ServerHandler {
-            authenticated: config_ref.requirepass.is_none(),
+            authenticated: args_ref.requirepass.is_none(),
             db_manager,
             db_sender,
             stream,
-            config,
+            args,
         }
     }
 
@@ -38,7 +38,7 @@ impl ServerHandler {
      * @param input_requirepass 输入密码【只读】
      */
     pub fn login(&mut self, input_requirepass: &String) -> Result<(), Error> {
-        if let Some(ref requirepass) = self.config.requirepass {
+        if let Some(ref requirepass) = self.args.requirepass {
             if requirepass == input_requirepass {
                 self.authenticated = true;
                 return Ok(())
@@ -57,7 +57,7 @@ impl ServerHandler {
      * @param idx 索引
      */
     pub fn change_sender(&mut self, idx: usize) -> Result<(), Error> {
-        if self.config.databases - 1 < idx {
+        if self.args.databases - 1 < idx {
             return Err(Error::msg("ERR DB index is out of range"));
         }
         self.db_sender = self.db_manager.get_sender(idx);
@@ -128,7 +128,7 @@ impl ServerHandler {
             match command {
                 Command::Auth(_) => {},
                 _ => { 
-                    if self.config.requirepass.is_some() {
+                    if self.args.requirepass.is_some() {
                         if self.authenticated == false {
                             let frame = Frame::Error("NOAUTH Authentication required.".to_string());
                             self.write_frame(frame).await;

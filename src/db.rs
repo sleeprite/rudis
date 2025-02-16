@@ -12,7 +12,7 @@ use tokio::sync::{
     oneshot,
 };
 
-use crate::{config::Config, command::Command, frame::Frame};
+use crate::{args::Args, command::Command, frame::Frame};
 
 /**
  * 消息
@@ -39,7 +39,7 @@ impl DbManager {
      *
      * @param config 参数
      */
-    pub fn new(config: Arc<Config>) -> Self {
+    pub fn new(config: Arc<Args>) -> Self {
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
 
