@@ -28,22 +28,22 @@ pub struct DbMessage {
 /**
  * DB 管理器
  */
-pub struct DbManager {
+pub struct DbGuard {
     senders: Vec<Sender<DbMessage>>,
 }
 
-impl DbManager {
+impl DbGuard {
 
     /**
      * 创建 DB 管理器
      *
      * @param config 参数
      */
-    pub fn new(config: Arc<Args>) -> Self {
+    pub fn new(args: Arc<Args>) -> Self {
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
 
-        for _ in 0..config.databases {
+        for _ in 0..args.databases {
             let db = Db::new();
             senders.push(db.sender.clone());
             dbs.push(db);
@@ -55,7 +55,7 @@ impl DbManager {
             });
         }
 
-        DbManager { senders }
+        DbGuard { senders }
     }
 
     /**
@@ -118,6 +118,8 @@ impl Db {
 
     /**
      * 运行数据库
+     * 
+     * @param self 本身
      */
     async fn run(&mut self) {
         while let Some(DbMessage { sender, command }) = self.receiver.recv().await {
@@ -179,9 +181,9 @@ impl Db {
                 Command::Zcard(zcard) => zcard.apply(self),
                 Command::Zrank(zrank) => zrank.apply(self),
                 Command::Zrem(zrem) => zrem.apply(self),
-                Command::ExpireAt(expireat) => expireat.apply(self),
                 Command::Incrby(incrby) => incrby.apply(self),
                 Command::Decrby(decrby) => decrby.apply(self),
+                Command::ExpireAt(expireat) => expireat.apply(self),
                 Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                 Command::Pexpire(pexpire) => pexpire.apply(self),
                 Command::Lrange(lrange) => lrange.apply(self),

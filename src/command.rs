@@ -81,11 +81,11 @@ pub enum Command {
     Zrem(Zrem),
     Incrby(Incrby),
     Decrby(Decrby),
-    ExpireAt(ExpireAt),
     Echo(Echo),
+    ExpireAt(ExpireAt),
     RandomKey(RandomKey),
-    Pexpire(Pexpire),
     PexpireAt(PexpireAt),
+    Pexpire(Pexpire),
     Lrange(Lrange)
 }
 

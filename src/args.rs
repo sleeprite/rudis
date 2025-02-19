@@ -13,8 +13,17 @@ pub struct Args {
     /**
      * 绑定地址
      */
-    #[arg(short, long, default_value = "127.0.0.1")] 
+    #[arg(short, long, default_value = "127.0.0.1")]
     pub bind: String,
+
+    /**
+     * 文件路径
+     */
+    // #[arg(short, long, default_value = "dump.rdb")] 
+    // pub dbfilename: String,
+
+    // #[arg(short, long, default_value = "./")] 
+    // pub dir: String,
 
     /**
      * 数据库
@@ -32,6 +41,6 @@ pub struct Args {
      * 日志级别
      */
     #[arg(short, long, default_value = "info")] 
-    pub loglevel: String
-
+    pub loglevel: String,
+    
 }
