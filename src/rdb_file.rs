@@ -12,6 +12,11 @@ pub struct RdbFile {
 
 impl RdbFile {
 
+    /**
+     * 保存 dump 内容
+     * 
+     * @param path dump 文件路径
+     */
     pub fn save(&self, path: &str) -> Result<(), Error> {
         let mut file = File::create(path)?;
         let config = config::standard();
