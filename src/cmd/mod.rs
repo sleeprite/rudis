@@ -12,3 +12,5 @@ pub mod unknown;
 pub mod sorted_set;
 pub mod set;
 pub mod echo;
+pub mod dump;
+pub mod save;

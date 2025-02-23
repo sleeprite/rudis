@@ -1,10 +1,9 @@
 use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    sync::Arc,
-    time::Duration,
+    collections::{BTreeMap, HashMap, HashSet}, path::Path, sync::Arc, time::Duration
 };
 
 use anyhow::Error;
+use bincode::Encode;
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{
@@ -12,7 +11,7 @@ use tokio::sync::{
     oneshot,
 };
 
-use crate::{args::Args, command::Command, frame::Frame};
+use crate::{args::Args, command::Command, frame::Frame, rdb_file::RdbFile};
 
 /**
  * 消息
@@ -44,7 +43,7 @@ impl DbGuard {
         let mut senders = Vec::new();
 
         for _ in 0..args.databases {
-            let db = Db::new();
+            let db = Db::new(args.clone());
             senders.push(db.sender.clone());
             dbs.push(db);
         }
@@ -79,6 +78,7 @@ impl DbGuard {
     }
 }
 
+#[derive(Clone, Encode)]
 pub enum Structure {
     String(String),
     Hash(HashMap<String, String>),
@@ -98,6 +98,7 @@ pub struct Db {
     sender: Sender<DbMessage>,
     pub expire_records: HashMap<String, SystemTime>,
     pub records: HashMap<String, Structure>,
+    args: Arc<Args>
 }
 
 impl Db {
@@ -105,7 +106,8 @@ impl Db {
     /**
      * 创建数据库
      */
-    pub fn new() -> Self {
+    pub fn new(args: Arc<Args>) -> Self {
+
         let (sender, receiver) = channel(1024);
 
         Db {
@@ -113,6 +115,7 @@ impl Db {
             expire_records: HashMap::new(),
             receiver,
             sender,
+            args
         }
     }
 
@@ -187,6 +190,7 @@ impl Db {
                 Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                 Command::Pexpire(pexpire) => pexpire.apply(self),
                 Command::Lrange(lrange) => lrange.apply(self),
+                Command::Dump(dump) => dump.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 
@@ -367,5 +371,24 @@ impl Db {
         let regex_pattern = convert_pattern(pattern);
         let regex = Regex::new(&regex_pattern).unwrap();
         regex.is_match(key)
+    }
+
+    /**
+     * 保存 dump 内容
+     */
+    pub fn save_rdb_file(&mut self) {
+
+        let rdb_file = RdbFile {
+            expire_records: self.expire_records.clone(),
+            records: self.records.clone(),
+        };
+
+        let dir = &self.args.dir;
+        let dbfilename: &String = &self.args.dbfilename;
+        let rdb_file_path = Path::new(dir).join(dbfilename).display().to_string();
+        match rdb_file.save(&rdb_file_path) {
+           Ok(()) => {},
+           Err(_) => {} 
+        };
     }
 }
