@@ -19,10 +19,13 @@ pub struct Args {
     /**
      * 文件路径
      */
-    #[arg(short, long, default_value = "dump.rdb")] 
+    #[arg(default_value = "dump.rdb")] 
     pub dbfilename: String,
 
-    #[arg(short, long, default_value = "./")] 
+    /**
+     * 安装路径
+     */
+    #[arg(default_value = "./")] 
     pub dir: String,
 
     /**

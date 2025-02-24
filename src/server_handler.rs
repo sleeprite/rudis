@@ -141,6 +141,7 @@ impl ServerHandler {
 
             let result = match command {
                 Command::Auth(auth) => auth.apply(self),
+                Command::Save(save) => save.apply(self.db_guard.clone()).await,
                 Command::Flushall(flushall) => flushall.apply(self.db_guard.clone()),
                 Command::Select(select) => select.apply(self),
                 Command::Unknown(unknown) => unknown.apply(),

@@ -42,8 +42,8 @@ impl DbGuard {
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
 
-        for _ in 0..args.databases {
-            let db = Db::new(args.clone());
+        for index in 0..args.databases {
+            let db = Db::new(index, args.clone());
             senders.push(db.sender.clone());
             dbs.push(db);
         }
@@ -98,6 +98,7 @@ pub struct Db {
     sender: Sender<DbMessage>,
     pub expire_records: HashMap<String, SystemTime>,
     pub records: HashMap<String, Structure>,
+    index: usize,
     args: Arc<Args>
 }
 
@@ -106,7 +107,7 @@ impl Db {
     /**
      * 创建数据库
      */
-    pub fn new(args: Arc<Args>) -> Self {
+    pub fn new(index: usize, args: Arc<Args>) -> Self {
 
         let (sender, receiver) = channel(1024);
 
@@ -115,6 +116,7 @@ impl Db {
             expire_records: HashMap::new(),
             receiver,
             sender,
+            index,
             args
         }
     }
@@ -375,6 +377,8 @@ impl Db {
 
     /**
      * 保存 dump 内容
+     * 
+     * @param self 实例本身
      */
     pub fn save_rdb_file(&mut self) {
 
@@ -384,7 +388,7 @@ impl Db {
         };
 
         let dir = &self.args.dir;
-        let dbfilename: &String = &self.args.dbfilename;
+        let dbfilename = format!("data/dump-{}.rdb", self.index);
         let rdb_file_path = Path::new(dir).join(dbfilename).display().to_string();
         match rdb_file.save(&rdb_file_path) {
            Ok(()) => {},

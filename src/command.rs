@@ -164,6 +164,7 @@ impl Command {
             "PEXPIREAT" => Command::PexpireAt(PexpireAt::parse_from_frame(frame)?),
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "DUMP" => Command::Dump(Dump::parse_from_frame(frame)?),
+            "SAVE" => Command::Save(Save::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
