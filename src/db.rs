@@ -3,7 +3,7 @@ use std::{
 };
 
 use anyhow::Error;
-use bincode::Encode;
+use bincode::{Decode, Encode};
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{
@@ -78,7 +78,7 @@ impl DbGuard {
     }
 }
 
-#[derive(Clone, Encode)]
+#[derive(Clone, Encode, Decode)]
 pub enum Structure {
     String(String),
     Hash(HashMap<String, String>),
@@ -111,9 +111,15 @@ impl Db {
 
         let (sender, receiver) = channel(1024);
 
+        // todo 判断 save 参数是否加载
+        let dir = &args.dir;
+        let dbfilename = format!("data/dump-{}.rdb", index);
+        let rdb_file_path = Path::new(dir).join(dbfilename).display().to_string();
+        let rdb_file = RdbFile::new().load(rdb_file_path).unwrap();
+
         Db {
-            records: HashMap::new(),
-            expire_records: HashMap::new(),
+            records: rdb_file.records,
+            expire_records: rdb_file.expire_records,
             receiver,
             sender,
             index,
