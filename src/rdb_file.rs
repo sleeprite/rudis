@@ -48,15 +48,18 @@ impl RdbFile {
      * @return Result<RdbFile, Error>
      */
     pub fn load(mut self, path: String) -> Result<Self, Error> {
+        
         let path = Path::new(&path);
-        let data = fs::read(path)?;
-    
-        let config = config::standard();
-        let (deserialized, _len) = decode_from_slice(&data, config)?;
-        let (records, expire_records) = deserialized;
 
-        self.expire_records = expire_records;
-        self.records = records;
+        if path.exists() {
+            let data = fs::read(path)?;
+            let config = config::standard();
+            let (deserialized, _len) = decode_from_slice(&data, config)?;
+            let (records, expire_records) = deserialized;
+            self.expire_records = expire_records;
+            self.records = records;
+
+        }
         Ok(self)
     }
 }

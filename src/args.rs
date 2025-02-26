@@ -19,7 +19,7 @@ pub struct Args {
     /**
      * 文件路径
      */
-    #[arg(default_value = "dump.rdb")] 
+    #[arg(default_value = "data/dump-{}.rdb")] 
     pub dbfilename: String,
 
     /**

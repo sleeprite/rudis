@@ -111,11 +111,10 @@ impl Db {
 
         let (sender, receiver) = channel(1024);
 
-        // todo 判断 save 参数是否加载
         let dir = &args.dir;
-        let dbfilename = format!("data/dump-{}.rdb", index);
-        let rdb_file_path = Path::new(dir).join(dbfilename).display().to_string();
-        let rdb_file = RdbFile::new().load(rdb_file_path).unwrap();
+        let dbfilename = args.dbfilename.replace("{}", &index.to_string());
+        let path = Path::new(dir).join(dbfilename).display().to_string();
+        let rdb_file = RdbFile::new().load(path).unwrap();
 
         Db {
             records: rdb_file.records,
@@ -394,9 +393,9 @@ impl Db {
         };
 
         let dir = &self.args.dir;
-        let dbfilename = format!("data/dump-{}.rdb", self.index);
-        let rdb_file_path = Path::new(dir).join(dbfilename).display().to_string();
-        match rdb_file.save(&rdb_file_path) {
+        let dbfilename = self.args.dbfilename.replace("{}", &self.index.to_string());
+        let path = Path::new(dir).join(dbfilename).display().to_string();
+        match rdb_file.save(&path) {
            Ok(()) => {},
            Err(_) => {} 
         };
