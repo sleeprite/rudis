@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, dbsize::Dbsize, dump::Dump, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
+        auth::Auth, bgsave::Bgsave, dbsize::Dbsize, dump::Dump, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
@@ -88,6 +88,7 @@ pub enum Command {
     Pexpire(Pexpire),
     Lrange(Lrange),
     Save(Save),
+    Bgsave(Bgsave),
     Dump(Dump)
 }
 
@@ -163,8 +164,9 @@ impl Command {
             "PEXPIRE" => Command::Pexpire(Pexpire::parse_from_frame(frame)?),
             "PEXPIREAT" => Command::PexpireAt(PexpireAt::parse_from_frame(frame)?),
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
-            "DUMP" => Command::Dump(Dump::parse_from_frame(frame)?),
+            "BGSAVE" => Command::Bgsave(Bgsave::parse_from_frame(frame)?),
             "SAVE" => Command::Save(Save::parse_from_frame(frame)?),
+            "DUMP" => Command::Dump(Dump::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

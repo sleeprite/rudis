@@ -387,17 +387,50 @@ impl Db {
      */
     pub fn save_rdb_file(&mut self) {
 
+        let dir = self.args.dir.clone();
+        let index = self.index;
+        let dbfilename = self.args.dbfilename.replace("{}", &index.to_string());
+        let path = Path::new(&dir).join(dbfilename).display().to_string();
+        let expire_records = self.expire_records.clone();
+        let records = self.records.clone();
         let rdb_file = RdbFile {
-            expire_records: self.expire_records.clone(),
-            records: self.records.clone(),
+            expire_records,
+            records,
         };
 
-        let dir = &self.args.dir;
-        let dbfilename = self.args.dbfilename.replace("{}", &self.index.to_string());
-        let path = Path::new(dir).join(dbfilename).display().to_string();
         match rdb_file.save(&path) {
-           Ok(()) => {},
-           Err(_) => {} 
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Failed to save RDB file: {}", e);
+            }
+        }
+    }
+
+    /**
+     * 保存 dump 内容【异步】
+     * 
+     * @param self 实例本身
+     */
+    pub fn bg_save_rdb_file(&mut self) {
+
+        let dir = self.args.dir.clone();
+        let index = self.index;
+        let dbfilename = self.args.dbfilename.replace("{}", &index.to_string());
+        let path = Path::new(&dir).join(dbfilename).display().to_string();
+        let expire_records = self.expire_records.clone();
+        let records = self.records.clone();
+        let rdb_file = RdbFile {
+            expire_records,
+            records,
         };
+
+        tokio::spawn(async move {
+            match rdb_file.save(&path) {
+                Ok(()) => {}
+                Err(e) => {
+                    eprintln!("Failed to save RDB file: {}", e);
+                }
+            }
+        });
     }
 }
