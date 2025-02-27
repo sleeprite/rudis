@@ -143,7 +143,7 @@ impl ServerHandler {
                 Command::Auth(auth) => auth.apply(self),
                 Command::Save(save) => save.apply(self.db_guard.clone()).await,
                 Command::Bgsave(bgsave) => bgsave.apply(self.db_guard.clone()).await,
-                Command::Flushall(flushall) => flushall.apply(self.db_guard.clone()),
+                Command::Flushall(flushall) => flushall.apply(self.db_guard.clone()).await,
                 Command::Select(select) => select.apply(self),
                 Command::Unknown(unknown) => unknown.apply(),
                 Command::Ping(ping) => ping.apply(),
