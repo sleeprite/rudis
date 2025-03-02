@@ -2,14 +2,14 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth, bgsave::Bgsave, dbsize::Dbsize, dump::Dump, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
+        auth::Auth, bgsave::Bgsave, dbsize::Dbsize, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
             del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
         }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange, lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx
-        }, ping::Ping, save::Save, select::Select, set::{sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
+        }, ping::Ping, save::Save, saverdb::Saverdb, select::Select, set::{sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore}, sorted_set::{zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore}, string::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, incr::Incr, incrby::Incrby, mget::Mget, mset::Mset, set::Set, strlen::Strlen
         }, unknown::Unknown
     },
@@ -88,8 +88,8 @@ pub enum Command {
     Pexpire(Pexpire),
     Lrange(Lrange),
     Save(Save),
+    Saverdb(Saverdb),
     Bgsave(Bgsave),
-    Dump(Dump)
 }
 
 impl Command {
@@ -166,7 +166,7 @@ impl Command {
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "BGSAVE" => Command::Bgsave(Bgsave::parse_from_frame(frame)?),
             "SAVE" => Command::Save(Save::parse_from_frame(frame)?),
-            "DUMP" => Command::Dump(Dump::parse_from_frame(frame)?),
+            "SAVERDB" => Command::Saverdb(Saverdb::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

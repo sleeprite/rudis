@@ -197,7 +197,7 @@ impl Db {
                 Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                 Command::Pexpire(pexpire) => pexpire.apply(self),
                 Command::Lrange(lrange) => lrange.apply(self),
-                Command::Dump(dump) => dump.apply(self),
+                Command::Saverdb(saverdb) => saverdb.apply(self),
                 _ => Err(Error::msg("Unknown command")),
             };
 

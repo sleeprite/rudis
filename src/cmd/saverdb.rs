@@ -2,14 +2,14 @@ use anyhow::Error;
 
 use crate::{db::Db, frame::Frame};
 
-pub struct Dump {
+pub struct Saverdb {
     pub background: bool
 }
 
-impl Dump {
+impl Saverdb {
     
     pub fn parse_from_frame(_frame: Frame) -> Result<Self, Error> {
-        Ok(Dump {
+        Ok(Saverdb {
             background: false
         })
     }

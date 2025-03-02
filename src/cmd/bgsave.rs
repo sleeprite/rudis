@@ -4,7 +4,7 @@ use anyhow::Error;
 use tokio::sync::oneshot;
 use crate::{command::Command, db::{DbGuard, DbMessage}, frame::Frame};
 
-use super::dump::Dump;
+use super::saverdb::Saverdb;
 
 pub struct Bgsave {}
 
@@ -19,7 +19,7 @@ impl Bgsave {
         for target_sender in senders {
             let (sender, _receiver) = oneshot::channel(); // 创建通道
             match target_sender.send(DbMessage {
-                command: Command::Dump(Dump { background: true }),
+                command: Command::Saverdb(Saverdb { background: true }),
                 sender: sender
             }).await {
                 Ok(()) => {}
