@@ -3,18 +3,18 @@ use std::sync::Arc;
 use tokio::net::TcpListener;
 
 use crate::args::Args;
-use crate::db::DbGuard;
+use crate::db::DbManager;
 use crate::server_handler::ServerHandler;
 
 pub struct Server {
     args: Arc<Args>,
-    db_guard: Arc<DbGuard>,
+    db_manager: Arc<DbManager>,
 }
 
 impl Server {
 
-    pub fn new(args: Arc<Args>, db_guard: Arc<DbGuard>) -> Self {
-        Server { args, db_guard }
+    pub fn new(args: Arc<Args>, db_manager: Arc<DbManager>) -> Self {
+        Server { args, db_manager }
     }
 
     pub async fn start(&self) {
@@ -26,7 +26,7 @@ impl Server {
                 loop {
                     match listener.accept().await {
                         Ok((stream, _address)) => {
-                            let mut handler = ServerHandler::new(self.db_guard.clone(), stream, self.args.clone());
+                            let mut handler = ServerHandler::new(self.db_manager.clone(), stream, self.args.clone());
                             tokio::spawn(async move {
                                 handler.handle().await;
                             });

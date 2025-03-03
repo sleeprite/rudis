@@ -27,11 +27,11 @@ pub struct DbMessage {
 /**
  * DB 管理器
  */
-pub struct DbGuard {
+pub struct DbManager {
     senders: Vec<Sender<DbMessage>>,
 }
 
-impl DbGuard {
+impl DbManager {
 
     /**
      * 创建 DB 管理器
@@ -54,7 +54,7 @@ impl DbGuard {
             });
         }
 
-        DbGuard { senders }
+        DbManager { senders }
     }
 
     /**
@@ -88,10 +88,14 @@ pub enum Structure {
 }
 
 /**
- * 数据库结构
+ * 数据库
  * 
  * @param receiver
  * @param sender
+ * @param expire_records
+ * @param records
+ * @param index
+ * @param args
  */
 pub struct Db {
     receiver: Receiver<DbMessage>,
@@ -116,9 +120,12 @@ impl Db {
         let path = Path::new(dir).join(dbfilename).display().to_string();
         let rdb_file = RdbFile::new().load(path).unwrap();
 
+        let records = rdb_file.records;
+        let expire_records = rdb_file.expire_records;
+
         Db {
-            records: rdb_file.records,
-            expire_records: rdb_file.expire_records,
+            records,
+            expire_records,
             receiver,
             sender,
             index,

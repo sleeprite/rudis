@@ -4,12 +4,18 @@ use anyhow::Error;
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream, sync::{mpsc::Sender, oneshot}};
 
 use crate::{
-    args::Args, command::Command, db::{DbGuard, DbMessage}, frame::Frame
+    args::Args, command::Command, db::{DbManager, DbMessage}, frame::Frame
 };
 
+/**
+ * 处理器
+ * 
+ * @param authenticated 线程的认证状态
+ * @param db_manager 数据库管理器
+ */
 pub struct ServerHandler {
     authenticated: bool,
-    db_guard: Arc<DbGuard>,
+    db_manager: Arc<DbManager>,
     db_sender: Sender<DbMessage>,
     stream: TcpStream,
     args: Arc<Args>
@@ -17,14 +23,14 @@ pub struct ServerHandler {
 
 impl ServerHandler {
 
-    pub fn new(db_guard: Arc<DbGuard>, stream: TcpStream, args: Arc<Args>) -> Self {
+    pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, args: Arc<Args>) -> Self {
         let args_ref = args.as_ref();
         let authenticated = args_ref.requirepass.is_none();
-        let db_guard_ref = db_guard.as_ref();
-        let db_sender = db_guard_ref.get_sender(0);
+        let db_manager_ref = db_manager.as_ref();
+        let db_sender = db_manager_ref.get_sender(0);
         ServerHandler {
             authenticated,
-            db_guard,
+            db_manager,
             db_sender,
             stream,
             args,
@@ -61,7 +67,7 @@ impl ServerHandler {
         if self.args.databases - 1 < idx {
             return Err(Error::msg("ERR DB index is out of range"));
         }
-        self.db_sender = self.db_guard.get_sender(idx);
+        self.db_sender = self.db_manager.get_sender(idx);
         Ok(())
     }
 
@@ -141,9 +147,9 @@ impl ServerHandler {
 
             let result = match command {
                 Command::Auth(auth) => auth.apply(self),
-                Command::Save(save) => save.apply(self.db_guard.clone()).await,
-                Command::Bgsave(bgsave) => bgsave.apply(self.db_guard.clone()).await,
-                Command::Flushall(flushall) => flushall.apply(self.db_guard.clone()).await,
+                Command::Save(save) => save.apply(self.db_manager.clone()).await,
+                Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone()).await,
+                Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
                 Command::Select(select) => select.apply(self),
                 Command::Unknown(unknown) => unknown.apply(),
                 Command::Ping(ping) => ping.apply(),
