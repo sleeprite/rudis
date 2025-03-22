@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use crate::{frame::Frame, server_handler::ServerHandler};
+use crate::{frame::Frame, server::Handler};
 
 pub struct Select {
     db: usize,
@@ -28,7 +28,7 @@ impl Select {
         Ok(Select { db: db })
     }
 
-    pub fn apply(self, handler:&mut ServerHandler) -> Result<Frame, Error> {
+    pub fn apply(self, handler:&mut Handler) -> Result<Frame, Error> {
         match handler.change_sender(self.db) {
             Ok(_) => Ok(Frame::Ok),
             Err(e) => {
