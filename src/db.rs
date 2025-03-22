@@ -4,14 +4,13 @@ use std::{
 
 use anyhow::Error;
 use bincode::{Decode, Encode};
-use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{
     mpsc::{channel, Receiver, Sender},
     oneshot,
 };
 
-use crate::{args::Args, command::Command, frame::Frame, persistence::rdb_file::RdbFile};
+use crate::{args::Args, command::Command, frame::Frame, persistence::rdb_file::RdbFile, tools::pattern};
 
 /**
  * 消息
@@ -344,47 +343,7 @@ impl Db {
      * @return 符合模式的所有键的列表
      */
     pub fn keys(&self, pattern: &str) -> Vec<String> {
-        self.records.keys().filter(|key| self.match_pattern(key, pattern)).cloned().collect()
-    }
-
-    /**
-     * 匹配 key 的逻辑
-     * 
-     * @param key 键名称
-     * @param pattern 表达式
-     */
-    fn match_pattern(&self, key: &str, pattern: &str) -> bool {
-        fn convert_pattern(pattern: &str) -> String {
-            let mut regex_pattern = String::new();
-            let mut chars = pattern.chars().peekable();
-            while let Some(p) = chars.next() {
-                match p {
-                    '*' => regex_pattern.push_str(".*"), // 匹配任意字符任意次
-                    '?' => regex_pattern.push('.'),     // 匹配任意单个字符
-                    '[' => {
-                        regex_pattern.push('[');
-                        if let Some(next) = chars.peek() {
-                            if *next == '^' {
-                                regex_pattern.push('^');
-                                chars.next(); // 跳过 '^'
-                            }
-                        }
-                        while let Some(ch) = chars.next() {
-                            if ch == ']' {
-                                break;
-                            }
-                            regex_pattern.push(ch);
-                        }
-                        regex_pattern.push(']');
-                    }
-                    _ => regex_pattern.push(p) // 其他字符直接添加
-                }
-            }
-            regex_pattern
-        }
-        let regex_pattern = convert_pattern(pattern);
-        let regex = Regex::new(&regex_pattern).unwrap();
-        regex.is_match(key)
+        self.records.keys().filter(|key| pattern::is_match(key, pattern)).cloned().collect()
     }
 
     /**
