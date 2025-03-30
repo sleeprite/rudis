@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use crate::{frame::Frame, server::Handler};
+use crate::{frame::Frame, network::server::Handler};
 
 pub struct Auth {
     requirepass: String,
