@@ -3,11 +3,11 @@ use std::process::id;
 use std::sync::Arc;
 
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot;
 
 use crate::args::Args;
+use crate::stream::connection::Connection;
 use crate::db::{DbManager, DbMessage};
 use crate::frame::Frame;
 use crate::command::Command;
@@ -69,9 +69,9 @@ impl Server {
 
 pub struct Handler {
     authenticated: bool,
+    connection: Connection,
     db_manager: Arc<DbManager>,
     db_sender: Sender<DbMessage>,
-    stream: TcpStream,
     args: Arc<Args>
 }
 
@@ -82,17 +82,18 @@ impl Handler {
         let authenticated = args_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
         let db_sender = db_manager_ref.get_sender(0);
+        let connection = Connection::new(stream);
         Handler {
             authenticated,
+            connection,
             db_manager,
             db_sender,
-            stream,
             args,
         }
     }
 
     /**
-     * 登录认证 - 方法
+     * 登录认证
      * 
      * 如果 "密码" 不匹配，响应 ERR invalid password 错误
      * 
@@ -111,7 +112,7 @@ impl Handler {
     }
 
     /**
-     * 切换 db_sender 发送器
+     * 切换数据库
      * 
      * 如果索引超出，响应 ERR DB index is out of range 错误
      * 
@@ -125,50 +126,11 @@ impl Handler {
         Ok(())
     }
 
-    /**
-     * 读取 Stream 字节
-     * 
-     * 通过 loop 和 n < temp_buf.len()，读取完整命令
-     * 
-     * @param self.stream 客户端
-     */
-    async fn read_bytes(&mut self) -> Result<Vec<u8>, Error> {
-        let mut buffer = Vec::new();
-        let mut temp_buf = [0; 1024];
-        loop {
-            let n = match self.stream.read(&mut temp_buf).await {
-                Ok(n) => n,
-                Err(e) => {  
-                    return Err(Error::msg(format!("Failed to read from stream: {:?}", e)));
-                }
-            };
-            buffer.extend_from_slice(&temp_buf[..n]);
-            if n < temp_buf.len() {
-                break;
-            }
-        }
-        Ok(buffer)
-    }
-
-    /**
-     * 写入 Frame 到客户端
-     * 
-     * 如果写入失败，会记录错误并直接返回，不会抛出错误。
-     * 
-     * @param frame
-     */
-    async fn write_frame(&mut self, frame: Frame) {
-        let bytes = frame.as_bytes();
-        if let Err(e) = self.stream.write_all(&bytes).await {
-            eprintln!("Failed to write to socket; err = {:?}", e);
-        }
-    }
-
     pub async fn handle(&mut self) {
 
         loop {
-            
-            let bytes = match self.read_bytes().await {
+
+            let bytes = match self.connection.read_bytes().await {
                 Ok(bytes) => bytes,
                 Err(e) => {
                     eprintln!("Failed to read from stream; err = {:?}", e);
@@ -181,7 +143,7 @@ impl Handler {
                 Ok(cmd) => cmd,
                 Err(e) => {
                     let frame = Frame::Error(e.to_string());
-                    self.write_frame(frame).await;
+                    self.connection.write_bytes(frame.as_bytes()).await;
                     continue;
                 }
             };
@@ -192,7 +154,7 @@ impl Handler {
                     if self.args.requirepass.is_some() {
                         if self.authenticated == false {
                             let frame = Frame::Error("NOAUTH Authentication required.".to_string());
-                            self.write_frame(frame).await;
+                            self.connection.write_bytes(frame.as_bytes()).await;
                             continue;
                         }
                     } 
@@ -231,7 +193,7 @@ impl Handler {
 
             match result {
                 Ok(frame) => {
-                    self.write_frame(frame).await;
+                    self.connection.write_bytes(frame.as_bytes()).await;
                 }
                 Err(e) => {
                     println!("Failed to receive; err = {:?}", e);

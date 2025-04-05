@@ -1,7 +1,7 @@
 use clap::Parser;
 use rudis_server::args::Args;
 use rudis_server::db::DbManager;
-use rudis_server::network::server::Server;
+use rudis_server::server::Server;
 use std::sync::Arc;
 
 #[tokio::main]

@@ -118,7 +118,6 @@ impl Db {
         let dbfilename = args.dbfilename.replace("{}", &index.to_string());
         let path = Path::new(dir).join(dbfilename).display().to_string();
         let rdb_file = RdbFile::new().load(path).unwrap();
-
         let records = rdb_file.records;
         let expire_records = rdb_file.expire_records;
 
