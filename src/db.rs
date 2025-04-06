@@ -97,6 +97,8 @@ pub enum Structure {
  * @param args
  */
 pub struct Db {
+    changes_since_last_save: u64,
+    last_save_time: SystemTime,
     receiver: Receiver<DbMessage>,
     sender: Sender<DbMessage>,
     pub expire_records: HashMap<String, SystemTime>,
@@ -109,6 +111,8 @@ impl Db {
 
     /**
      * 创建数据库
+     * 
+     * @param args 数据库配置
      */
     pub fn new(index: usize, args: Arc<Args>) -> Self {
 
@@ -120,10 +124,14 @@ impl Db {
         let rdb_file = RdbFile::new().load(path).unwrap();
         let records = rdb_file.records;
         let expire_records = rdb_file.expire_records;
+        let last_save_time = SystemTime::now();
+        let changes_since_last_save = 0;
 
         Db {
             records,
             expire_records,
+            last_save_time,
+            changes_since_last_save,
             receiver,
             sender,
             index,
@@ -137,79 +145,107 @@ impl Db {
      * @param self 本身
      */
     async fn run(&mut self) {
-        while let Some(DbMessage { sender, command }) = self.receiver.recv().await {
-            let result: Result<crate::frame::Frame, Error> = match command {
-                Command::Set(set) => set.apply(self),
-                Command::Get(get) => get.apply(self),
-                Command::Del(del) => del.apply(self),
-                Command::Flushdb(flushdb) => flushdb.apply(self),
-                Command::RandomKey(randomkey) => randomkey.apply(self),
-                Command::Renamenx(renamenx) => renamenx.apply(self),
-                Command::Rename(rename) => rename.apply(self),
-                Command::Exists(exists) => exists.apply(self),
-                Command::Expire(expire) => expire.apply(self),
-                Command::Ttl(ttl) => ttl.apply(self),
-                Command::Type(r#type) => r#type.apply(self),
-                Command::Pttl(pttl) => pttl.apply(self),
-                Command::Mset(mset) => mset.apply(self),
-                Command::Mget(mget) => mget.apply(self),
-                Command::Strlen(strlen) => strlen.apply(self),
-                Command::Append(append) => append.apply(self),
-                Command::Dbsize(dbsize) => dbsize.apply(self),
-                Command::Persist(persist) => persist.apply(self),
-                Command::Hexists(hexists) => hexists.apply(self),
-                Command::Hstrlen(hstrlen) => hstrlen.apply(self),
-                Command::Hgetall(hgetall) => hgetall.apply(self),
-                Command::Hsetnx(hsetnx) => hsetnx.apply(self),
-                Command::Hmget(hmget) => hmget.apply(self),
-                Command::Hmset(hmset) => hmset.apply(self),
-                Command::Hset(hset) => hset.apply(self),
-                Command::Hget(hget) => hget.apply(self),
-                Command::Hdel(hdel) => hdel.apply(self),
-                Command::Keys(keys) => keys.apply(self),
-                Command::Hlen(hlen) => hlen.apply(self),
-                Command::Hkeys(hkeys) => hkeys.apply(self),
-                Command::Hvals(hvals) => hvals.apply(self),
-                Command::Lpush(lpush) => lpush.apply(self),
-                Command::Rpush(rpush) => rpush.apply(self),
-                Command::Lindex(lindex) => lindex.apply(self),
-                Command::Lpop(lpop) => lpop.apply(self),
-                Command::Rpop(rpop) => rpop.apply(self),
-                Command::Llen(llen) => llen.apply(self),
-                Command::Sadd(sadd) => sadd.apply(self),
-                Command::Scard(scard) => scard.apply(self),
-                Command::Spop(spop) => spop.apply(self),
-                Command::Srem(srem) => srem.apply(self),
-                Command::Sinter(sinter) => sinter.apply(self),
-                Command::Sunionstore(sunionstore) => sunionstore.apply(self),
-                Command::Sismember(sismember) => sismember.apply(self),
-                Command::Smembers(smembers) => smembers.apply(self),
-                Command::Sunion(sunion) => sunion.apply(self),
-                Command::Rpushx(rpushx) => rpushx.apply(self),
-                Command::Lpushx(lpushx) => lpushx.apply(self),
-                Command::Incr(incr) => incr.apply(self),
-                Command::Decr(decr) => decr.apply(self),
-                Command::Lset(lset) => lset.apply(self),
-                Command::Zadd(zadd) => zadd.apply(self),
-                Command::Zcount(zcount) => zcount.apply(self),
-                Command::Zscore(zscore) => zscore.apply(self),
-                Command::Zcard(zcard) => zcard.apply(self),
-                Command::Zrank(zrank) => zrank.apply(self),
-                Command::Zrem(zrem) => zrem.apply(self),
-                Command::Incrby(incrby) => incrby.apply(self),
-                Command::Decrby(decrby) => decrby.apply(self),
-                Command::ExpireAt(expireat) => expireat.apply(self),
-                Command::PexpireAt(pexpireat) => pexpireat.apply(self),
-                Command::Pexpire(pexpire) => pexpire.apply(self),
-                Command::Lrange(lrange) => lrange.apply(self),
-                Command::Saverdb(saverdb) => saverdb.apply(self),
-                _ => Err(Error::msg("Unknown command")),
-            };
+        let period = Duration::from_secs(1); // 检测周期
+        let mut interval = tokio::time::interval(period);
+        loop {
+            // 1. 命令执行
+            // 2. 定时任务
+            tokio::select! {
+                Some(DbMessage { sender, command }) = self.receiver.recv() => {
+                    let result: Result<Frame, Error> = match command {
+                        Command::Set(set) => set.apply(self),
+                        Command::Get(get) => get.apply(self),
+                        Command::Del(del) => del.apply(self),
+                        Command::Flushdb(flushdb) => flushdb.apply(self),
+                        Command::RandomKey(randomkey) => randomkey.apply(self),
+                        Command::Renamenx(renamenx) => renamenx.apply(self),
+                        Command::Rename(rename) => rename.apply(self),
+                        Command::Exists(exists) => exists.apply(self),
+                        Command::Expire(expire) => expire.apply(self),
+                        Command::Ttl(ttl) => ttl.apply(self),
+                        Command::Type(r#type) => r#type.apply(self),
+                        Command::Pttl(pttl) => pttl.apply(self),
+                        Command::Mset(mset) => mset.apply(self),
+                        Command::Mget(mget) => mget.apply(self),
+                        Command::Strlen(strlen) => strlen.apply(self),
+                        Command::Append(append) => append.apply(self),
+                        Command::Dbsize(dbsize) => dbsize.apply(self),
+                        Command::Persist(persist) => persist.apply(self),
+                        Command::Hexists(hexists) => hexists.apply(self),
+                        Command::Hstrlen(hstrlen) => hstrlen.apply(self),
+                        Command::Hgetall(hgetall) => hgetall.apply(self),
+                        Command::Hsetnx(hsetnx) => hsetnx.apply(self),
+                        Command::Hmget(hmget) => hmget.apply(self),
+                        Command::Hmset(hmset) => hmset.apply(self),
+                        Command::Hset(hset) => hset.apply(self),
+                        Command::Hget(hget) => hget.apply(self),
+                        Command::Hdel(hdel) => hdel.apply(self),
+                        Command::Keys(keys) => keys.apply(self),
+                        Command::Hlen(hlen) => hlen.apply(self),
+                        Command::Hkeys(hkeys) => hkeys.apply(self),
+                        Command::Hvals(hvals) => hvals.apply(self),
+                        Command::Lpush(lpush) => lpush.apply(self),
+                        Command::Rpush(rpush) => rpush.apply(self),
+                        Command::Lindex(lindex) => lindex.apply(self),
+                        Command::Lpop(lpop) => lpop.apply(self),
+                        Command::Rpop(rpop) => rpop.apply(self),
+                        Command::Llen(llen) => llen.apply(self),
+                        Command::Sadd(sadd) => sadd.apply(self),
+                        Command::Scard(scard) => scard.apply(self),
+                        Command::Spop(spop) => spop.apply(self),
+                        Command::Srem(srem) => srem.apply(self),
+                        Command::Sinter(sinter) => sinter.apply(self),
+                        Command::Sunionstore(sunionstore) => sunionstore.apply(self),
+                        Command::Sismember(sismember) => sismember.apply(self),
+                        Command::Smembers(smembers) => smembers.apply(self),
+                        Command::Sunion(sunion) => sunion.apply(self),
+                        Command::Rpushx(rpushx) => rpushx.apply(self),
+                        Command::Lpushx(lpushx) => lpushx.apply(self),
+                        Command::Incr(incr) => incr.apply(self),
+                        Command::Decr(decr) => decr.apply(self),
+                        Command::Lset(lset) => lset.apply(self),
+                        Command::Zadd(zadd) => zadd.apply(self),
+                        Command::Zcount(zcount) => zcount.apply(self),
+                        Command::Zscore(zscore) => zscore.apply(self),
+                        Command::Zcard(zcard) => zcard.apply(self),
+                        Command::Zrank(zrank) => zrank.apply(self),
+                        Command::Zrem(zrem) => zrem.apply(self),
+                        Command::Incrby(incrby) => incrby.apply(self),
+                        Command::Decrby(decrby) => decrby.apply(self),
+                        Command::ExpireAt(expireat) => expireat.apply(self),
+                        Command::PexpireAt(pexpireat) => pexpireat.apply(self),
+                        Command::Pexpire(pexpire) => pexpire.apply(self),
+                        Command::Lrange(lrange) => lrange.apply(self),
+                        Command::Saverdb(saverdb) => saverdb.apply(self),
+                        _ => Err(Error::msg("Unknown command")),
+                    };
 
-            match result {
-                Ok(f) => if let Err(_) = sender.send(f) {},
-                Err(e) => {
-                    eprintln!("Error applying command: {:?}", e);
+                    match result {
+                        Ok(f) => {
+                            if let Err(_) = sender.send(f) {}
+                            self.changes_since_last_save += 1;
+                        },
+                        Err(e) => eprintln!("Error applying command: {:?}", e),
+                    }
+                },
+                _ = interval.tick() => {
+
+                    // 清理过期键值
+                    self.clean_expired_keys();
+            
+                    // 自动保存逻辑
+                    let current_time = SystemTime::now();
+                    let time_since_last_save = current_time.duration_since(self.last_save_time).unwrap_or(Duration::from_secs(0)).as_secs();
+
+                    // 遍历保存规则
+                    for rule in &self.args.save {
+                        if time_since_last_save >= rule.seconds && self.changes_since_last_save >= rule.changes {
+                            self.last_save_time = SystemTime::now();
+                            self.changes_since_last_save = 0;
+                            self.bg_save_rdb_file();
+                            break; // 满足规则
+                        }
+                    }
                 }
             }
         }
@@ -268,6 +304,27 @@ impl Db {
             self.records.remove(key)
         } else {
             None
+        }
+    }
+
+    /**
+     * 清理过期键
+     */
+    pub fn clean_expired_keys(&mut self) {
+        let now = SystemTime::now();
+        let mut expired_keys = Vec::new();
+
+        // 收集所有已过期的键
+        for (key, expire_time) in &self.expire_records {
+            if now >= *expire_time {
+                expired_keys.push(key.clone());
+            }
+        }
+
+        // 删除过期键
+        for key in expired_keys {
+            self.expire_records.remove(&key);
+            self.records.remove(&key);
         }
     }
 

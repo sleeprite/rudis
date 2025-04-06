@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use clap::Parser;
 
 #[derive(Parser)]
@@ -29,6 +31,14 @@ pub struct Args {
     pub dir: String,
 
     /**
+     * 保存策略
+     * 
+     * Save rules in format 'seconds,changes' (e.g. '900,1 300,10')
+     */
+    #[clap(long, value_parser, value_delimiter = ' ', num_args = 1..)]
+    pub save: Vec<SaveRule>,
+
+    /**
      * 数据库
      */
     #[arg(short, long, default_value = "16")]
@@ -46,4 +56,26 @@ pub struct Args {
     #[arg(short, long, default_value = "info")] 
     pub loglevel: String,
     
+}
+
+#[derive(Debug, Clone)]
+pub struct SaveRule {
+    pub seconds: u64,
+    pub changes: u64,
+}
+
+impl FromStr for SaveRule {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(',').collect();
+        if parts.len() != 2 {
+            return Err("Invalid save rule format. Expected 'seconds,changes'".into());
+        }
+
+        Ok(SaveRule {
+            seconds: parts[0].parse().map_err(|e| format!("Invalid seconds: {}", e))?,
+            changes: parts[1].parse().map_err(|e| format!("Invalid changes: {}", e))?,
+        })
+    }
 }
