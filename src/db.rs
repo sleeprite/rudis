@@ -142,14 +142,14 @@ impl Db {
     /**
      * 运行数据库
      * 
+     * 1. 命令执行
+     * 
      * @param self 本身
      */
     async fn run(&mut self) {
         let period = Duration::from_secs(1); // 检测周期
         let mut interval = tokio::time::interval(period);
         loop {
-            // 1. 命令执行
-            // 2. 定时任务
             tokio::select! {
                 Some(DbMessage { sender, command }) = self.receiver.recv() => {
                     let result: Result<Frame, Error> = match command {
