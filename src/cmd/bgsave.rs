@@ -4,14 +4,14 @@ use anyhow::Error;
 use tokio::sync::oneshot;
 use crate::{command::Command, db::{DbManager, DbMessage}, frame::Frame};
 
-use super::flushdb::Flushdb;
+use super::saverdb::Saverdb;
 
-pub struct Flushall {}
+pub struct Bgsave {}
 
-impl Flushall {
+impl Bgsave {
 
     pub fn parse_from_frame(_frame: Frame) -> Result<Self, Error> {
-        Ok(Flushall { })
+        Ok(Bgsave { })
     }
 
     pub async fn apply(self, db_manager: Arc<DbManager>) -> Result<Frame, Error> {
@@ -19,7 +19,7 @@ impl Flushall {
         for target_sender in senders {
             let (sender, _receiver) = oneshot::channel(); // 创建通道
             match target_sender.send(DbMessage {
-                command: Command::Flushdb(Flushdb {}),
+                command: Command::Saverdb(Saverdb { background: true }),
                 sender: sender
             }).await {
                 Ok(()) => {}

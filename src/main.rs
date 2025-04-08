@@ -1,7 +1,7 @@
 use clap::Parser;
 use rudis_server::args::Args;
-use rudis_server::db::DbGuard;
-use rudis_server::server::Server;
+use rudis_server::db::DbManager;
+use rudis_server::network::Server;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -11,7 +11,7 @@ async fn main() {
     std::env::set_var("RUST_LOG", &args.loglevel);
     env_logger::init();
 
-    let db_guard = Arc::new(DbGuard::new(args.clone()));
-    let server = Server::new(args.clone(), db_guard);
+    let db_manager = Arc::new(DbManager::new(args.clone()));
+    let server = Server::new(args.clone(), db_manager);
     server.start().await;
 }

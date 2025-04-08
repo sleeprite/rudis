@@ -29,7 +29,7 @@ impl Get {
             Some(structure) => {
                 match structure {
                     Structure::String(value) => {
-                        Ok(Frame::SimpleString(value.to_string()))
+                        Ok(Frame::BulkString(value.to_string()))
                     },
                     _ => {
                         Ok(Frame::Error("Type parsing error".to_string()))
