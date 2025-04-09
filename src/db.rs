@@ -147,7 +147,7 @@ impl Db {
      * @param self 本身
      */
     async fn run(&mut self) {
-        let period = Duration::from_secs(1); // 检测周期
+        let period = Duration::from_secs_f64(1.0 / self.args.hz);// 检测周期
         let mut interval = tokio::time::interval(period);
         loop {
             tokio::select! {

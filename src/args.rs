@@ -9,7 +9,7 @@ pub struct Args {
     /**
      * 认证密码
      */
-    #[arg(short, long)] 
+    #[arg(long)] 
     pub requirepass: Option<String>,
 
     /**
@@ -49,6 +49,12 @@ pub struct Args {
      */
     #[arg(short, long, default_value = "6379")]
     pub port: String,
+
+    /**
+     * 数据库
+     */
+    #[arg(long, default_value = "10.0")]
+    pub hz: f64,
 
     /**
      * 日志级别
