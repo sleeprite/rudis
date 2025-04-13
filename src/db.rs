@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashMap, HashSet}, path::Path, sync::Arc, time::Duration
+    collections::{BTreeMap, HashMap, HashSet}, sync::Arc, time::Duration
 };
 
 use anyhow::Error;
@@ -12,25 +12,42 @@ use tokio::sync::{
 
 use crate::{args::Args, command::Command, frame::Frame, persistence::rdb_file::RdbFile, tools::pattern};
 
+// 数据库快照数据结构
+#[derive(Clone, Encode, Decode)]
+pub struct DatabaseSnapshot {
+    pub records: HashMap<String, Structure>,
+    pub expire_records: HashMap<String, SystemTime>,
+}
+
 /**
  * 消息
  *
  * @param sender 发送者
  * @param command 命令
  */
-pub struct DbMessage {
-    pub sender: oneshot::Sender<Frame>,
-    pub command: Command,
+// 修改数据库消息类型
+pub enum DatabaseMessage {
+    Command { sender: oneshot::Sender<Frame>, command: Command},
+    SnapshotRequest(oneshot::Sender<DatabaseSnapshot>),
+}
+
+impl Default for DatabaseSnapshot {
+    fn default() -> Self {
+        Self {
+            records: HashMap::new(),
+            expire_records: HashMap::new(),
+        }
+    }
 }
 
 /**
  * DB 管理器
  */
-pub struct DbManager {
-    senders: Vec<Sender<DbMessage>>,
+pub struct DatabaseManager {
+    senders: Vec<Sender<DatabaseMessage>>,
 }
 
-impl DbManager {
+impl DatabaseManager {
 
     /**
      * 创建 DB 管理器
@@ -40,9 +57,11 @@ impl DbManager {
     pub fn new(args: Arc<Args>) -> Self {
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
+        let mut rdb_file = RdbFile::new(args.dbfilename.clone());
+        let _ = rdb_file.load();
 
-        for index in 0..args.databases {
-            let db = Db::new(index, args.clone());
+        for id in 0..args.databases {
+            let db = Db::new(rdb_file.get_database(id));
             senders.push(db.sender.clone());
             dbs.push(db);
         }
@@ -53,7 +72,7 @@ impl DbManager {
             });
         }
 
-        DbManager { senders }
+        DatabaseManager { senders }
     }
 
     /**
@@ -61,7 +80,7 @@ impl DbManager {
      *
      * @param idx 数据库索引
      */
-    pub fn get_sender(&self, idx: usize) -> Sender<DbMessage> {
+    pub fn get_sender(&self, idx: usize) -> Sender<DatabaseMessage> {
         if let Some(sender) = self.senders.get(idx) {
             sender.clone()
         } else {
@@ -72,7 +91,7 @@ impl DbManager {
     /**
      * 获取发送者【所有】
      */
-    pub fn get_senders(&self) -> Vec<Sender<DbMessage>> {
+    pub fn get_senders(&self) -> Vec<Sender<DatabaseMessage>> {
         self.senders.clone()
     }
 }
@@ -97,14 +116,10 @@ pub enum Structure {
  * @param args
  */
 pub struct Db {
-    changes_since_last_save: u64,
-    last_save_time: SystemTime,
-    receiver: Receiver<DbMessage>,
-    sender: Sender<DbMessage>,
+    receiver: Receiver<DatabaseMessage>,
+    sender: Sender<DatabaseMessage>,
     pub expire_records: HashMap<String, SystemTime>,
-    pub records: HashMap<String, Structure>,
-    index: usize,
-    args: Arc<Args>
+    pub records: HashMap<String, Structure>
 }
 
 impl Db {
@@ -114,28 +129,17 @@ impl Db {
      * 
      * @param args 数据库配置
      */
-    pub fn new(index: usize, args: Arc<Args>) -> Self {
+    pub fn new(snapshot: DatabaseSnapshot) -> Self {
 
         let (sender, receiver) = channel(1024);
-
-        let dir = &args.dir;
-        let dbfilename = args.dbfilename.replace("{}", &index.to_string());
-        let path = Path::new(dir).join(dbfilename).display().to_string();
-        let rdb_file = RdbFile::new().load(path).unwrap();
-        let records = rdb_file.records;
-        let expire_records = rdb_file.expire_records;
-        let last_save_time = SystemTime::now();
-        let changes_since_last_save = 0;
+        let expire_records = snapshot.expire_records;
+        let records = snapshot.records;
 
         Db {
             records,
             expire_records,
-            last_save_time,
-            changes_since_last_save,
             receiver,
-            sender,
-            index,
-            args
+            sender
         }
     }
 
@@ -147,11 +151,9 @@ impl Db {
      * @param self 本身
      */
     async fn run(&mut self) {
-        let period = Duration::from_secs_f64(1.0 / self.args.hz);// 检测周期
-        let mut interval = tokio::time::interval(period);
         loop {
-            tokio::select! {
-                Some(DbMessage { sender, command }) = self.receiver.recv() => {
+            match self.receiver.recv().await {
+                Some(DatabaseMessage::Command { sender, command }) => {
                     let result: Result<Frame, Error> = match command {
                         Command::Set(set) => set.apply(self),
                         Command::Get(get) => get.apply(self),
@@ -216,37 +218,24 @@ impl Db {
                         Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                         Command::Pexpire(pexpire) => pexpire.apply(self),
                         Command::Lrange(lrange) => lrange.apply(self),
-                        Command::Saverdb(saverdb) => saverdb.apply(self),
                         _ => Err(Error::msg("Unknown command")),
                     };
 
                     match result {
                         Ok(f) => {
-                            if let Err(_) = sender.send(f) {}
-                            self.changes_since_last_save += 1;
+                            let _ = sender.send(f);
                         },
                         Err(e) => eprintln!("Error applying command: {:?}", e),
                     }
-                },
-                _ = interval.tick() => {
-
-                    // 清理过期键值
-                    self.clean_expired_keys();
-            
-                    // 自动保存逻辑
-                    let current_time = SystemTime::now();
-                    let time_since_last_save = current_time.duration_since(self.last_save_time).unwrap_or(Duration::from_secs(0)).as_secs();
-
-                    // 遍历保存规则
-                    for rule in &self.args.save {
-                        if time_since_last_save >= rule.seconds && self.changes_since_last_save >= rule.changes {
-                            self.last_save_time = SystemTime::now();
-                            self.changes_since_last_save = 0;
-                            self.bg_save_rdb_file();
-                            break; // 满足规则
-                        }
-                    }
                 }
+                Some(DatabaseMessage::SnapshotRequest(sender)) => {
+                    let snapshot = DatabaseSnapshot {
+                        records: self.records.clone(),
+                        expire_records: self.expire_records.clone(),
+                    };
+                    let _ = sender.send(snapshot);
+                },
+                None => {}
             }
         }
     }
@@ -400,59 +389,5 @@ impl Db {
      */
     pub fn keys(&self, pattern: &str) -> Vec<String> {
         self.records.keys().filter(|key| pattern::is_match(key, pattern)).cloned().collect()
-    }
-
-    /**
-     * 保存 dump 内容
-     * 
-     * @param self 实例本身
-     */
-    pub fn save_rdb_file(&mut self) {
-
-        let dir = self.args.dir.clone();
-        let index = self.index;
-        let dbfilename = self.args.dbfilename.replace("{}", &index.to_string());
-        let path = Path::new(&dir).join(dbfilename).display().to_string();
-        let expire_records = self.expire_records.clone();
-        let records = self.records.clone();
-        let rdb_file = RdbFile {
-            expire_records,
-            records,
-        };
-
-        match rdb_file.save(&path) {
-            Ok(()) => {}
-            Err(e) => {
-                eprintln!("Failed to save RDB file: {}", e);
-            }
-        }
-    }
-
-    /**
-     * 保存 dump 内容【异步】
-     * 
-     * @param self 实例本身
-     */
-    pub fn bg_save_rdb_file(&mut self) {
-
-        let dir = self.args.dir.clone();
-        let index = self.index;
-        let dbfilename = self.args.dbfilename.replace("{}", &index.to_string());
-        let path = Path::new(&dir).join(dbfilename).display().to_string();
-        let expire_records = self.expire_records.clone();
-        let records = self.records.clone();
-        let rdb_file = RdbFile {
-            expire_records,
-            records,
-        };
-
-        tokio::spawn(async move {
-            match rdb_file.save(&path) {
-                Ok(()) => {}
-                Err(e) => {
-                    eprintln!("Failed to save RDB file: {}", e);
-                }
-            }
-        });
     }
 }

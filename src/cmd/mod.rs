@@ -13,5 +13,4 @@ pub mod sorted_set;
 pub mod bgsave;
 pub mod set;
 pub mod echo;
-pub mod saverdb;
 pub mod save;

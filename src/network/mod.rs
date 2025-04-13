@@ -11,18 +11,18 @@ use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot;
 
 use crate::args::Args;
-use crate::db::{DbManager, DbMessage};
+use crate::db::{DatabaseManager, DatabaseMessage};
 use crate::frame::Frame;
 use crate::command::Command;
 
 pub struct Server {
     args: Arc<Args>,
-    db_manager: Arc<DbManager>,
+    db_manager: Arc<DatabaseManager>,
 }
 
 impl Server {
 
-    pub fn new(args: Arc<Args>, db_manager: Arc<DbManager>) -> Self {
+    pub fn new(args: Arc<Args>, db_manager: Arc<DatabaseManager>) -> Self {
         Server { args, db_manager }
     }
 
@@ -73,14 +73,14 @@ impl Server {
 pub struct Handler {
     authenticated: bool,
     connection: Connection,
-    db_manager: Arc<DbManager>,
-    db_sender: Sender<DbMessage>,
+    db_manager: Arc<DatabaseManager>,
+    db_sender: Sender<DatabaseMessage>,
     args: Arc<Args>
 }
 
 impl Handler {
 
-    pub fn new(db_manager: Arc<DbManager>, stream: TcpStream, args: Arc<Args>) -> Self {
+    pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>) -> Self {
         let args_ref = args.as_ref();
         let authenticated = args_ref.requirepass.is_none();
         let db_manager_ref = db_manager.as_ref();
@@ -166,8 +166,8 @@ impl Handler {
 
             let result = match command {
                 Command::Auth(auth) => auth.apply(self),
-                Command::Save(save) => save.apply(self.db_manager.clone()).await,
-                Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone()).await,
+                Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
+                Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
                 Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
                 Command::Select(select) => select.apply(self),
                 Command::Unknown(unknown) => unknown.apply(),
@@ -176,7 +176,7 @@ impl Handler {
                 _ => {
                     
                     let (sender, receiver) = oneshot::channel();
-                    match self.db_sender.send(DbMessage {
+                    match self.db_sender.send(DatabaseMessage::Command {
                             sender: sender,
                             command,
                     }).await {

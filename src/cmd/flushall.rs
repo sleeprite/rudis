@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Error;
 use tokio::sync::oneshot;
-use crate::{command::Command, db::{DbManager, DbMessage}, frame::Frame};
+use crate::{command::Command, db::{DatabaseManager, DatabaseMessage}, frame::Frame};
 
 use super::flushdb::Flushdb;
 
@@ -14,11 +14,11 @@ impl Flushall {
         Ok(Flushall { })
     }
 
-    pub async fn apply(self, db_manager: Arc<DbManager>) -> Result<Frame, Error> {
+    pub async fn apply(self, db_manager: Arc<DatabaseManager>) -> Result<Frame, Error> {
         let senders = db_manager.get_senders();
         for target_sender in senders {
             let (sender, _receiver) = oneshot::channel(); // 创建通道
-            match target_sender.send(DbMessage {
+            match target_sender.send(DatabaseMessage::Command {
                 command: Command::Flushdb(Flushdb {}),
                 sender: sender
             }).await {
