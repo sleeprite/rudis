@@ -29,6 +29,7 @@ pub struct DatabaseSnapshot {
 pub enum DatabaseMessage {
     Command { sender: oneshot::Sender<Frame>, command: Command},
     SnapshotRequest(oneshot::Sender<DatabaseSnapshot>),
+    CleanExpired, 
 }
 
 impl Default for DatabaseSnapshot {
@@ -65,6 +66,18 @@ impl DatabaseManager {
             senders.push(db.sender.clone());
             dbs.push(db);
         }
+
+        let senders_clone = senders.clone();
+        tokio::spawn(async move {
+            let period = Duration::from_secs_f64(1.0 / args.hz);
+            let mut interval = tokio::time::interval(period); // 每秒清理一次
+            loop {
+                interval.tick().await;
+                for sender in &senders_clone {
+                    let _ = sender.send(DatabaseMessage::CleanExpired).await;
+                }
+            }
+        });
 
         for mut db in dbs {
             tokio::spawn(async move {
@@ -227,7 +240,10 @@ impl Db {
                         },
                         Err(e) => eprintln!("Error applying command: {:?}", e),
                     }
-                }
+                },
+                Some(DatabaseMessage::CleanExpired) => {
+                    self.clean_expired_keys();
+                },
                 Some(DatabaseMessage::SnapshotRequest(sender)) => {
                     let snapshot = DatabaseSnapshot {
                         records: self.records.clone(),
