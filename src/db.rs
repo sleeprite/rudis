@@ -35,8 +35,8 @@ pub enum DatabaseMessage {
 impl Default for DatabaseSnapshot {
     fn default() -> Self {
         Self {
-            records: HashMap::new(),
-            expire_records: HashMap::new(),
+            records: HashMap::with_capacity(1000000),
+            expire_records: HashMap::with_capacity(1000000),
         }
     }
 }
@@ -67,9 +67,6 @@ impl DatabaseManager {
             dbs.push(db);
         }
 
-        // 定时清理过期键值任务
-        Self::start_expired_cleaner(senders.clone(), args.hz);
-
         for mut db in dbs {
             tokio::spawn(async move {
                 db.run().await;
@@ -77,25 +74,6 @@ impl DatabaseManager {
         }
 
         DatabaseManager { senders }
-    }
-    
-    /**
-     * 启动过期键清理任务
-     *
-     * @param senders 数据库消息发送者列表
-     * @param hz 清理频率
-     */
-    fn start_expired_cleaner(senders: Vec<Sender<DatabaseMessage>>, hz: f64) {
-        tokio::spawn(async move {
-            let period = Duration::from_secs_f64(1.0 / hz);
-            let mut interval = tokio::time::interval(period); // 按指定频率清理
-            loop {
-                interval.tick().await;
-                for sender in &senders {
-                    let _ = sender.send(DatabaseMessage::CleanExpired).await;
-                }
-            }
-        });
     }
 
     /**

@@ -5,6 +5,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use std::process::id;
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio::net::TcpListener;
 use tokio::sync::mpsc::Sender;
@@ -27,6 +28,22 @@ impl Server {
     }
 
     pub async fn start(&self) {
+
+        // 键值淘汰策略
+        let hz =  self.args.hz;
+        let senders = self.db_manager.get_senders();
+        tokio::spawn(async move {
+            let period = Duration::from_secs_f64(1.0 / hz);
+            let mut interval = tokio::time::interval(period);
+            loop {
+                interval.tick().await;
+                for sender in & senders {
+                    let _ = sender.send(DatabaseMessage::CleanExpired).await;
+                }
+            }
+        });
+
+        // 监听网络请求
         match TcpListener::bind(format!("{}:{}", self.args.bind, self.args.port)).await {
             Ok(listener) => {
                 self.server_info();
@@ -179,7 +196,7 @@ impl Handler {
                     match self.db_sender.send(DatabaseMessage::Command {
                             sender: sender,
                             command,
-                    }).await {
+                    }).await { 
                         Ok(()) => {}
                         Err(e) => {
                             eprintln!("Failed to write to socket; err = {:?}", e);
@@ -218,9 +235,6 @@ impl Connection {
         }
     }
 
-    /**
-     * 读取 Bytes
-     */
     pub async fn read_bytes(&mut self) -> Result<Vec<u8>, Error> {
         let mut bytes = Vec::new();
         let mut temp_bytes = [0; 1024];
