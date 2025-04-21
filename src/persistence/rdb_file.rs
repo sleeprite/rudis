@@ -47,8 +47,10 @@ impl RdbFile {
         if self.path.exists() {
             let data = fs::read(&self.path)?;
             let config = config::standard();
-            let (deserialized, _) = decode_from_slice(&data, config)?;
-            *self = deserialized; // 正确解引用并赋值
+            let (deserialized, _) = decode_from_slice::<RdbFile, _>(&data, config)?;
+            self.last_save_changes = deserialized.last_save_changes;
+            self.last_save_time = deserialized.last_save_time;
+            self.databases = deserialized.databases;
         }
         Ok(())
     }

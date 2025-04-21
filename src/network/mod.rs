@@ -27,8 +27,6 @@ impl Server {
     }
 
     pub async fn start(&self) {
-
-        // 监听网络请求
         match TcpListener::bind(format!("{}:{}", self.args.bind, self.args.port)).await {
             Ok(listener) => {
                 self.server_info();

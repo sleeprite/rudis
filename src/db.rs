@@ -255,8 +255,8 @@ impl Db {
                         Command::Spop(spop) => spop.apply(self),
                         Command::Srem(srem) => srem.apply(self),
                         Command::Sinter(sinter) => sinter.apply(self),
-                        Command::Sunionstore(sunionstore) => sunionstore.apply(self),
                         Command::Sismember(sismember) => sismember.apply(self),
+                        Command::Sunionstore(sunionstore) => sunionstore.apply(self),
                         Command::Smembers(smembers) => smembers.apply(self),
                         Command::Sunion(sunion) => sunion.apply(self),
                         Command::Rpushx(rpushx) => rpushx.apply(self),
@@ -286,12 +286,12 @@ impl Db {
                         Err(e) => eprintln!("Error applying command: {:?}", e),
                     }
                 },
+                Some(DatabaseMessage::CleanExpired) => {
+                    self.clean_expired_keys();
+                },
                 Some(DatabaseMessage::WriterCounterRequest(sender)) => {
                     let count = self.modify_count.load(Ordering::Relaxed);
                     let _ = sender.send(count);
-                },
-                Some(DatabaseMessage::CleanExpired) => {
-                    self.clean_expired_keys();
                 },
                 Some(DatabaseMessage::SnapshotRequest(sender)) => {
                     let snapshot = DatabaseSnapshot {
