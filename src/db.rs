@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashMap, HashSet}, sync::Arc, time::Duration
+    collections::{BTreeMap, HashMap, HashSet}, sync::{atomic::{AtomicU64, Ordering}, Arc}, time::Duration
 };
 
 use anyhow::Error;
@@ -15,8 +15,8 @@ use crate::{args::Args, command::Command, frame::Frame, persistence::rdb_file::R
 // 数据库快照数据结构
 #[derive(Clone, Encode, Decode)]
 pub struct DatabaseSnapshot {
-    pub records: HashMap<String, Structure>,
     pub expire_records: HashMap<String, SystemTime>,
+    pub records: HashMap<String, Structure>,
 }
 
 /**
@@ -29,14 +29,15 @@ pub struct DatabaseSnapshot {
 pub enum DatabaseMessage {
     Command { sender: oneshot::Sender<Frame>, command: Command},
     SnapshotRequest(oneshot::Sender<DatabaseSnapshot>),
+    WriterCounterRequest(oneshot::Sender<u64>),
     CleanExpired, 
 }
 
 impl Default for DatabaseSnapshot {
     fn default() -> Self {
         Self {
-            records: HashMap::with_capacity(1000000),
-            expire_records: HashMap::with_capacity(1000000),
+            expire_records: HashMap::with_capacity(100000),
+            records: HashMap::with_capacity(100000),
         }
     }
 }
@@ -45,7 +46,7 @@ impl Default for DatabaseSnapshot {
  * DB 管理器
  */
 pub struct DatabaseManager {
-    senders: Vec<Sender<DatabaseMessage>>,
+    senders: Vec<Sender<DatabaseMessage>>
 }
 
 impl DatabaseManager {
@@ -73,7 +74,61 @@ impl DatabaseManager {
             });
         }
 
-        DatabaseManager { senders }
+        let senders_clone = senders.clone();
+        let args_clone = args.clone();
+        tokio::spawn(async move {
+            let period = Duration::from_secs_f64(1.0 / args_clone.hz);
+            let mut interval = tokio::time::interval(period);
+            loop {
+                interval.tick().await;
+
+                // 过期的键值清理
+                for sender in &senders_clone {
+                    let _ = sender.send(DatabaseMessage::CleanExpired).await; // 清理过期键值
+                }
+
+                // 执行周期性保存
+                let mut changes = 0;
+                for sender in &senders_clone {
+                    let (tx, rx) = oneshot::channel();
+                    if sender.send(DatabaseMessage::WriterCounterRequest(tx)).await.is_ok() {
+                        if let Ok(count) = rx.await {
+                            changes += count;
+                        }
+                    }
+                }
+
+                let should_save = {
+                    let now = SystemTime::now();
+                    let elapsed = now.duration_since(rdb_file.last_save_time).unwrap().as_secs();
+                    args_clone.save.iter().any(|rule| {
+                        elapsed >= rule.seconds && changes.saturating_sub(rdb_file.last_save_changes) >= rule.changes
+                    })
+                };
+
+                if should_save {
+                    let mut snapshots = Vec::with_capacity(senders_clone.len());
+                    for sender in &senders_clone {
+                        let (tx, rx) = oneshot::channel();
+                        if sender.send(DatabaseMessage::SnapshotRequest(tx)).await.is_ok() {
+                            if let Ok(snapshot) = rx.await {
+                                snapshots.push(snapshot);
+                            }
+                        }
+                    }
+
+                    for (index, snapshot) in snapshots.into_iter().enumerate() {
+                        rdb_file.set_database(index, snapshot);
+                    }
+                    rdb_file.last_save_time = SystemTime::now();
+                    rdb_file.last_save_changes = changes;
+                    let _ = rdb_file.save();
+                }
+            }
+        });
+        DatabaseManager { 
+            senders 
+        }
     }
 
     /**
@@ -120,7 +175,8 @@ pub struct Db {
     receiver: Receiver<DatabaseMessage>,
     sender: Sender<DatabaseMessage>,
     pub expire_records: HashMap<String, SystemTime>,
-    pub records: HashMap<String, Structure>
+    pub records: HashMap<String, Structure>,
+    modify_count: AtomicU64,
 }
 
 impl Db {
@@ -139,8 +195,9 @@ impl Db {
         Db {
             records,
             expire_records,
+            modify_count: AtomicU64::new(0),
             receiver,
-            sender
+            sender,
         }
     }
 
@@ -228,6 +285,10 @@ impl Db {
                         },
                         Err(e) => eprintln!("Error applying command: {:?}", e),
                     }
+                },
+                Some(DatabaseMessage::WriterCounterRequest(sender)) => {
+                    let count = self.modify_count.load(Ordering::Relaxed);
+                    let _ = sender.send(count);
                 },
                 Some(DatabaseMessage::CleanExpired) => {
                     self.clean_expired_keys();

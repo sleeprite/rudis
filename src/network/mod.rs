@@ -5,7 +5,6 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use std::process::id;
 use std::sync::Arc;
-use std::time::Duration;
 
 use tokio::net::TcpListener;
 use tokio::sync::mpsc::Sender;
@@ -23,25 +22,11 @@ pub struct Server {
 
 impl Server {
 
-    pub fn new(args: Arc<Args>, db_manager: Arc<DatabaseManager>) -> Self {
+    pub fn new(args: Arc<Args>,  db_manager: Arc<DatabaseManager>) -> Self {
         Server { args, db_manager }
     }
 
     pub async fn start(&self) {
-
-        // 键值淘汰策略
-        let hz =  self.args.hz;
-        let senders = self.db_manager.get_senders();
-        tokio::spawn(async move {
-            let period = Duration::from_secs_f64(1.0 / hz);
-            let mut interval = tokio::time::interval(period);
-            loop {
-                interval.tick().await;
-                for sender in & senders {
-                    let _ = sender.send(DatabaseMessage::CleanExpired).await;
-                }
-            }
-        });
 
         // 监听网络请求
         match TcpListener::bind(format!("{}:{}", self.args.bind, self.args.port)).await {
@@ -132,7 +117,7 @@ impl Handler {
     }
 
     /**
-     * 切换数据库
+     * 切换索引
      * 
      * 如果索引超出，响应 ERR DB index is out of range 错误
      * 
