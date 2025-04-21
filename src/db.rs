@@ -107,7 +107,7 @@ impl DatabaseManager {
                 };
 
                 if should_save {
-                    let mut snapshots = Vec::with_capacity(senders_clone.len());
+                    let mut snapshots = Vec::new();
                     for sender in &senders_clone {
                         let (tx, rx) = oneshot::channel();
                         if sender.send(DatabaseMessage::SnapshotRequest(tx)).await.is_ok() {
