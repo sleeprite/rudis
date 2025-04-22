@@ -32,13 +32,14 @@ impl RdbFile {
         self.databases.get(&id).cloned().unwrap_or_else(|| DatabaseSnapshot::default())
     }
 
-    pub fn save(&self) -> Result<(), Error> {
+    pub fn save(&mut self) -> Result<(), Error> {
         if let Some(parent) = self.path.parent() {
             fs::create_dir_all(parent)?;
         }
         let mut file = File::create(&self.path)?;
         let config = config::standard();
-        let serialized = encode_to_vec(&self, config)?;
+        let serialized = encode_to_vec(&*self, config)?;
+        self.last_save_time = SystemTime::now();
         file.write_all(&serialized)?;
         Ok(())
     }

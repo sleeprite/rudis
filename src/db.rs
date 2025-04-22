@@ -74,20 +74,18 @@ impl DatabaseManager {
             });
         }
 
-        let senders_clone = senders.clone();
         let args_clone = args.clone();
+        let senders_clone = senders.clone();
         tokio::spawn(async move {
             let period = Duration::from_secs_f64(1.0 / args_clone.hz);
             let mut interval = tokio::time::interval(period);
             loop {
                 interval.tick().await;
-
-                // 过期的键值清理
+                
                 for sender in &senders_clone {
-                    let _ = sender.send(DatabaseMessage::CleanExpired).await; // 清理过期键值
+                    let _ = sender.send(DatabaseMessage::CleanExpired).await;
                 }
 
-                // 执行周期性保存
                 let mut changes = 0;
                 for sender in &senders_clone {
                     let (tx, rx) = oneshot::channel();
@@ -120,7 +118,6 @@ impl DatabaseManager {
                     for (index, snapshot) in snapshots.into_iter().enumerate() {
                         rdb_file.set_database(index, snapshot);
                     }
-                    rdb_file.last_save_time = SystemTime::now();
                     rdb_file.last_save_changes = changes;
                     let _ = rdb_file.save();
                 }
@@ -168,8 +165,7 @@ pub enum Structure {
  * @param sender
  * @param expire_records
  * @param records
- * @param index
- * @param args
+ * @param modify_count
  */
 pub struct Db {
     receiver: Receiver<DatabaseMessage>,
