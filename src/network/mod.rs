@@ -5,7 +5,6 @@ use anyhow::Error;
 use connection::Connection;
 use tokio::net::TcpStream;
 
-use std::process::id;
 use std::sync::Arc;
 
 use tokio::net::TcpListener;
@@ -31,7 +30,6 @@ impl Server {
     pub async fn start(&self) {
         match TcpListener::bind(format!("{}:{}", self.args.bind, self.args.port)).await {
             Ok(listener) => {
-                self.server_info();
                 log::info!("Server initialized");
                 log::info!("Ready to accept connections");
                 loop {
@@ -53,22 +51,6 @@ impl Server {
                 std::process::exit(1);
             }
         }
-    }
-
-    fn server_info(&self) {
-        let pid = id();
-        let version = env!("CARGO_PKG_VERSION");
-        let pattern = format!(
-            r#"
-             /\_____/\
-            /  o   o  \          Rudis {}
-           ( ==  ^  == )
-            )         (          Bind: {} PID: {}
-           (           )
-          ( (  )   (  ) )
-         (__(__)___(__)__)
-        "#, version, self.args.port, pid);
-        println!("{}", pattern);
     }
 }
 

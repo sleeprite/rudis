@@ -57,6 +57,7 @@ impl DatabaseManager {
      * @param config 参数
      */
     pub fn new(args: Arc<Args>) -> Self {
+
         let mut dbs = Vec::new();
         let mut senders = Vec::new();
         let mut rdb_file = RdbFile::new(args.dbfilename.clone());
@@ -80,8 +81,8 @@ impl DatabaseManager {
             let period = Duration::from_secs_f64(1.0 / args_clone.hz);
             let mut interval = tokio::time::interval(period);
             loop {
+
                 interval.tick().await;
-                
                 for sender in &senders_clone {
                     let _ = sender.send(DatabaseMessage::CleanExpired).await;
                 }
@@ -116,7 +117,7 @@ impl DatabaseManager {
                     }
 
                     for (index, snapshot) in snapshots.into_iter().enumerate() {
-                        rdb_file.set_database(index, snapshot);
+                        rdb_file.set_database(index, snapshot); // 更新快照
                     }
                     rdb_file.last_save_changes = changes;
                     let _ = rdb_file.save();
