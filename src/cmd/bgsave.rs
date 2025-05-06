@@ -19,7 +19,7 @@ impl Bgsave {
         let senders = db_manager.get_senders();
         for (index, target_sender) in senders.iter().enumerate() {
             let (sender, receiver) = oneshot::channel();
-            match target_sender.send(DatabaseMessage::SnapshotRequest(sender)).await {
+            match target_sender.send(DatabaseMessage::Snapshot(sender)).await {
                 Ok(()) => {}
                 Err(e) => {
                     eprintln!("Failed to write to socket; err = {:?}", e);

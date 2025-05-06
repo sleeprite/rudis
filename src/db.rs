@@ -28,8 +28,8 @@ pub struct DatabaseSnapshot {
 // 修改数据库消息类型
 pub enum DatabaseMessage {
     Command { sender: oneshot::Sender<Frame>, command: Command},
-    SnapshotRequest(oneshot::Sender<DatabaseSnapshot>),
-    WriterCounterRequest(oneshot::Sender<u64>),
+    Changes(oneshot::Sender<u64>),
+    Snapshot(oneshot::Sender<DatabaseSnapshot>),
     CleanExpired, 
 }
 
@@ -90,7 +90,7 @@ impl DatabaseManager {
                 let mut changes = 0;
                 for sender in &senders_clone {
                     let (tx, rx) = oneshot::channel();
-                    if sender.send(DatabaseMessage::WriterCounterRequest(tx)).await.is_ok() {
+                    if sender.send(DatabaseMessage::Changes(tx)).await.is_ok() {
                         if let Ok(count) = rx.await {
                             changes += count;
                         }
@@ -109,7 +109,7 @@ impl DatabaseManager {
                     let mut snapshots = Vec::new();
                     for sender in &senders_clone {
                         let (tx, rx) = oneshot::channel();
-                        if sender.send(DatabaseMessage::SnapshotRequest(tx)).await.is_ok() {
+                        if sender.send(DatabaseMessage::Snapshot(tx)).await.is_ok() {
                             if let Ok(snapshot) = rx.await {
                                 snapshots.push(snapshot);
                             }
@@ -286,11 +286,11 @@ impl Db {
                 Some(DatabaseMessage::CleanExpired) => {
                     self.clean_expired_keys();
                 },
-                Some(DatabaseMessage::WriterCounterRequest(sender)) => {
+                Some(DatabaseMessage::Changes(sender)) => {
                     let count = self.modify_count.load(Ordering::Relaxed);
                     let _ = sender.send(count);
                 },
-                Some(DatabaseMessage::SnapshotRequest(sender)) => {
+                Some(DatabaseMessage::Snapshot(sender)) => {
                     let snapshot = DatabaseSnapshot {
                         records: self.records.clone(),
                         expire_records: self.expire_records.clone(),

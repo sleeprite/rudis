@@ -51,7 +51,7 @@ pub struct Args {
     pub port: String,
 
     /**
-     * 数据库
+     * 监听频率
      */
     #[arg(long, default_value = "10.0")]
     pub hz: f64,
@@ -74,7 +74,9 @@ impl FromStr for SaveRule {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        
         let parts: Vec<&str> = s.split(',').collect();
+       
         if parts.len() != 2 {
             return Err("Invalid save rule format. Expected 'seconds,changes'".into());
         }
