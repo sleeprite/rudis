@@ -16,6 +16,7 @@ impl Save {
         let rdb_file_path = args.dbfilename.clone();
         let mut rdb_file = RdbFile::new(rdb_file_path);
         let senders = db_manager.get_senders();
+        let mut changes = 0;
         for (index, target_sender) in senders.iter().enumerate() {
             let (sender, receiver) = oneshot::channel();
             match target_sender.send(DatabaseMessage::Snapshot(sender)).await {
@@ -31,7 +32,14 @@ impl Save {
                 Err(_) => {}
             };
 
+            let (tx, rx) = oneshot::channel();
+            if target_sender.send(DatabaseMessage::Changes(tx)).await.is_ok() {
+                if let Ok(count) = rx.await {
+                    changes += count;
+                }
+            }
         }
+        rdb_file.last_save_changes = changes;
         let _ = rdb_file.save();
         Ok(Frame::Ok)
     }

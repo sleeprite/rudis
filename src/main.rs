@@ -1,7 +1,7 @@
 use clap::Parser;
 use rudis_server::args::Args;
 use rudis_server::db::DatabaseManager;
-use rudis_server::network::Server;
+use rudis_server::server::Server;
 use std::process::id;
 use std::sync::Arc;
 
