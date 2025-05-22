@@ -13,9 +13,7 @@ use crate::{
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         },
         key::{
-            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys,
-            persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, r#type::Type,
-            randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl,
+            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
         },
         list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange,
@@ -36,7 +34,7 @@ use crate::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, incr::Incr, incrby::Incrby,
             mget::Mget, mset::Mset, set::Set, strlen::Strlen,
         },
-        unknown::Unknown,
+        unknown::Unknown, vector::{vadd::Vadd, vsearch::Vsearch},
     },
     frame::Frame,
 };
@@ -115,6 +113,8 @@ pub enum Command {
     Save(Save),
     Bgsave(Bgsave),
     Psync(Psync),
+    Vsearch(Vsearch),
+    Vadd(Vadd)
 }
 
 impl Command {
@@ -190,6 +190,8 @@ impl Command {
             "PEXPIREAT" => Command::PexpireAt(PexpireAt::parse_from_frame(frame)?),
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
+            "VSEARCH" => Command::Vsearch(Vsearch::parse_from_frame(frame)?),
+            "VADD" => Command::Vadd(Vadd::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

@@ -37,6 +37,9 @@ impl Type {
                     },
                     Structure::List(_) => {
                         Ok(Frame::SimpleString("list".to_string()))
+                    },
+                    Structure::VectorCollection(_) => {
+                        Ok(Frame::SimpleString("vector".to_string()))
                     }
                 }
             },

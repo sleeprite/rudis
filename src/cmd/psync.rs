@@ -1,17 +1,34 @@
 use std::sync::Arc;
 
+use crate::{args::Args, db::{DatabaseManager, DatabaseMessage}, frame::Frame, persistence::rdb_file::RdbFile};
 use anyhow::Error;
-use crate::{args::Args, db::DatabaseManager, frame::Frame};
+use tokio::sync::oneshot;
 
 pub struct Psync {}
 
 impl Psync {
-
+    
     pub fn parse_from_frame(_frame: Frame) -> Result<Self, Error> {
-        Ok(Psync { })
+        Ok(Psync {})
     }
 
-    pub async fn apply(self, _db_manager: Arc<DatabaseManager>, _args: Arc<Args>) -> Result<Frame, Error> {
-        Ok(Frame::Ok)
+    pub async fn apply(self, db_manager: Arc<DatabaseManager>, _args: Arc<Args>) -> Result<Frame, Error> {
+
+        // 获取 RDB 快照
+        let mut snapshots = Vec::new();
+        for sender in db_manager.get_senders() {
+            let (tx, rx) = oneshot::channel();
+            sender.send(DatabaseMessage::Snapshot(tx)).await?;
+            snapshots.push(rx.await?);
+        }
+
+        // 构建 RDB 文件
+        let rdb = RdbFile::new_temp(snapshots);
+        let rdb_data = rdb.serialize()?;
+
+        Ok(Frame::Array(vec![
+            Frame::SimpleString(format!("FULLRESYNC {} {}", 0, 0)),
+            Frame::RDBFile(rdb_data),
+        ]))
     }
 }

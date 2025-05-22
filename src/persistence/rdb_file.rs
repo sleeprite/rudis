@@ -24,6 +24,25 @@ impl RdbFile {
         }
     }
 
+    pub fn new_temp(snapshots: Vec<DatabaseSnapshot>) -> Self {
+        let mut db_map = HashMap::new();
+        for (idx, snapshot) in snapshots.into_iter().enumerate() {
+            db_map.insert(idx, snapshot);
+        }
+        
+        Self {
+            databases: db_map,
+            path: PathBuf::from("temp.rdb"),
+            last_save_time: SystemTime::now(),
+            last_save_changes: 0,
+        }
+    }
+
+    pub fn serialize(&self) -> Result<Vec<u8>, Error> {
+        let config = config::standard();
+        Ok(encode_to_vec(self, config)?)
+    }
+
     pub fn set_database(&mut self, id: usize, snapshot: DatabaseSnapshot) {
         self.databases.insert(id, snapshot);
     }

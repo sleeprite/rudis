@@ -5,6 +5,7 @@
 pub enum Frame {
     Ok,
     Integer(i64),
+    RDBFile(Vec<u8>),
     SimpleString(String),
     Array(Vec<Frame>),
     BulkString(String),
@@ -15,7 +16,7 @@ pub enum Frame {
 impl Frame {
 
     /**
-     * 将 frame 转换为字符串
+     * 将 frame 转化为字符串
      * 
      * @param self 本身
      */
@@ -23,6 +24,7 @@ impl Frame {
         match self {
             Frame::Ok => String::from("OK"),
             Frame::Integer(i) => i.to_string(),
+            Frame::RDBFile(data) => format!("[RDBFile {} bytes]", data.len()),
             Frame::SimpleString(s) => s.clone(),
             Frame::BulkString(s) => s.clone(),
             Frame::Error(e) => e.clone(),
@@ -55,6 +57,12 @@ impl Frame {
                 for item in arr {
                     bytes.extend(item.as_bytes());
                 }
+                bytes
+            },
+            Frame::RDBFile(data) => {
+                let mut bytes = format!("${}\r\n", data.len()).into_bytes();
+                bytes.extend(data);
+                bytes.extend(b"\r\n");
                 bytes
             },
             Frame::BulkString(s) => {

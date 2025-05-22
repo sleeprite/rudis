@@ -25,11 +25,11 @@ pub struct DatabaseSnapshot {
  * @param sender 发送者
  * @param command 命令
  */
-// 修改数据库消息类型
 pub enum DatabaseMessage {
-    Command { sender: oneshot::Sender<Frame>, command: Command},
     Changes(oneshot::Sender<u64>),
+    Command { sender: oneshot::Sender<Frame>, command: Command},
     Snapshot(oneshot::Sender<DatabaseSnapshot>),
+    Restore(DatabaseSnapshot),
     CleanExpired, 
 }
 
@@ -77,6 +77,7 @@ impl DatabaseManager {
 
         let args_clone = args.clone();
         let senders_clone = senders.clone();
+
         tokio::spawn(async move {
             let period = Duration::from_secs_f64(1.0 / args_clone.hz);
             let mut interval = tokio::time::interval(period);
@@ -155,8 +156,16 @@ pub enum Structure {
     String(String),
     Hash(HashMap<String, String>),
     SortedSet(BTreeMap<String, f64>),
+    VectorCollection(Vector),
     Set(HashSet<String>),
-    List(Vec<String>),
+    List(Vec<String>)
+}
+
+#[derive(Clone, Encode, Decode)]
+pub struct Vector {
+    pub dimension: usize,
+    pub vectors: HashMap<String, Vec<f32>>,
+    pub norms: HashMap<String, f32>,
 }
 
 /**
@@ -273,6 +282,8 @@ impl Db {
                         Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                         Command::Pexpire(pexpire) => pexpire.apply(self),
                         Command::Lrange(lrange) => lrange.apply(self),
+                        Command::Vsearch(vsearch) => vsearch.apply(self),
+                        Command::Vadd(vadd) => vadd.apply(self),
                         _ => Err(Error::msg("Unknown command")),
                     };
 
@@ -289,6 +300,10 @@ impl Db {
                 Some(DatabaseMessage::Changes(sender)) => {
                     let count = self.modify_count.load(Ordering::Relaxed);
                     let _ = sender.send(count);
+                },
+                Some(DatabaseMessage::Restore(snapshot)) => {
+                    self.records = snapshot.records;
+                    self.expire_records = snapshot.expire_records;
                 },
                 Some(DatabaseMessage::Snapshot(sender)) => {
                     let snapshot = DatabaseSnapshot {

@@ -21,7 +21,8 @@ pub struct Server {
 
 impl Server {
 
-    pub fn new(args: Arc<Args>,  db_manager: Arc<DatabaseManager>) -> Self {
+    pub fn new(args: Arc<Args>) -> Self {
+        let db_manager = Arc::new(DatabaseManager::new(args.clone()));
         Server { args, db_manager }
     }
 

@@ -11,6 +11,7 @@ pub mod list;
 pub mod unknown;
 pub mod sorted_set;
 pub mod bgsave;
+pub mod vector;
 pub mod psync;
 pub mod echo;
 pub mod save;
