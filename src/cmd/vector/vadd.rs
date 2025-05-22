@@ -12,26 +12,26 @@ pub struct Vadd {
 
 impl Vadd {
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
+        
         let args = frame.get_args();
+       
         if args.len() < 3 {
             return Err(Error::msg("ERR wrong number of arguments for 'VADD' command"));
         }
+       
         let key = args[1].to_string();
         let id = args[2].to_string();
 
-        // 解析向量值
+        // 获取 Vec 参数
         let mut idx = 3;
         let mut vector = Vec::new();
-
         while idx < args.len() {
             match args[idx].parse::<f32>() {
                 Ok(val) => vector.push(val),
-                Err(e) => {
-                    // 检查是否为TTL选项
+                Err(_) => {
                     if args[idx].to_uppercase() == "EX" || args[idx].to_uppercase() == "PX" {
                         break;
                     } else {
-                        println!("{}", e);
                         return Err(Error::msg("Invalid vector value"));
                     }
                 }
@@ -43,7 +43,7 @@ impl Vadd {
             return Err(Error::msg("ERR vector cannot be empty"));
         }
 
-        // 处理TTL参数
+        // 获取 Ttl 参数
         let mut ttl = None;
         while idx < args.len() {
             let option = args[idx].to_uppercase();
@@ -63,7 +63,6 @@ impl Vadd {
             }
         }
 
-        // 检查是否所有参数都处理完毕
         if idx != args.len() {
             return Err(Error::msg("ERR syntax error"));
         }
@@ -72,31 +71,28 @@ impl Vadd {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
+
         let key_clone = self.key.clone();
         let structure = db.records.get_mut(&key_clone);
 
         match structure {
             Some(Structure::VectorCollection(v)) => {
-                // 维度校验
+            
                 if self.vector.len() != v.dimension {
                     return Err(Error::msg("ERR vector dimension mismatch"));
                 }
                 
-                // 计算并存储范数
-                let norm = self.vector.iter().map(|x| x.powi(2)).sum::<f32>().sqrt();
+                let n = self.vector.iter().map(|x| x.powi(2)).sum::<f32>().sqrt();
                 v.vectors.insert(self.id.clone(), self.vector);
-                v.norms.insert(self.id.clone(), norm);
+                v.norms.insert(self.id.clone(), n);
             }
             Some(_) => return Err(Error::msg("WRONGTYPE Operation against a key holding the wrong kind of value")),
             None => {
-                // 创建新集合
+      
                 let dimension = self.vector.len();
-                let norm = self.vector.iter()
-                    .map(|x| x.powi(2))
-                    .sum::<f32>()
-                    .sqrt();
+                let norm = self.vector.iter().map(|x| x.powi(2)).sum::<f32>().sqrt();
                 
-                let mut vectors = HashMap::new();
+                let mut vectors: HashMap<_, _> = HashMap::new();
                 vectors.insert(self.id.clone(), self.vector);
                 
                 let mut norms = HashMap::new();

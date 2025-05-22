@@ -18,7 +18,7 @@ impl Vsearch {
 
         let key = args[1].to_string();
 
-        // 解析查询向量
+        // 解析 Vec 参数
         let mut query = Vec::new();
         let mut idx = 2;
         while idx < args.len() && !args[idx].eq_ignore_ascii_case("K") {
@@ -30,19 +30,16 @@ impl Vsearch {
             return Err(Error::msg("ERR query vector cannot be empty"));
         }
 
-        // 解析K参数
+        // 解析 TOP 参数
         let k = if idx < args.len() && args[idx].eq_ignore_ascii_case("K") {
             idx += 1;
-            args.get(idx)
-                .and_then(|s| s.parse::<usize>().ok())
-                .unwrap_or(10)
+            args.get(idx).and_then(|s| s.parse::<usize>().ok()).unwrap_or(10)
         } else {
             10
         };
 
         idx += if idx < args.len() && args[idx-1].eq_ignore_ascii_case("K") { 1 } else { 0 };
 
-        // 检查多余参数
         if idx != args.len() {
             return Err(Error::msg("ERR syntax error"));
         }
@@ -56,18 +53,18 @@ impl Vsearch {
         let results = match structure {
             Some(Structure::VectorCollection(v)) => {
                 
-                // 维度校验
+                // 检查向量维度
                 if self.query.len() != v.dimension {
                     return Err(Error::msg("ERR query dimension mismatch"));
                 }
 
-                // 计算查询向量范数
+                // 计算向量范数
                 let query_norm = self.query.iter()
                     .map(|x| x.powi(2))
                     .sum::<f32>()
                     .sqrt();
 
-                // 计算相似度
+                // 计算余弦得分
                 let mut scores = v.vectors.iter()
                     .map(|(id, vec)| {
                         let dot_product = self.query.iter().zip(vec.iter()).map(|(a, b)| a * b).sum::<f32>();
@@ -77,11 +74,11 @@ impl Vsearch {
                         } else {
                             dot_product / (query_norm * norm)
                         };
-                        
                         (id.clone(), similarity)
                     })
                     .collect::<Vec<_>>();
-
+                
+                // 根据得分排序
                 scores.sort_unstable_by(|a, b| 
                     b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
                 );
@@ -92,13 +89,11 @@ impl Vsearch {
                             Frame::BulkString(score.to_string()),
                             Frame::BulkString(id.into())
                         ])
-                    )
-                    .collect()
+                    ).collect()
             }
             Some(_) => return Err(Error::msg("WRONGTYPE Operation against a key holding the wrong kind of value")),
             None => Vec::new(),
         };
-
         Ok(Frame::Array(results))
     }
 }
