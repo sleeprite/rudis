@@ -1,6 +1,7 @@
 pub mod args;
 pub mod cmd;
 pub mod persistence;
+pub mod replication;
 pub mod command;
 pub mod network;
 pub mod server;

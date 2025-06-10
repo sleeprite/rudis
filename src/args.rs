@@ -80,6 +80,17 @@ pub struct Args {
     
 }
 
+impl Args {
+
+    pub fn is_master(&self) -> bool {
+        self.replicaof.is_none()
+    }
+    
+    pub fn is_slave(&self) -> bool {
+        self.replicaof.is_some()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SaveRule {
     pub seconds: u64,

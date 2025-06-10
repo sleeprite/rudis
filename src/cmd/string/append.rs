@@ -27,16 +27,14 @@ impl Append {
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        
+        let empty_value = String::new(); 
         let existing_value = match db.get(&self.key) {
             Some(Structure::String(s)) => s,
             Some(_) => return Err(Error::msg("ERR wrong type for 'append' command")),
-            None => &String::new(),
+            None => &empty_value,
         };
-
         let new_value = format!("{}{}", existing_value, self.val);
         db.insert(self.key, Structure::String(new_value));
-
         Ok(Frame::Ok)
     }
 }
