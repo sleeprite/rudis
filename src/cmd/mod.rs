@@ -9,6 +9,7 @@ pub mod dbsize;
 pub mod hash;
 pub mod list;
 pub mod unknown;
+pub mod replconf;
 pub mod sorted_set;
 pub mod bgsave;
 pub mod vector;

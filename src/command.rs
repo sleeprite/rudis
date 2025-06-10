@@ -2,39 +2,23 @@ use anyhow::Error;
 
 use crate::{
     cmd::{
-        auth::Auth,
-        bgsave::Bgsave,
-        dbsize::Dbsize,
-        echo::Echo,
-        flushall::Flushall,
-        flushdb::Flushdb,
-        hash::{
+        auth::Auth, bgsave::Bgsave, dbsize::Dbsize, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
-        },
-        key::{
+        }, key::{
             del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
-        },
-        list::{
+        }, list::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange,
             lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        },
-        ping::Ping,
-        psync::Psync,
-        save::Save,
-        select::Select,
-        set::{
+        }, ping::Ping, psync::Psync, replconf::Replconf, save::Save, select::Select, set::{
             sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers,
             spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore,
-        },
-        sorted_set::{
+        }, sorted_set::{
             zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore,
-        },
-        string::{
+        }, string::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, incr::Incr, incrby::Incrby,
             mget::Mget, mset::Mset, set::Set, strlen::Strlen,
-        },
-        unknown::Unknown, vector::{vadd::Vadd, vsearch::Vsearch},
+        }, unknown::Unknown, vector::{vadd::Vadd, vsearch::Vsearch}
     },
     frame::Frame,
 };
@@ -113,6 +97,7 @@ pub enum Command {
     Save(Save),
     Bgsave(Bgsave),
     Psync(Psync),
+    Replconf(Replconf),
     Vsearch(Vsearch),
     Vadd(Vadd)
 }
@@ -192,6 +177,7 @@ impl Command {
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
             "VSEARCH" => Command::Vsearch(Vsearch::parse_from_frame(frame)?),
             "VADD" => Command::Vadd(Vadd::parse_from_frame(frame)?),
+            "REPLCONF" => Command::Replconf(Replconf::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
