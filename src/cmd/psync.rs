@@ -26,6 +26,8 @@ impl Psync {
         let rdb = RdbFile::new_temp(snapshots);
         let rdb_data = rdb.serialize()?;
 
+        println!("打印点啥");
+
         Ok(Frame::Array(vec![
             Frame::SimpleString(format!("FULLRESYNC {} {}", 0, 0)),
             Frame::RDBFile(rdb_data),

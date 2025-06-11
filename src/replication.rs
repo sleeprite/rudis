@@ -46,10 +46,12 @@ impl ReplicationManager {
                         self.stream = Some(_stream);
                         // 1. 发送PING命令进行握手
                         // 2. 发送REPLCONF命令配置从节点
-                        self.ping().await?;
-                        self.replconf().await?;
                         // 3. 发送PSYNC命令启动同步
                         // 4. 处理PSYNC响应
+                        self.ping().await?;
+                        self.replconf().await?;
+                        self.psync().await?;
+                        self.receive_rdb_file().await?;
                         // 5. 进入命令传播模式
                         Ok(())
                     },
@@ -129,8 +131,32 @@ impl ReplicationManager {
             }
         }
 
-        let msg_str = "Send REPLCONF failure";
-        let msg = Error::msg(msg_str);
-        Err(msg)
+        Err(Error::msg("REPLCONF failed"))
+    }
+
+    /**
+     * 发送 PSYNC 命令
+     * 
+     * @param self
+     */
+    async fn psync(&mut self) -> Result<()> {
+        let stream = self.stream.as_mut().unwrap();
+        let psync_frame = Frame::Array(vec![Frame::BulkString("PSYNC".to_string())]);
+        stream.write_all(&psync_frame.as_bytes()).await?;
+        self.state = ReplicationState::WaitPsync;
+        Ok(())
+    }
+
+    /**
+     * 接受 PSYNC 响应
+     */
+    async fn receive_rdb_file(&mut self) -> Result<()> {
+        let stream: &mut TcpStream = self.stream.as_mut().unwrap();
+        let mut buffer = [0; 1024];
+        let n = stream.read(&mut buffer).await?;
+        let response = Frame::parse_from_bytes(&buffer[..n]).unwrap();
+        print!("哈哈哈：{}", response.get_arg(0).unwrap().to_string());
+        print!("嘿嘿嘿：{}", response.get_arg(0).unwrap().to_string());
+        Ok(())
     }
 }
