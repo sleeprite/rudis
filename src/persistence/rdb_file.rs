@@ -43,12 +43,13 @@ impl RdbFile {
         Ok(encode_to_vec(self, config)?)
     }
 
-    pub fn set_database(&mut self, id: usize, snapshot: DatabaseSnapshot) {
-        self.databases.insert(id, snapshot);
-    }
 
     pub fn get_database(&self, id: usize) -> DatabaseSnapshot {
         self.databases.get(&id).cloned().unwrap_or_else(|| DatabaseSnapshot::default())
+    }
+
+    pub fn set_database(&mut self, id: usize, snapshot: DatabaseSnapshot) {
+        self.databases.insert(id, snapshot);
     }
 
     pub fn save(&mut self) -> Result<(), Error> {

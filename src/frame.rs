@@ -48,21 +48,21 @@ impl Frame {
     pub fn as_bytes(&self) -> Vec<u8> {
         match self {
             Frame::Ok => b"+OK\r\n".to_vec(),
-            Frame::SimpleString(s) => format!("+{}\r\n", s).into_bytes(),
             Frame::Integer(i) => format!(":{}\r\n", i).into_bytes(),
-            Frame::Null => b"$-1\r\n".to_vec(),
+            Frame::SimpleString(s) => format!("+{}\r\n", s).into_bytes(),
             Frame::Error(e) => format!("-{}\r\n", e).into_bytes(),
+            Frame::Null => b"$-1\r\n".to_vec(),
+            Frame::RDBFile(data) => {
+                let mut bytes = format!("~{}\r\n", data.len()).into_bytes();
+                bytes.extend(data);
+                bytes.extend(b"\r\n");
+                bytes
+            },
             Frame::Array(arr) => {
                 let mut bytes = format!("*{}\r\n", arr.len()).into_bytes();
                 for item in arr {
                     bytes.extend(item.as_bytes());
                 }
-                bytes
-            },
-            Frame::RDBFile(data) => {
-                let mut bytes = format!("${}\r\n", data.len()).into_bytes();
-                bytes.extend(data);
-                bytes.extend(b"\r\n");
                 bytes
             },
             Frame::BulkString(s) => {
