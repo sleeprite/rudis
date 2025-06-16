@@ -45,7 +45,8 @@ impl ReplicationManager {
                         self.ping().await?; // 1. 发送PING命令进行握手
                         self.replconf().await?; // 2. 发送REPLCONF命令配置从节点
                         self.psync().await?; // 3. 发送PSYNC命令启动同步
-                        self.receive_rdb_file().await?; // 4. 接收RDB_FILE内容
+                        self.rdb_file_receiver().await?; // 4. 接收 PSYNC 响应结果
+                        self.start_command_receiver().await?; // 5. 开启命令传播
                         Ok(())
                     },
                     Err(_e) => {
@@ -137,11 +138,13 @@ impl ReplicationManager {
     }
 
     /**
-     * 接受 PSYNC 响应
+     * 接收 RDB_FILE 内容
+     * 
+     * @param self
      */
-    async fn receive_rdb_file(&mut self) -> Result<()> {
-        let stream: &mut TcpStream = self.stream.as_mut().unwrap();
+    async fn rdb_file_receiver(&mut self) -> Result<()> {
         let mut buffer = [0; 1024];
+        let stream: &mut TcpStream = self.stream.as_mut().unwrap();
         let n = stream.read(&mut buffer).await?;
         let frame = Frame::parse_from_bytes(&buffer[..n]).unwrap();
         let rdb_file = frame.to_rdb_file().unwrap();
@@ -154,6 +157,16 @@ impl ReplicationManager {
                 }
             };
         }
+        Ok(())
+    }
+
+    /**
+     * 接收 COMMAND 传播
+     * 
+     * @param self
+     */
+    pub async fn start_command_receiver(&mut self) -> Result<()> {
+        // TODO
         Ok(())
     }
 }
