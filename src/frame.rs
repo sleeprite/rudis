@@ -1,3 +1,5 @@
+use crate::persistence::rdb_file::RdbFile;
+
 /*
  * 命令帧枚举
  */
@@ -83,6 +85,7 @@ impl Frame {
         match bytes[0] {
             b'+' => Frame::parse_simple_string(bytes),
             b'*' => Frame::parse_array(bytes),
+            b'~' => Frame::parse_rdb_file(bytes),
             _ => Err("Unknown frame type".into()),
         }
     }
@@ -97,6 +100,43 @@ impl Frame {
         let content = String::from_utf8(bytes[1..end].to_vec())?;
         Ok(Frame::SimpleString(content))
     }
+
+    /**
+     * 正确解析 RDB 文件帧
+     */
+    fn parse_rdb_file(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+        
+        // 找到第一个 \r 的位置
+        let len_end = bytes.iter().position(|&b| b == b'\r').ok_or("Invalid RDB format: missing CR")?;
+        
+        // 解析长度声明部分
+        let len_str = std::str::from_utf8(&bytes[1..len_end])?;
+        let data_len: usize = len_str.parse()
+            .map_err(|_| format!("Invalid RDB length: {}", len_str))?;
+        
+        // 计算数据位置 (跳过 ~<length>\r\n)
+        let data_start = len_end + 2;
+        let data_end = data_start + data_len;
+        
+        // 验证数据完整性
+        if bytes.len() < data_end + 2 {
+            return Err(format!(
+                "RDB data incomplete: expected {} bytes, got {}",
+                data_end + 2,
+                bytes.len()
+            ).into());
+        }
+        
+        // 检查结束标记
+        if bytes[data_end] != b'\r' || bytes[data_end + 1] != b'\n' {
+            return Err("Invalid RDB terminator".into());
+        }
+        
+        // 提取数据部分
+        let data = bytes[data_start..data_end].to_vec();
+        Ok(Frame::RDBFile(data))
+    }
+
 
     /**
      * 数组字符串
@@ -174,6 +214,21 @@ impl Frame {
                 }
             },
             _ => Vec::new()
+        }
+    }
+
+    /**
+     * 将 RDBFile 帧转换为 RdbFile 对象
+     * 
+     * @return Result<RdbFile, Box<dyn std::error::Error>> 转换结果
+     */
+    pub fn to_rdb_file(&self) -> Result<RdbFile, Box<dyn std::error::Error>> {
+        match self {
+            Frame::RDBFile(data) => {
+                RdbFile::from_bytes(data)
+                    .map_err(|e| format!("Failed to parse RDB file: {}", e).into())
+            }
+            _ => Err("Frame is not an RDBFile".into()),
         }
     }
 }

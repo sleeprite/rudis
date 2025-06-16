@@ -7,7 +7,7 @@ use crate::db::DatabaseSnapshot;
 
 #[derive(Clone, Encode, Decode)]
 pub struct RdbFile {
-    databases: HashMap<usize, DatabaseSnapshot>,
+    pub databases: HashMap<usize, DatabaseSnapshot>,
     pub last_save_time: SystemTime,
     pub last_save_changes: u64,
     path: PathBuf,
@@ -24,7 +24,7 @@ impl RdbFile {
         }
     }
 
-    pub fn new_temp(snapshots: Vec<DatabaseSnapshot>) -> Self {
+    pub fn from_snapshots(snapshots: Vec<DatabaseSnapshot>) -> Self {
         let mut db_map = HashMap::new();
         for (idx, snapshot) in snapshots.into_iter().enumerate() {
             db_map.insert(idx, snapshot);
@@ -36,6 +36,18 @@ impl RdbFile {
             last_save_time: SystemTime::now(),
             last_save_changes: 0,
         }
+    }
+
+    /**
+     * 从字节切片创建 RdbFile 对象
+     * 
+     * @param bytes RDB 文件字节
+     * @return Result<RdbFile, Error> 解析结果
+     */
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
+        let config = config::standard();
+        let (rdb_file, _) = decode_from_slice(bytes, config)?;
+        Ok(rdb_file)
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>, Error> {

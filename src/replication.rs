@@ -7,17 +7,12 @@ use crate::{args::Args, frame::Frame};
 
 /// 复制状态
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum ReplicationState {
-    /// 未连接
-    Disconnected,
-    /// 连接中
-    Connecting,
-    /// 等待PSYNC响应
-    WaitPsync,
-    /// 接收RDB文件
-    ReceivingRdb,
-    /// 已连接，等待命令
-    Connected,
+pub enum ReplicationState {    
+    Connecting,    
+    Disconnected, 
+    WaitPsync,  
+    ReceivingRdb,  
+    Connected    
 }
 
 pub struct ReplicationManager {
@@ -119,8 +114,6 @@ impl ReplicationManager {
         ]);
         
         stream.write_all(&replconf_frame.as_bytes()).await?;
-        
-        // 等待 REPLCONF 响应
         let mut buffer = [0; 1024];
         let n = stream.read(&mut buffer).await?;
         let response = Frame::parse_from_bytes(&buffer[..n]).unwrap();
@@ -154,9 +147,15 @@ impl ReplicationManager {
         let stream: &mut TcpStream = self.stream.as_mut().unwrap();
         let mut buffer = [0; 1024];
         let n = stream.read(&mut buffer).await?;
-        let response = Frame::parse_from_bytes(&buffer[..n]).unwrap();
-        print!("哈哈哈：{}", response.get_arg(0).unwrap().to_string());
-        print!("嘿嘿嘿：{}", response.get_arg(0).unwrap().to_string());
+        let frame = Frame::parse_from_bytes(&buffer[..n]).unwrap();
+        match frame.to_rdb_file() {
+            Ok(rdb) => {
+                println!("Loaded RDB with {} databases", rdb.databases.len());
+            }
+            Err(e) => {
+                eprintln!("RDB conversion failed: {}", e);
+            }
+        }
         Ok(())
     }
 }

@@ -23,12 +23,8 @@ impl Psync {
         }
 
         // 构建 RDB 文件
-        let rdb = RdbFile::new_temp(snapshots);
+        let rdb = RdbFile::from_snapshots(snapshots);
         let rdb_data = rdb.serialize()?;
-
-        Ok(Frame::Array(vec![
-            Frame::SimpleString(format!("FULLRESYNC {} {}", 0, 0)),
-            Frame::RDBFile(rdb_data),
-        ]))
+        Ok(Frame::RDBFile(rdb_data))
     }
 }
