@@ -3,6 +3,7 @@ use std::{sync::Arc};
 use anyhow::{Error, Result};
 use tokio::net::TcpStream;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use crate::db::{DatabaseManager, DatabaseMessage};
 use crate::{args::Args, frame::Frame};
 
 /// 复制状态
@@ -17,16 +18,18 @@ pub enum ReplicationState {
 
 pub struct ReplicationManager {
     pub state: ReplicationState,
+    pub db_manager: Arc<DatabaseManager>,
     pub stream: Option<TcpStream>,
     pub args: Arc<Args>
 }
 
 impl ReplicationManager {
 
-    pub fn new(args: Arc<Args>) -> Self {
+    pub fn new(args: Arc<Args>, db_manager: Arc<DatabaseManager>) -> Self {
         
         Self {
             state: ReplicationState::Disconnected,
+            db_manager: db_manager,
             stream: None,
             args
         }
@@ -39,15 +42,10 @@ impl ReplicationManager {
                 match TcpStream::connect(addr).await {
                     Ok(mut _stream) => {
                         self.stream = Some(_stream);
-                        // 1. 发送PING命令进行握手
-                        // 2. 发送REPLCONF命令配置从节点
-                        // 3. 发送PSYNC命令启动同步
-                        // 4. 处理PSYNC响应
-                        self.ping().await?;
-                        self.replconf().await?;
-                        self.psync().await?;
-                        self.receive_rdb_file().await?;
-                        // 5. 进入命令传播模式
+                        self.ping().await?; // 1. 发送PING命令进行握手
+                        self.replconf().await?; // 2. 发送REPLCONF命令配置从节点
+                        self.psync().await?; // 3. 发送PSYNC命令启动同步
+                        self.receive_rdb_file().await?; // 4. 接收RDB_FILE内容
                         Ok(())
                     },
                     Err(_e) => {
@@ -80,7 +78,6 @@ impl ReplicationManager {
         let response = Frame::parse_from_bytes(&buffer[..n]).unwrap();
         if let Frame::SimpleString(s) = response {
             if s == "PONG" {
-                log::info!("Received PONG from master");
                 return Ok(());
             }
         }
@@ -119,7 +116,6 @@ impl ReplicationManager {
         let response = Frame::parse_from_bytes(&buffer[..n]).unwrap();
         if let Frame::SimpleString(s) = response {
             if s == "OK" {
-                log::info!("REPLCONF acknowledged by master");
                 return Ok(());
             }
         }
@@ -148,13 +144,15 @@ impl ReplicationManager {
         let mut buffer = [0; 1024];
         let n = stream.read(&mut buffer).await?;
         let frame = Frame::parse_from_bytes(&buffer[..n]).unwrap();
-        match frame.to_rdb_file() {
-            Ok(rdb) => {
-                println!("Loaded RDB with {} databases", rdb.databases.len());
-            }
-            Err(e) => {
-                eprintln!("RDB conversion failed: {}", e);
-            }
+        let rdb_file = frame.to_rdb_file().unwrap();
+        let senders = self.db_manager.get_senders();
+        for (db_index, target_sender) in senders.iter().enumerate() {
+            match target_sender.send(DatabaseMessage::Restore(rdb_file.get_database(db_index))).await {
+                Ok(()) => {}
+                Err(e) => {
+                    eprintln!("Failed to write to socket; err = {:?}", e);
+                }
+            };
         }
         Ok(())
     }

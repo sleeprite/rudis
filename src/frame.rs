@@ -103,22 +103,38 @@ impl Frame {
 
     /**
      * 正确解析 RDB 文件帧
+     * 
+     * @param bytes 二进制
      */
     fn parse_rdb_file(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
-        
-        // 找到第一个 \r 的位置
-        let len_end = bytes.iter().position(|&b| b == b'\r').ok_or("Invalid RDB format: missing CR")?;
-        
-        // 解析长度声明部分
-        let len_str = std::str::from_utf8(&bytes[1..len_end])?;
-        let data_len: usize = len_str.parse()
-            .map_err(|_| format!("Invalid RDB length: {}", len_str))?;
-        
-        // 计算数据位置 (跳过 ~<length>\r\n)
+
+        let mut len_end = None;
+        for (i, &byte) in bytes.iter().enumerate() {
+            if byte == b'\r' {
+                len_end = Some(i);
+                break;
+            }
+        }
+
+        let len_end = match len_end {
+            Some(pos) => pos,
+            None => return Err("Invalid RDB format: missing CR".into()),
+        };
+
+        let len_bytes = &bytes[1..len_end];
+        let len_str = match std::str::from_utf8(len_bytes) {
+            Ok(s) => s,
+            Err(e) => return Err(format!("Invalid UTF-8: {}", e).into()),
+        };
+
+        let data_len = match len_str.parse::<usize>() {
+            Ok(n) => n,
+            Err(e) => return Err(format!("Invalid RDB length: {} ({})", len_str, e).into()),
+        };
+
         let data_start = len_end + 2;
         let data_end = data_start + data_len;
-        
-        // 验证数据完整性
+
         if bytes.len() < data_end + 2 {
             return Err(format!(
                 "RDB data incomplete: expected {} bytes, got {}",
@@ -126,14 +142,16 @@ impl Frame {
                 bytes.len()
             ).into());
         }
-        
-        // 检查结束标记
+
         if bytes[data_end] != b'\r' || bytes[data_end + 1] != b'\n' {
             return Err("Invalid RDB terminator".into());
         }
-        
-        // 提取数据部分
-        let data = bytes[data_start..data_end].to_vec();
+
+        let mut data = Vec::with_capacity(data_len);
+        for &byte in &bytes[data_start..data_end] {
+            data.push(byte);
+        }
+
         Ok(Frame::RDBFile(data))
     }
 
@@ -225,8 +243,7 @@ impl Frame {
     pub fn to_rdb_file(&self) -> Result<RdbFile, Box<dyn std::error::Error>> {
         match self {
             Frame::RDBFile(data) => {
-                RdbFile::from_bytes(data)
-                    .map_err(|e| format!("Failed to parse RDB file: {}", e).into())
+                RdbFile::from_bytes(data).map_err(|e| format!("Failed to parse RDB file: {}", e).into())
             }
             _ => Err("Frame is not an RDBFile".into()),
         }

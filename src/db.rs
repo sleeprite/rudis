@@ -302,6 +302,7 @@ impl Db {
                     let _ = sender.send(count);
                 },
                 Some(DatabaseMessage::Restore(snapshot)) => {
+                    println!("{}","更新数据库");
                     self.records = snapshot.records;
                     self.expire_records = snapshot.expire_records;
                 },

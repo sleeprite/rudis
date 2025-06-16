@@ -25,7 +25,7 @@ impl Server {
 
     pub fn new(args: Arc<Args>) -> Self {
         let db_manager = Arc::new(DatabaseManager::new(args.clone()));
-        let replication_manager = Arc::new(Mutex::new(ReplicationManager::new(args.clone())));
+        let replication_manager = Arc::new(Mutex::new(ReplicationManager::new(args.clone(), db_manager.clone())));
         Server { args, db_manager, replication_manager }
     }
 
