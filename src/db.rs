@@ -462,6 +462,16 @@ impl Db {
     }
 
     /**
+     * 获取符合给定模式的所有键
+     *
+     * @param pattern 模式
+     * @return 符合模式的所有键的列表
+     */
+    pub fn keys(&self, pattern: &str) -> Vec<String> {
+        self.records.keys().filter(|key| pattern::is_match(key, pattern)).cloned().collect()
+    }
+
+    /**
      * 随机返回一个键
      */
     pub fn random_key(&self) -> Option<String> {
@@ -472,15 +482,5 @@ impl Db {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
         let random_index = (now as usize) % keys.len();
         Some(keys[random_index].clone())
-    }
-
-    /**
-     * 获取符合给定模式的所有键
-     *
-     * @param pattern 模式
-     * @return 符合模式的所有键的列表
-     */
-    pub fn keys(&self, pattern: &str) -> Vec<String> {
-        self.records.keys().filter(|key| pattern::is_match(key, pattern)).cloned().collect()
     }
 }

@@ -59,7 +59,7 @@ impl ReplicationManager {
                 }
             },
             None => {
-                 Ok(())
+                Ok(())
             }
         }
     }

@@ -99,15 +99,11 @@ pub struct SaveRule {
 
 impl FromStr for SaveRule {
     type Err = String;
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        
         let parts: Vec<&str> = s.split(',').collect();
-       
         if parts.len() != 2 {
             return Err("Invalid save rule format. Expected 'seconds,changes'".into());
         }
-
         Ok(SaveRule {
             seconds: parts[0].parse().map_err(|e| format!("Invalid seconds: {}", e))?,
             changes: parts[1].parse().map_err(|e| format!("Invalid changes: {}", e))?,

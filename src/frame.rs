@@ -136,11 +136,7 @@ impl Frame {
         let data_end = data_start + data_len;
 
         if bytes.len() < data_end + 2 {
-            return Err(format!(
-                "RDB data incomplete: expected {} bytes, got {}",
-                data_end + 2,
-                bytes.len()
-            ).into());
+            return Err(format!("RDB data incomplete: expected {} bytes, got {}", data_end + 2, bytes.len()).into());
         }
 
         if bytes[data_end] != b'\r' || bytes[data_end + 1] != b'\n' {
@@ -148,6 +144,7 @@ impl Frame {
         }
 
         let mut data = Vec::with_capacity(data_len);
+        
         for &byte in &bytes[data_start..data_end] {
             data.push(byte);
         }
