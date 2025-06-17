@@ -35,6 +35,9 @@ impl ReplicationManager {
         }
     }
     
+    /**
+     * 连接到主节点
+     */
     pub async fn connect(&mut self) -> Result<()> {
         self.state = ReplicationState::Connecting;
         match self.args.replicaof.as_ref() {
@@ -46,7 +49,7 @@ impl ReplicationManager {
                         self.replconf().await?; // 2. 发送REPLCONF命令配置从节点
                         self.psync().await?; // 3. 发送PSYNC命令启动同步
                         self.rdb_file_receiver().await?; // 4. 接收 PSYNC 响应结果
-                        self.start_command_receiver().await?; // 5. 开启命令传播
+                        self.cmd_receiver().await?; // 5. 开启命令传播
                         Ok(())
                     },
                     Err(_e) => {
@@ -165,8 +168,7 @@ impl ReplicationManager {
      * 
      * @param self
      */
-    pub async fn start_command_receiver(&mut self) -> Result<()> {
-        // TODO
+    pub async fn cmd_receiver(&mut self) -> Result<()> {
         Ok(())
     }
 }

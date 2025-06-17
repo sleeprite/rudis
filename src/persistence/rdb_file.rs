@@ -119,7 +119,6 @@ impl RdbFile {
         let mut file = File::create(&self.path)?;
         let config = config::standard();
         let serialized = encode_to_vec(&*self, config)?;
-        self.last_save_time = SystemTime::now();
         file.write_all(&serialized)?;
         Ok(())
     }
@@ -139,8 +138,6 @@ impl RdbFile {
             let data = fs::read(&self.path)?;
             let config = config::standard();
             let (deserialized, _) = decode_from_slice::<RdbFile, _>(&data, config)?;
-            
-            // 状态更新
             self.last_save_changes = deserialized.last_save_changes;
             self.last_save_time = deserialized.last_save_time;
             self.databases = deserialized.databases;

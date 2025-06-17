@@ -31,6 +31,7 @@ pub enum DatabaseMessage {
     Snapshot(oneshot::Sender<DatabaseSnapshot>),
     Restore(DatabaseSnapshot),
     CleanExpired, 
+    ResetChanges,
 }
 
 impl Default for DatabaseSnapshot {
@@ -120,8 +121,17 @@ impl DatabaseManager {
                     for (index, snapshot) in snapshots.into_iter().enumerate() {
                         rdb_file.set_database(index, snapshot); // 更新快照
                     }
+
+                    rdb_file.last_save_time = SystemTime::now();
                     rdb_file.last_save_changes = changes;
-                    let _ = rdb_file.save();
+                    match rdb_file.save() {
+                        Ok(()) => {
+                            for sender in &senders_clone {
+                                let _ = sender.send(DatabaseMessage::ResetChanges).await;
+                            }
+                        },
+                        Err(_) => log::error!("Dump 持久化失败")
+                    };
                 }
             }
         });
@@ -302,9 +312,11 @@ impl Db {
                     let _ = sender.send(count);
                 },
                 Some(DatabaseMessage::Restore(snapshot)) => {
-                    println!("{}","更新数据库");
                     self.records = snapshot.records;
                     self.expire_records = snapshot.expire_records;
+                },
+                Some(DatabaseMessage::ResetChanges) => {
+                    self.modify_count.store(0, Ordering::Relaxed);
                 },
                 Some(DatabaseMessage::Snapshot(sender)) => {
                     let snapshot = DatabaseSnapshot {
@@ -422,17 +434,20 @@ impl Db {
         if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
             if now >= *expire_time {
-                self.remove(key); // 键已过期，应该从数据库中移除
+                self.remove(key);
                 -1
             } else {
-                let duration = expire_time.duration_since(now).unwrap_or(Duration::new(0, 0));
-                duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64
-                // 计算剩余时间
+                match expire_time.duration_since(now) {
+                    Ok(duration) => {
+                        duration.as_secs() as i64 * 1000 + duration.subsec_millis() as i64
+                    },  // 时间计算错误视为已过期
+                    Err(_) => -1,
+                }
             }
         } else if self.records.contains_key(key) {
-            -2 // 键存在但没有设置过期时间
+            -2
         } else {
-            -2 // 键不存在
+            -2
         }
     }
 
