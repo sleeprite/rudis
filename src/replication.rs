@@ -45,11 +45,11 @@ impl ReplicationManager {
                 match TcpStream::connect(addr).await {
                     Ok(mut _stream) => {
                         self.stream = Some(_stream);
-                        self.ping().await?; // 1. 发送PING命令进行握手
-                        self.replconf().await?; // 2. 发送REPLCONF命令配置从节点
-                        self.psync().await?; // 3. 发送PSYNC命令启动同步
-                        self.rdb_file_receiver().await?; // 4. 接收 PSYNC 响应结果
-                        self.cmd_receiver().await?; // 5. 开启命令传播
+                        self.ping().await?; 
+                        self.replconf().await?;
+                        self.psync().await?; 
+                        self.rdb_file_receiver().await?;
+                        self.cmd_receiver().await?;
                         Ok(())
                     },
                     Err(_e) => {

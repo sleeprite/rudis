@@ -144,7 +144,6 @@ impl Frame {
         }
 
         let mut data = Vec::with_capacity(data_len);
-        
         for &byte in &bytes[data_start..data_end] {
             data.push(byte);
         }

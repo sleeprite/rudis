@@ -192,7 +192,7 @@ pub struct Db {
     sender: Sender<DatabaseMessage>,
     pub expire_records: HashMap<String, SystemTime>,
     pub records: HashMap<String, Structure>,
-    modify_count: AtomicU64,
+    changes: AtomicU64,
 }
 
 impl Db {
@@ -211,7 +211,7 @@ impl Db {
         Db {
             records,
             expire_records,
-            modify_count: AtomicU64::new(0),
+            changes: AtomicU64::new(0),
             receiver,
             sender,
         }
@@ -308,7 +308,7 @@ impl Db {
                     self.clean_expired_keys();
                 },
                 Some(DatabaseMessage::Changes(sender)) => {
-                    let count = self.modify_count.load(Ordering::Relaxed);
+                    let count = self.changes.load(Ordering::Relaxed);
                     let _ = sender.send(count);
                 },
                 Some(DatabaseMessage::Restore(snapshot)) => {
@@ -316,7 +316,7 @@ impl Db {
                     self.expire_records = snapshot.expire_records;
                 },
                 Some(DatabaseMessage::ResetChanges) => {
-                    self.modify_count.store(0, Ordering::Relaxed);
+                    self.changes.store(0, Ordering::Relaxed);
                 },
                 Some(DatabaseMessage::Snapshot(sender)) => {
                     let snapshot = DatabaseSnapshot {
@@ -415,8 +415,7 @@ impl Db {
     pub fn expire_if_needed(&mut self, key: &str) {
         if let Some(expire_time) = self.expire_records.get(key) {
             let now = SystemTime::now();
-            if now.duration_since(UNIX_EPOCH).unwrap().as_secs()
-                > expire_time.duration_since(UNIX_EPOCH).unwrap().as_secs()
+            if now.duration_since(UNIX_EPOCH).unwrap().as_secs() > expire_time.duration_since(UNIX_EPOCH).unwrap().as_secs()
             {
                 self.expire_records.remove(key);
                 self.records.remove(key);
