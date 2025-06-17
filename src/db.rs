@@ -192,7 +192,7 @@ pub struct Db {
     sender: Sender<DatabaseMessage>,
     pub expire_records: HashMap<String, SystemTime>,
     pub records: HashMap<String, Structure>,
-    changes: AtomicU64,
+    pub changes: AtomicU64,
 }
 
 impl Db {
@@ -379,6 +379,7 @@ impl Db {
      */
     pub fn remove(&mut self, key: &str) -> Option<Structure> {
         if self.records.contains_key(key) {
+            self.changes.fetch_add(1, Ordering::Relaxed);
             self.expire_records.remove(key);
             self.records.remove(key)
         } else {
@@ -390,10 +391,11 @@ impl Db {
      * 清理过期键
      */
     pub fn clean_expired_keys(&mut self) {
+
         let now = SystemTime::now();
         let mut expired_keys = Vec::new();
 
-        // 收集所有已过期的键
+        // 收集过期键
         for (key, expire_time) in &self.expire_records {
             if now >= *expire_time {
                 expired_keys.push(key.clone());
@@ -402,8 +404,7 @@ impl Db {
 
         // 删除过期键
         for key in expired_keys {
-            self.expire_records.remove(&key);
-            self.records.remove(&key);
+            self.remove(&key); // 调用 remove 方法
         }
     }
 

@@ -57,12 +57,6 @@ pub struct Args {
     pub hz: f64,
 
     /**
-     * 日志级别
-     */
-    #[arg(short, long, default_value = "info")] 
-    pub loglevel: String,
-
-    /**
      * 当前节点类型指示（用于标识节点在 Redis 集群架构中的角色）
      * 
      * 若为 None，则表明此节点为主节点；反之，若存在值，则表示该节点是从节点，其值对应所从属的主节点的相关信息
@@ -71,12 +65,10 @@ pub struct Args {
     pub replicaof: Option<String>,
 
     /**
-     * 主节点认证密码（用于主从节点间通信的认证环节）
-     * 
-     * 如果主节点设置了 requirepass 参数，那么从节点便需要配置 masterauth 参数来提供密码，以此跳过认证过程，确保主从节点间通信的顺利以及进行数据的正常同步
+     * 日志级别
      */
-    #[arg(long)] 
-    pub masterauth: Option<String>,
+    #[arg(short, long, default_value = "info")] 
+    pub loglevel: String,
     
 }
 
