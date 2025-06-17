@@ -409,17 +409,14 @@ impl Db {
     }
 
     /**
-     * 过期检测
+     * 过期检测【惰性】
      *
      * @param key 键名
      */
     pub fn expire_if_needed(&mut self, key: &str) {
         if let Some(expire_time) = self.expire_records.get(key) {
-            let now = SystemTime::now();
-            if now.duration_since(UNIX_EPOCH).unwrap().as_secs() > expire_time.duration_since(UNIX_EPOCH).unwrap().as_secs()
-            {
-                self.expire_records.remove(key);
-                self.records.remove(key);
+            if SystemTime::now() > *expire_time {
+                self.remove(key);
             }
         }
     }
