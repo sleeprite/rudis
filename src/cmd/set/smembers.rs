@@ -8,15 +8,12 @@ pub struct Smembers {
 impl Smembers {
     
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
-
         let args = frame.get_args();
-
         if args.len() != 2 {
             return Err(Error::msg("ERR wrong number of arguments for 'smembers' command"));
         }
 
         let key = args[1].to_string(); // 键
-
         Ok(Smembers { key })
     }
 

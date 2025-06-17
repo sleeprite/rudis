@@ -11,7 +11,6 @@ impl Get {
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
 
         let key = frame.get_arg(1);
-
         if key.is_none() {
             return Err(Error::msg("ERR wrong number of arguments for 'get' command"));
         }
