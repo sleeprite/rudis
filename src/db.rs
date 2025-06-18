@@ -337,6 +337,7 @@ impl Db {
      * @param value 值
      */
     pub fn insert(&mut self, key: String, value: Structure) {
+        self.changes.fetch_add(1, Ordering::Relaxed);
         self.records.insert(key, value);
     }
 

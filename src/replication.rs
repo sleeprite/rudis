@@ -113,7 +113,7 @@ impl ReplicationManager {
             Frame::BulkString(ip_address_str),
             Frame::BulkString(bind),
         ]);
-        
+
         stream.write_all(&replconf_frame.as_bytes()).await?;
         let mut buffer = [0; 1024];
         let n = stream.read(&mut buffer).await?;

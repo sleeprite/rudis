@@ -50,7 +50,7 @@ impl RdbFile {
         
         Self {
             databases: db_map,
-            path: PathBuf::from("temp.rdb"),
+            path: PathBuf::from("virtual-dump.rdb"),
             last_save_time: SystemTime::now(),
             last_save_changes: 0,
         }
