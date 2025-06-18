@@ -126,11 +126,12 @@ impl DatabaseManager {
                     rdb_file.last_save_changes = changes;
                     match rdb_file.save() {
                         Ok(()) => {
+                            log::debug!("Successfully persisted dump.RDB");
                             for sender in &senders_clone {
                                 let _ = sender.send(DatabaseMessage::ResetChanges).await;
                             }
                         },
-                        Err(_) => log::error!("Dump 持久化失败")
+                        Err(_) => log::error!("Failed to dump.RDB")
                     };
                 }
             }
@@ -471,6 +472,8 @@ impl Db {
 
     /**
      * 随机返回一个键
+     * 
+     * @param 
      */
     pub fn random_key(&self) -> Option<String> {
         let keys: Vec<String> = self.records.keys().cloned().collect();

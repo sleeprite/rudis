@@ -19,14 +19,15 @@ async fn main() {
 fn server_info(args: Arc<Args>) {
     let pid = id();
     let version = env!("CARGO_PKG_VERSION");
+    let role = if args.is_slave() { "slave" } else { "master" };
     let pattern = format!(r#"
          /\_____/\
         /  o   o  \          Rudis {}
        ( ==  ^  == )
         )         (          Bind: {} PID: {}
        (           )
-      ( (  )   (  ) )        
+      ( (  )   (  ) )        Role: {}
      (__(__)___(__)__)
-    "#, version, args.port, pid);
+    "#, version, args.port, pid, role);
     println!("{}", pattern);
 }
