@@ -84,8 +84,8 @@ impl Frame {
     pub fn parse_from_bytes(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
         match bytes[0] {
             b'+' => Frame::parse_simple_string(bytes),
-            b'*' => Frame::parse_array(bytes),
             b'~' => Frame::parse_rdb_file(bytes),
+            b'*' => Frame::parse_array(bytes),
             _ => Err("Unknown frame type".into()),
         }
     }
