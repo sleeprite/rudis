@@ -103,8 +103,8 @@ impl ReplicationManager {
         let port = self.args.port.to_string();
         let bind = self.args.bind.to_string();
         let replconf_str = String::from("REPLCONF");
-        let listening_port_str = String::from("listening-port");
-        let ip_address_str = String::from("ip-address");
+        let listening_port_str = String::from("LISTENING-PORT");
+        let ip_address_str = String::from("IP-ADDRESS");
         
         let replconf_frame = Frame::Array(vec![
             Frame::BulkString(replconf_str),
@@ -166,9 +166,24 @@ impl ReplicationManager {
     /**
      * 接收 COMMAND 传播
      * 
-     * @param self
+     * @param selfg
      */
     pub async fn cmd_receiver(&mut self) -> Result<()> {
-        Ok(())
+        let stream = self.stream.as_mut().unwrap();
+        let mut buffer = [0; 4096];
+        loop {
+            let n = stream.read(&mut buffer).await?;
+            if n == 0 {
+                self.state = ReplicationState::Disconnected;
+            }
+            match Frame::parse_from_bytes(&buffer[..n]) {
+                Ok(frame) => {
+                    log::error!("Received master node command:{}", frame.to_string());
+                }
+                Err(e) => {
+                    log::error!("Failed to parse master node command: {}", e);
+                }
+            }
+        }
     }
 }

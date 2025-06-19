@@ -166,12 +166,12 @@ impl Handler {
 
             let result = match command {
                 Command::Auth(auth) => auth.apply(self),
+                Command::Replconf(replconf) => replconf.apply(),
                 Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
                 Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
                 Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,
                 Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
                 Command::Select(select) => select.apply(self),
-                Command::Replconf(replconf) => replconf.apply(),
                 Command::Unknown(unknown) => unknown.apply(),
                 Command::Ping(ping) => ping.apply(),
                 Command::Echo(echo) => echo.apply(),
