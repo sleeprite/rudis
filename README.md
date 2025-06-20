@@ -102,7 +102,7 @@ docker run -p 6379:8848 ghcr.io/sleeprite/rudis:latest --port 8848
 
 ## 网络架构
 
-![alt text](image.png)
+![alt text](./resources/image.png)
 
 ## 项目结构
 
