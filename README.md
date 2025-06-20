@@ -100,6 +100,10 @@ docker run -p 6379:8848 ghcr.io/sleeprite/rudis:latest --port 8848
 - 定时任务频率 (hz): 定时任务执行频率，默认10次/秒。
 - RDB保存策略 (save): 设置RDB自动保存条件。
 
+## 网络架构
+
+![alt text](image.png)
+
 ## 项目结构
 
 ### command
