@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Error;
 use tokio::sync::oneshot;
-use crate::{command::Command, db::{DatabaseManager, DatabaseMessage}, frame::Frame};
+use crate::{command::Command, db::DatabaseMessage, db_manager::DatabaseManager, frame::Frame};
 
 use super::flushdb::Flushdb;
 

@@ -3,7 +3,8 @@ use std::{sync::Arc};
 use anyhow::{Error, Result};
 use tokio::net::TcpStream;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use crate::db::{DatabaseManager, DatabaseMessage};
+use crate::db::{DatabaseMessage};
+use crate::db_manager::DatabaseManager;
 use crate::{args::Args, frame::Frame};
 
 /// 复制状态

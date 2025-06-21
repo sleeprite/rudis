@@ -9,7 +9,8 @@ use tokio::sync::mpsc::Sender;
 use tokio::sync::{oneshot, Mutex};
 
 use crate::args::Args;
-use crate::db::{DatabaseManager, DatabaseMessage};
+use crate::db::{DatabaseMessage};
+use crate::db_manager::DatabaseManager;
 use crate::frame::Frame;
 use crate::command::Command;
 use crate::network::connection::Connection;
