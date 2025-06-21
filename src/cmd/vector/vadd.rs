@@ -1,6 +1,6 @@
 use anyhow::Error;
 use std::collections::HashMap;
-use crate::{db::{Db, Structure}, frame::Frame};
+use crate::{frame::Frame, store::db::{Db, Structure, Vector}};
 
 #[derive(Debug)]
 pub struct Vadd {
@@ -100,7 +100,7 @@ impl Vadd {
                 
                 db.records.insert(
                     self.key.clone(),
-                    Structure::VectorCollection(crate::db::Vector {
+                    Structure::VectorCollection(Vector {
                         dimension,
                         vectors,
                         norms,

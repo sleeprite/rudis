@@ -1,7 +1,7 @@
 use anyhow::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{db::Db, frame::Frame};
+use crate::{store::db::Db, frame::Frame};
 
 pub struct ExpireAt {
     key: String,

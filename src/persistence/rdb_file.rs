@@ -3,7 +3,7 @@ use std::{collections::HashMap, fs::{self, File}, io::Write, path::PathBuf, time
 use anyhow::Error;
 use bincode::{config, decode_from_slice, encode_to_vec, Decode, Encode};
 
-use crate::db::DatabaseSnapshot;
+use crate::store::db::DatabaseSnapshot;
 
 /// Rudis 数据库快照文件 (RDB) 的表示
 ///

@@ -1,5 +1,5 @@
 use anyhow::Error;
-use crate::{db::Db, frame::Frame};
+use crate::{store::db::Db, frame::Frame};
 pub struct Renamenx {
     old_key: String,
     new_key: String,

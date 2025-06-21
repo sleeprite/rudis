@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use anyhow::Error;
-use crate::{db::{Db, Structure}, frame::Frame};
+use crate::{store::db::{Db, Structure}, frame::Frame};
 
 pub struct Sadd {
     key: String,
