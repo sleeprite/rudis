@@ -189,22 +189,22 @@ impl Handler {
         }
     }
 
+    /**
+     * 处理数据库相关命令
+     */
     async fn handle_db_command(&self, command: Command) -> Result<Frame, Error> {
+        
         let (sender, receiver) = oneshot::channel();
-        match self.db_sender.send(DatabaseMessage::Command { sender, command }).await { 
-            Ok(()) => {
-                log::info!("Database command successfully sent to worker");
-            }
-            Err(e) => {
-                eprintln!("Failed to write to socket; err = {:?}", e);
-            }
-        };
+        let message = DatabaseMessage::Command { sender, command };
+        if let Err(e) = self.db_sender.send(message).await {
+            return Ok(Frame::Error(format!("Channel closed: {:?}", e)));
+        }
+        
         let result = match receiver.await {
             Ok(f) => f,
-            Err(e) => { 
-                Frame::Error(format!("{:?}", e))
-            }
+            Err(e) => Frame::Error(format!("{:?}", e))
         };
+
         Ok(result)
     }
 }
