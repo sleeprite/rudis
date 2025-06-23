@@ -175,25 +175,7 @@ impl Handler {
                 Command::Unknown(unknown) => unknown.apply(),
                 Command::Ping(ping) => ping.apply(),
                 Command::Echo(echo) => echo.apply(),
-                _ => {
-                    
-                    let (sender, receiver) = oneshot::channel();
-                    match self.db_sender.send(DatabaseMessage::Command {
-                            sender: sender,
-                            command,
-                    }).await { 
-                        Ok(()) => {}
-                        Err(e) => {
-                            eprintln!("Failed to write to socket; err = {:?}", e);
-                        }
-                    };
-
-                    let result = match receiver.await {
-                        Ok(f) => f,
-                        Err(e) => Frame::Error(format!("{:?}", e)),
-                    };
-                    Ok(result)
-                }
+                _ => self.handle_db_command(command).await,
             };
 
             match result {
@@ -205,5 +187,24 @@ impl Handler {
                 }
             }
         }
+    }
+
+    async fn handle_db_command(&self, command: Command) -> Result<Frame, Error> {
+        let (sender, receiver) = oneshot::channel();
+        match self.db_sender.send(DatabaseMessage::Command { sender, command }).await { 
+            Ok(()) => {
+                log::info!("Database command successfully sent to worker");
+            }
+            Err(e) => {
+                eprintln!("Failed to write to socket; err = {:?}", e);
+            }
+        };
+        let result = match receiver.await {
+            Ok(f) => f,
+            Err(e) => { 
+                Frame::Error(format!("{:?}", e))
+            }
+        };
+        Ok(result)
     }
 }
