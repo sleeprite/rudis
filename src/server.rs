@@ -80,8 +80,7 @@ impl Handler {
     pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>) -> Self {
         let args_ref = args.as_ref();
         let authenticated = args_ref.requirepass.is_none();
-        let db_manager_ref = db_manager.as_ref();
-        let db_sender = db_manager_ref.get_sender(0);
+        let db_sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
         Handler {
             authenticated,
