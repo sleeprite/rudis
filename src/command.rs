@@ -18,7 +18,7 @@ use crate::{
         }, string::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, incr::Incr, incrby::Incrby,
             mget::Mget, mset::Mset, set::Set, strlen::Strlen,
-        }, unknown::Unknown, vector::{vadd::Vadd, vsearch::Vsearch}
+        }, unknown::Unknown
     },
     frame::Frame,
 };
@@ -94,12 +94,10 @@ pub enum Command {
     PexpireAt(PexpireAt),
     Pexpire(Pexpire),
     Lrange(Lrange),
+    Replconf(Replconf),
     Psync(Psync),
     Save(Save),
     Bgsave(Bgsave),
-    Replconf(Replconf),
-    Vsearch(Vsearch),
-    Vadd(Vadd)
 }
 
 impl Command {
@@ -176,8 +174,6 @@ impl Command {
             "REPLCONF" => Command::Replconf(Replconf::parse_from_frame(frame)?),
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
-            "VSEARCH" => Command::Vsearch(Vsearch::parse_from_frame(frame)?),
-            "VADD" => Command::Vadd(Vadd::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

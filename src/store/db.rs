@@ -176,8 +176,6 @@ impl Db {
                         Command::PexpireAt(pexpireat) => pexpireat.apply(self),
                         Command::Pexpire(pexpire) => pexpire.apply(self),
                         Command::Lrange(lrange) => lrange.apply(self),
-                        Command::Vsearch(vsearch) => vsearch.apply(self),
-                        Command::Vadd(vadd) => vadd.apply(self),
                         _ => Err(Error::msg("Unknown command")),
                     };
 
