@@ -76,7 +76,6 @@ impl ReplicationManager {
         let frame = Frame::Array(vec![Frame::BulkString("PING".to_string())]);
         stream.write_all(&frame.as_bytes()).await?;
         
-
         // 等待 PING 响应
         let mut buffer = [0; 1024];
         let n = stream.read(&mut buffer).await?;
@@ -167,9 +166,9 @@ impl ReplicationManager {
     /**
      * 接收 COMMAND 传播
      * 
-     * @param selfg
+     * @param self
      */
-    pub async fn cmd_receiver(&mut self) -> Result<()> {
+    async fn cmd_receiver(&mut self) -> Result<()> {
         let stream = self.stream.as_mut().unwrap();
         let mut buffer = [0; 4096];
         loop {

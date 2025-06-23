@@ -6,36 +6,35 @@ use std::sync::{Arc};
 
 use tokio::net::TcpListener;
 use tokio::sync::mpsc::Sender;
-use tokio::sync::{oneshot, Mutex};
+use tokio::sync::oneshot;
 
 use crate::args::Args;
 use crate::store::db::{DatabaseMessage};
 use crate::store::db_manager::DatabaseManager;
-use crate::frame::Frame;
-use crate::command::Command;
 use crate::network::connection::Connection;
 use crate::replication::ReplicationManager;
+use crate::command::Command;
+use crate::frame::Frame;
 
 pub struct Server {
     args: Arc<Args>,
-    db_manager: Arc<DatabaseManager>,
-    replication_manager: Arc<Mutex<ReplicationManager>>,
+    db_manager: Arc<DatabaseManager>
 }
 
 impl Server {
 
     pub fn new(args: Arc<Args>) -> Self {
         let db_manager = Arc::new(DatabaseManager::new(args.clone()));
-        let replication_manager = Arc::new(Mutex::new(ReplicationManager::new(args.clone(), db_manager.clone())));
-        Server { args, db_manager, replication_manager }
+        Server { args, db_manager }
     }
 
     pub async fn start(&self) {
 
-        if self.args.is_slave() { // 如果是 Slave 节点
-            let rm = self.replication_manager.clone();
+        if self.args.is_slave() {
+            let args = self.args.clone();
+            let db_manager = self.db_manager.clone();
             tokio::spawn(async move {
-                let mut rm = rm.lock().await;
+                let mut rm = ReplicationManager::new(args,  db_manager);
                 if let Err(e) = rm.connect().await {
                     log::error!("Failed to connect to master: {}", e);
                 }
