@@ -93,7 +93,7 @@ impl Handler {
     }
 
     /**
-     * 登录认证
+     * 客户端登录认证
      * 
      * 如果 "密码" 不匹配，响应 ERR invalid password 错误
      * 
@@ -112,11 +112,11 @@ impl Handler {
     }
 
     /**
-     * 切换索引
+     * 切换当前数据库索引
      * 
      * 如果索引超出，响应 ERR DB index is out of range 错误
      * 
-     * @param idx 索引
+     * @param idx 目标数据库索引
      */
     pub fn change_sender(&mut self, idx: usize) -> Result<(), Error> {
         if self.args.databases - 1 < idx {
@@ -127,7 +127,7 @@ impl Handler {
     }
 
     /**
-     * 处理请求
+     * 处理客户端连接的主循环
      */
     pub async fn handle(&mut self) {
 
