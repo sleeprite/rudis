@@ -71,7 +71,7 @@ pub struct Handler {
     authenticated: bool,
     connection: Connection,
     db_manager: Arc<DatabaseManager>,
-    db_sender: Sender<DatabaseMessage>,
+    sender: Sender<DatabaseMessage>,
     args: Arc<Args>
 }
 
@@ -80,13 +80,13 @@ impl Handler {
     pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>) -> Self {
         let args_ref = args.as_ref();
         let authenticated = args_ref.requirepass.is_none();
-        let db_sender = db_manager.as_ref().get_sender(0);
+        let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
         Handler {
             authenticated,
             connection,
             db_manager,
-            db_sender,
+            sender,
             args,
         }
     }
@@ -121,7 +121,7 @@ impl Handler {
         if self.args.databases - 1 < idx {
             return Err(Error::msg("ERR DB index is out of range"));
         }
-        self.db_sender = self.db_manager.get_sender(idx);
+        self.sender = self.db_manager.get_sender(idx);
         Ok(())
     }
 
@@ -195,7 +195,7 @@ impl Handler {
         
         let (sender, receiver) = oneshot::channel();
         let message = DatabaseMessage::Command { sender, command };
-        if let Err(e) = self.db_sender.send(message).await {
+        if let Err(e) = self.sender.send(message).await {
             return Ok(Frame::Error(format!("Channel closed: {:?}", e)));
         }
         
