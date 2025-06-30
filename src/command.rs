@@ -96,8 +96,8 @@ pub enum Command {
     Lrange(Lrange),
     Replconf(Replconf),
     Psync(Psync),
-    Save(Save),
     Bgsave(Bgsave),
+    Save(Save)
 }
 
 impl Command {

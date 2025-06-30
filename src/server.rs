@@ -68,7 +68,7 @@ impl Server {
 }
 
 pub struct Handler {
-    authenticated: bool,
+    certification: bool,
     connection: Connection,
     db_manager: Arc<DatabaseManager>,
     sender: Sender<DatabaseMessage>,
@@ -79,11 +79,11 @@ impl Handler {
 
     pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>) -> Self {
         let args_ref = args.as_ref();
-        let authenticated = args_ref.requirepass.is_none();
+        let certification = args_ref.requirepass.is_none();
         let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
         Handler {
-            authenticated,
+            certification,
             connection,
             db_manager,
             sender,
@@ -101,7 +101,7 @@ impl Handler {
     pub fn login(&mut self, input_requirepass: &String) -> Result<(), Error> {
         if let Some(ref requirepass) = self.args.requirepass {
             if requirepass == input_requirepass {
-                self.authenticated = true;
+                self.certification = true;
                 return Ok(())
             } 
             return Err(Error::msg("ERR invalid password"));
@@ -154,7 +154,7 @@ impl Handler {
                 Command::Auth(_) => {},
                 _ => { 
                     if self.args.requirepass.is_some() {
-                        if self.authenticated == false {
+                        if self.certification == false {
                             let frame = Frame::Error("NOAUTH Authentication required.".to_string());
                             self.connection.write_bytes(frame.as_bytes()).await;
                             continue;

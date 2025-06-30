@@ -46,7 +46,7 @@ impl ReplicationManager {
                 match TcpStream::connect(addr).await {
                     Ok(mut _stream) => {
                         self.stream = Some(_stream);
-                        self.ping().await?; 
+                        self.ping().await?;
                         self.replconf().await?;
                         self.psync().await?; 
                         self.rdb_file_receiver().await?;

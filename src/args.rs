@@ -45,16 +45,16 @@ pub struct Args {
     pub databases: usize,
 
     /**
-     * 监听端口
-     */
-    #[arg(short, long, default_value = "6379")]
-    pub port: String,
-
-    /**
      * 监听频率
      */
     #[arg(long, default_value = "10.0")]
     pub hz: f64,
+
+    /**
+     * 监听端口
+     */
+    #[arg(short, long, default_value = "6379")]
+    pub port: String,
 
     /**
      * 当前节点类型指示（用于标识节点在 Redis 集群架构中的角色）
