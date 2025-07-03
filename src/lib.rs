@@ -1,5 +1,5 @@
 pub mod args;
-pub mod cmd;
+pub mod cmds;
 pub mod persistence;
 pub mod replication;
 pub mod frame;

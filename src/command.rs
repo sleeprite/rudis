@@ -1,7 +1,7 @@
 use anyhow::Error;
 
 use crate::{
-    cmd::{
+    cmds::{
         auth::Auth, bgsave::Bgsave, dbsize::Dbsize, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
