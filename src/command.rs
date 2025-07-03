@@ -2,15 +2,15 @@ use anyhow::Error;
 
 use crate::{
     cmds::{
-        auth::Auth, bgsave::Bgsave, dbsize::Dbsize, echo::Echo, flushall::Flushall, flushdb::Flushdb, hash::{
+        auth::Auth, echo::Echo, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
             del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
-        }, list::{
+        }, listing::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange,
             lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, ping::Ping, psync::Psync, replconf::Replconf, save::Save, select::Select, set::{
+        }, ping::Ping, psync::Psync, replconf::Replconf, select::Select, server::{bgsave::Bgsave, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, save::Save}, set::{
             sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers,
             spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore,
         }, sorted_set::{
