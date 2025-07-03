@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmds::{
-        auth::Auth, echo::Echo, hash::{
+        connect::{auth::Auth, echo::Echo, ping::Ping, select::Select}, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
@@ -10,7 +10,7 @@ use crate::{
         }, listing::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange,
             lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, ping::Ping, psync::Psync, replconf::Replconf, select::Select, server::{bgsave::Bgsave, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, save::Save}, set::{
+        }, server::{bgsave::Bgsave, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, save::Save}, server_sync::{psync::Psync, replconf::Replconf}, set::{
             sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers,
             spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore,
         }, sorted_set::{

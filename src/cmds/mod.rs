@@ -1,14 +1,10 @@
 pub mod key;
-pub mod select;
-pub mod string;
-pub mod auth;
-pub mod ping;
+pub mod connect;
 pub mod hash;
 pub mod listing;
 pub mod unknown;
-pub mod replconf;
 pub mod sorted_set;
 pub mod server;
-pub mod psync;
-pub mod echo;
+pub mod server_sync;
+pub mod string;
 pub mod set;
