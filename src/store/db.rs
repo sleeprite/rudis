@@ -116,6 +116,7 @@ impl Db {
                         Command::Set(set) => set.apply(self),
                         Command::Get(get) => get.apply(self),
                         Command::Del(del) => del.apply(self),
+                        Command::GetRange(getrange) => getrange.apply(self),
                         Command::Flushdb(flushdb) => flushdb.apply(self),
                         Command::RandomKey(randomkey) => randomkey.apply(self),
                         Command::Renamenx(renamenx) => renamenx.apply(self),
