@@ -44,50 +44,46 @@ impl GetRange {
         })
     }
 
-    pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
-        match db.get(&self.key) {
-            Some(Structure::String(s)) => {
-                let len = s.len() as i64;
+ pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {
+    
+        let value = match db.get(&self.key) {
+            Some(Structure::String(s)) => s,
+            Some(_) => return Err(Error::msg(
+                "WRONGTYPE Operation against a key holding the wrong kind of value"
+            )),
+            None => return Ok(Frame::Null),
+        };
 
-                // 处理负数索引
-                let start = if self.start < 0 {
-                    (len + self.start).max(0)
-                } else {
-                    self.start
-                };
-                
-                let end = if self.end < 0 {
-                    len + self.end
-                } else {
-                    self.end
-                };
-
-                // 确保索引在有效范围内
-                let start = start.min(len).max(0) as usize;
-                let end = end.min(len).max(0) as usize;
-
-                // 当起始位置超过结束位置时返回空字符串
-                if start > end {
-                    return Ok(Frame::Null);
-                }
-
-                // 处理UTF-8安全截取
-                let mut char_indices = s.char_indices();
-                let start_byte = match char_indices.nth(start) {
-                    Some((idx, _)) => idx,
-                    None => return Ok(Frame::Null),
-                };
-                
-                let end_byte = match char_indices.nth(end - start - 1) {
-                    Some((idx, _)) => idx,
-                    None => s.len(),
-                } + s.chars().nth(end).map_or(0, |c| c.len_utf8());
-
-                let substring = &s[start_byte..end_byte.min(s.len())];
-                Ok(Frame::BulkString(substring.into()))
+        let len = value.len() as i64;
+        let normalize = |index: i64| {
+            if index < 0 {
+                (len + index).max(0)
+            } else {
+                index
             }
-            Some(_) => Err(Error::msg("WRONGTYPE Operation against a key holding the wrong kind of value")),
-            None => Ok(Frame::Null),
+            .min(len) as usize
+        };
+
+        let start = normalize(self.start);
+        let end = normalize(self.end);
+        
+        // 处理无效范围
+        if start > end {
+            return Ok(Frame::BulkString("".into()));
         }
+
+        // 安全截取字符串 (考虑 UTF-8 边界)
+        let substring = match value.char_indices().nth(start) {
+            Some((start_idx, _)) => {
+                let remainder = &value[start_idx..];
+                match remainder.char_indices().nth(end - start) {
+                    Some((end_idx, ch)) => &remainder[..end_idx + ch.len_utf8()],
+                    None => remainder,
+                }
+            }
+            None => "",
+        };
+
+        Ok(Frame::BulkString(substring.into()))
     }
 }
