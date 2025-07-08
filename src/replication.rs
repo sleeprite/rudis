@@ -7,7 +7,6 @@ use crate::store::db::{DatabaseMessage};
 use crate::store::db_manager::DatabaseManager;
 use crate::{args::Args, frame::Frame};
 
-/// 复制状态
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ReplicationState {    
     Connecting,    

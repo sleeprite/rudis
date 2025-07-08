@@ -5,6 +5,6 @@ pub mod frame;
 pub mod persistence;
 pub mod replication;
 pub mod network;
-pub mod store;
 pub mod server;
+pub mod store;
 pub mod tools;
