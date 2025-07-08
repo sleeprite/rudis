@@ -162,6 +162,7 @@ impl Db {
                         Command::Sunion(sunion) => sunion.apply(self),
                         Command::Rpushx(rpushx) => rpushx.apply(self),
                         Command::Lpushx(lpushx) => lpushx.apply(self),
+                        Command::IncrbyFloat(incrbyfloat) => incrbyfloat.apply(self),
                         Command::Incr(incr) => incr.apply(self),
                         Command::Decr(decr) => decr.apply(self),
                         Command::Lset(lset) => lset.apply(self),

@@ -7,5 +7,6 @@ pub mod getrange;
 pub mod mget;
 pub mod incr;
 pub mod incrby;
+pub mod incrbyfloat;
 pub mod decrby;
 pub mod decr;

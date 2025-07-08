@@ -16,7 +16,7 @@ use crate::{
         }, sorted_set::{
             zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore,
         }, string::{
-            append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, incr::Incr, incrby::Incrby, mget::Mget, mset::Mset, set::Set, strlen::Strlen
+            append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, set::Set, strlen::Strlen
         }, unknown::Unknown
     },
     frame::Frame,
@@ -77,6 +77,7 @@ pub enum Command {
     Rpushx(Rpushx),
     Decr(Decr),
     Incr(Incr),
+    IncrbyFloat(IncrbyFloat),
     Lset(Lset),
     Sunion(Sunion),
     Zcount(Zcount),
@@ -167,6 +168,7 @@ impl Command {
             "SINTER" => Command::Sinter(Sinter::parse_from_frame(frame)?),
             "ZRANK" => Command::Zrank(Zrank::parse_from_frame(frame)?),
             "INCRBY" => Command::Incrby(Incrby::parse_from_frame(frame)?),
+            "INCRBYFLOAT" => Command::IncrbyFloat(IncrbyFloat::parse_from_frame(frame)?),
             "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
             "ECHO" => Command::Echo(Echo::parse_from_frame(frame)?),
             "PEXPIRE" => Command::Pexpire(Pexpire::parse_from_frame(frame)?),
