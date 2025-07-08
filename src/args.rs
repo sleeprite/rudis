@@ -69,6 +69,13 @@ pub struct Args {
      */
     #[arg(short, long, default_value = "info")] 
     pub loglevel: String,
+
+    /**
+     * 持久化配置
+     */
+    pub appendonly: bool,
+    pub appendfilename: String,
+    pub appendfsync: String
     
 }
 
