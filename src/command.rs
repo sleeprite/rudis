@@ -107,9 +107,10 @@ impl Command {
         let command = match command_name.to_uppercase().as_str() {
             "AUTH" => Command::Auth(Auth::parse_from_frame(frame)?),
             "DEL" => Command::Del(Del::parse_from_frame(frame)?),
+            "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
             "FLUSHDB" => Command::Flushdb(Flushdb::parse_from_frame(frame)?),
             "FLUSHALL" => Command::Flushall(Flushall::parse_from_frame(frame)?),
-            "EXPIRE" => Command::Expire(Expire::parse_from_frame(frame)?),
+            "GETRANGE" => Command::GetRange(GetRange::parse_from_frame(frame)?),
             "GET" => Command::Get(Get::parse_from_frame(frame)?),
             "PING" => Command::Ping(Ping::parse_from_frame(frame)?),
             "PTTL" => Command::Pttl(Pttl::parse_from_frame(frame)?),
@@ -176,7 +177,6 @@ impl Command {
             "REPLCONF" => Command::Replconf(Replconf::parse_from_frame(frame)?),
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
-            "GETRANGE" => Command::GetRange(GetRange::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
