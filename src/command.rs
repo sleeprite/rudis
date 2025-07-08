@@ -16,7 +16,7 @@ use crate::{
         }, sorted_set::{
             zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore,
         }, string::{
-            append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, set::Set, strlen::Strlen
+            append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, getset::GetSet, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, set::Set, strlen::Strlen
         }, unknown::Unknown
     },
     frame::Frame,
@@ -32,6 +32,7 @@ pub enum Command {
     Keys(Keys),
     Flushdb(Flushdb),
     Get(Get),
+    GetRange(GetRange),
     Ping(Ping),
     Pttl(Pttl),
     Select(Select),
@@ -98,7 +99,7 @@ pub enum Command {
     Psync(Psync),
     Bgsave(Bgsave),
     Save(Save),
-    GetRange(GetRange)
+    GetSet(GetSet)
 }
 
 impl Command {
@@ -177,6 +178,7 @@ impl Command {
             "REPLCONF" => Command::Replconf(Replconf::parse_from_frame(frame)?),
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
+            "GETSET" => Command::GetSet(GetSet::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

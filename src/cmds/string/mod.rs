@@ -4,6 +4,7 @@ pub mod mset;
 pub mod get;
 pub mod strlen;
 pub mod getrange;
+pub mod getset;
 pub mod mget;
 pub mod incr;
 pub mod incrby;
