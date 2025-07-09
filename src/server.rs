@@ -2,6 +2,7 @@ use anyhow::Error;
 
 use tokio::net::TcpStream;
 
+use std::path::PathBuf;
 use std::sync::{Arc};
 
 use tokio::net::TcpListener;
@@ -9,6 +10,7 @@ use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot;
 
 use crate::args::Args;
+use crate::persistence::aof_file::AofFile;
 use crate::store::db::{DatabaseMessage};
 use crate::store::db_manager::DatabaseManager;
 use crate::network::connection::Connection;
@@ -18,14 +20,25 @@ use crate::frame::Frame;
 
 pub struct Server {
     args: Arc<Args>,
-    db_manager: Arc<DatabaseManager>
+    db_manager: Arc<DatabaseManager>,
+    aof_sender: Option<Sender<Frame>>
 }
 
 impl Server {
 
     pub fn new(args: Arc<Args>) -> Self {
         let db_manager = Arc::new(DatabaseManager::new(args.clone()));
-        Server { args, db_manager }
+
+        // 初始化 AOF 发送通道
+        let aof_sender = if args.appendonly == "yes" {
+            let aof_path = PathBuf::from(&args.dir).join(&args.appendfilename);
+            let aof_file = AofFile::new(aof_path);
+            Some(aof_file.get_sender())
+        } else {
+            None
+        };
+
+        Server { args, db_manager, aof_sender }
     }
 
     pub async fn start(&self) {
@@ -48,7 +61,8 @@ impl Server {
                 loop {
                     match listener.accept().await {
                         Ok((stream, _address)) => {
-                            let mut handler = Handler::new(self.db_manager.clone(), stream, self.args.clone());
+                            let aof_sender = self.aof_sender.clone();
+                            let mut handler = Handler::new(self.db_manager.clone(), stream, self.args.clone(), aof_sender);
                             tokio::spawn(async move {
                                 handler.handle().await;
                             });
@@ -70,6 +84,7 @@ impl Server {
 pub struct Handler {
     certification: bool,
     connection: Connection,
+    aof_sender: Option<Sender<Frame>>,
     db_manager: Arc<DatabaseManager>,
     sender: Sender<DatabaseMessage>,
     args: Arc<Args>
@@ -77,12 +92,13 @@ pub struct Handler {
 
 impl Handler {
 
-    pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>) -> Self {
+    pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>, aof_sender: Option<Sender<Frame>>) -> Self {
         let args_ref = args.as_ref();
         let certification = args_ref.requirepass.is_none();
         let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
         Handler {
+            aof_sender,
             certification,
             connection,
             db_manager,

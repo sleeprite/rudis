@@ -77,7 +77,7 @@ pub struct Args {
      * @param appendfilename 数据文件名称
      * @param appendfsync 持久化方式
      */
-    #[arg(long, default_value = "off")] 
+    #[arg(long, default_value = "yes")] 
     pub appendonly: String,
 
     #[arg(long, default_value = "data/dump.aof")] 
