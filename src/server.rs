@@ -157,6 +157,7 @@ impl Handler {
             };
 
             let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
+            let frame_copy = frame.clone(); // 保留原始帧
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
@@ -165,7 +166,7 @@ impl Handler {
                     continue;
                 }
             };
-
+            
             match command {
                 Command::Auth(_) => {},
                 _ => { 
@@ -179,6 +180,7 @@ impl Handler {
                 },
             };
 
+            let should_keep_aof_log = command.is_write();
             let result = match command {
                 Command::Auth(auth) => auth.apply(self),
                 Command::Replconf(replconf) => replconf.apply(),
@@ -195,6 +197,11 @@ impl Handler {
 
             match result {
                 Ok(frame) => {
+                    if should_keep_aof_log {
+                        if let Some(ref aof_sender) = self.aof_sender {
+                            let _ = aof_sender.send(frame_copy).await;
+                        }
+                    }
                     self.connection.write_bytes(frame.as_bytes()).await;
                 }
                 Err(e) => {

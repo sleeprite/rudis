@@ -183,4 +183,13 @@ impl Command {
         };
         Ok(command)
     }
+
+
+    pub fn is_write(&self) -> bool {
+        match self {
+            Command::Set(_) | 
+            Command::Del(_) => true,
+            _ => false,
+        }
+    }
 }

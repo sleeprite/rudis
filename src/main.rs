@@ -28,6 +28,8 @@ fn server_info(args: Arc<Args>) {
        (           )
       ( (  )   (  ) )        Role: {}
      (__(__)___(__)__)
+
+    Rudis is a high-performance in memory database.
     "#, version, args.port, pid, role);
     println!("{}", pattern);
 }
