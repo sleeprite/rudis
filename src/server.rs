@@ -181,19 +181,7 @@ impl Handler {
             };
 
             let should_keep_aof_log = command.is_write();
-            let result = match command {
-                Command::Auth(auth) => auth.apply(self),
-                Command::Replconf(replconf) => replconf.apply(),
-                Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
-                Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
-                Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,
-                Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
-                Command::Select(select) => select.apply(self),
-                Command::Unknown(unknown) => unknown.apply(),
-                Command::Ping(ping) => ping.apply(),
-                Command::Echo(echo) => echo.apply(),
-                _ => self.handle_db_command(command).await,
-            };
+            let result = self.apply_command(command).await;
 
             match result {
                 Ok(frame) => {
@@ -211,10 +199,23 @@ impl Handler {
         }
     }
 
-    /**
-     * 处理数据库相关命令
-     */
-    async fn handle_db_command(&self, command: Command) -> Result<Frame, Error> {
+    async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
+        match command {
+            Command::Auth(auth) => auth.apply(self),
+            Command::Replconf(replconf) => replconf.apply(),
+            Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
+            Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
+            Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,
+            Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
+            Command::Select(select) => select.apply(self),
+            Command::Unknown(unknown) => unknown.apply(),
+            Command::Ping(ping) => ping.apply(),
+            Command::Echo(echo) => echo.apply(),
+            _ => self.apply_db_command(command).await,
+        }
+    }
+
+    async fn apply_db_command(&self, command: Command) -> Result<Frame, Error> {
         
         let (sender, receiver) = oneshot::channel();
         let message = DatabaseMessage::Command { sender, command };
