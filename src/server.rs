@@ -27,17 +27,20 @@ pub struct Server {
 impl Server {
 
     pub fn new(args: Arc<Args>) -> Self {
+        
         let db_manager = Arc::new(DatabaseManager::new(args.clone()));
-
-        // 初始化 AOF 发送通道
-        let aof_sender = if args.appendonly == "yes" {
+        let mut aof_file_opt = if args.appendonly == "yes" {
             let aof_path = PathBuf::from(&args.dir).join(&args.appendfilename);
-            let aof_file = AofFile::new(aof_path);
-            Some(aof_file.get_sender())
+            Some(AofFile::new(aof_path))
         } else {
             None
         };
 
+        if let Some(aof_file) = &mut aof_file_opt {
+            let _ = Self::replay_aof_file(aof_file, db_manager.clone());
+        }
+
+        let aof_sender = aof_file_opt.as_ref().map(|aof| aof.get_sender());        
         Server { args, db_manager, aof_sender }
     }
 
@@ -78,6 +81,11 @@ impl Server {
                 std::process::exit(1);
             }
         }
+    }
+
+    async fn replay_aof_file(_aof_file: &mut AofFile, _db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
+        // TODO
+        Ok(())
     }
 }
 

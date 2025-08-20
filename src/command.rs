@@ -188,7 +188,9 @@ impl Command {
     pub fn is_write(&self) -> bool {
         match self {
             Command::Set(_) | 
-            Command::Del(_) => true,
+            Command::Del(_) |
+            Command::Flushdb(_) |
+            Command::Flushall(_)  => true,
             _ => false,
         }
     }
