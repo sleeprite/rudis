@@ -12,7 +12,7 @@ async fn main() {
     env_logger::init();
 
     server_info(args.clone());
-    let server = Server::new(args.clone());
+    let mut server = Server::new(args.clone());
     server.start().await;
 }
 

@@ -20,31 +20,41 @@ use crate::frame::Frame;
 
 pub struct Server {
     args: Arc<Args>,
-    db_manager: Arc<DatabaseManager>,
-    aof_sender: Option<Sender<Frame>>
+    aof_file: Option<AofFile>,
+    aof_sender: Option<Sender<Frame>>,
+    db_manager: Arc<DatabaseManager>
 }
 
 impl Server {
 
     pub fn new(args: Arc<Args>) -> Self {
-        
         let db_manager = Arc::new(DatabaseManager::new(args.clone()));
-        let mut aof_file_opt = if args.appendonly == "yes" {
-            let aof_path = PathBuf::from(&args.dir).join(&args.appendfilename);
-            Some(AofFile::new(aof_path))
+        let (aof_file, aof_sender) = if args.appendonly == "yes" {
+            let file_path = PathBuf::from(&args.dir).join(&args.appendfilename);
+            let file = AofFile::new(file_path);
+            let sender = file.get_sender();
+            (Some(file), Some(sender))
         } else {
-            None
+            (None, None)
         };
 
-        if let Some(aof_file) = &mut aof_file_opt {
-            let _ = Self::replay_aof_file(aof_file, db_manager.clone());
+        Server { 
+            args, 
+            aof_file, 
+            aof_sender,
+            db_manager
         }
-
-        let aof_sender = aof_file_opt.as_ref().map(|aof| aof.get_sender());        
-        Server { args, db_manager, aof_sender }
     }
 
-    pub async fn start(&self) {
+    pub async fn start(&mut self) {
+
+        // 如果 aof_file.is_some 执行加载的逻辑
+        if let Some(af) = &mut self.aof_file {
+            match Self::replay_aof_file(af, self.db_manager.clone()).await {
+                Ok(_) => log::info!("Successfully loaded AOF file"),
+                Err(_) => log::info!("Failed to load AOF file")
+            };
+        }
 
         if self.args.is_slave() {
             let args = self.args.clone();
@@ -64,7 +74,7 @@ impl Server {
                 loop {
                     match listener.accept().await {
                         Ok((stream, _address)) => {
-                            let aof_sender = self.aof_sender.clone();
+                            let aof_sender = self.aof_sender.clone(); 
                             let mut handler = Handler::new(self.db_manager.clone(), stream, self.args.clone(), aof_sender);
                             tokio::spawn(async move {
                                 handler.handle().await;
@@ -83,8 +93,11 @@ impl Server {
         }
     }
 
-    async fn replay_aof_file(_aof_file: &mut AofFile, _db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
-        // TODO
+    async fn replay_aof_file(aof_file: &mut AofFile, _db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
+        let frames = aof_file.read_all_frames().await;
+        for _frame in frames.unwrap() {
+            println!("load command")
+        }
         Ok(())
     }
 }
