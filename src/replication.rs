@@ -87,7 +87,7 @@ impl ReplicationManager {
 
         let msg_str = "Master did not respond with PONG";
         let msg = Error::msg(msg_str);
-        Err(msg) // 响应 err 信息
+        Err(msg) // 响应 error 信息
     }
 
     /**

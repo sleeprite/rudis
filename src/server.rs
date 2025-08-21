@@ -115,8 +115,8 @@ impl Server {
 }
 
 pub struct Handler {
-    connection: Connection,
     session: Session,
+    connection: Connection,
     aof_sender: Option<Sender<Frame>>,
     db_manager: Arc<DatabaseManager>,
     args: Arc<Args>
@@ -131,9 +131,9 @@ impl Handler {
         let connection = Connection::new(stream);
         let session  = Session::new(certification, sender);
         Handler {
-            aof_sender,
             session,
             connection,
+            aof_sender,
             db_manager,
             args,
         }
@@ -173,9 +173,7 @@ impl Handler {
         Ok(())
     }
 
-    /**
-     * 处理客户端连接的主循环
-     */
+    /// Handling client connections
     pub async fn handle(&mut self) {
 
         loop {
@@ -231,6 +229,7 @@ impl Handler {
         }
     }
 
+    /// Execute server and database commands
     async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
         match command {
             Command::Auth(auth) => auth.apply(self),
@@ -247,6 +246,7 @@ impl Handler {
         }
     }
 
+    /// Execute database commands
     async fn apply_db_command(&self, command: Command) -> Result<Frame, Error> {
         
         let (sender, receiver) = oneshot::channel();
