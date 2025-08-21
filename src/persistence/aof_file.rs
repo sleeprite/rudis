@@ -3,10 +3,10 @@ use std::{fs, path::PathBuf};
 use anyhow::Result;
 use tokio::{fs::OpenOptions, io::AsyncWriteExt, sync::mpsc::{self, Receiver, Sender}};
 
-use crate::{frame::Frame};
+use crate::frame::Frame;
 
 pub struct AofFile {
-    sender: Sender<Frame>,
+    sender: Sender<(usize, Frame)>,
     file_path: PathBuf
 }
 
@@ -24,7 +24,7 @@ impl AofFile {
     }
 
     /// 获取 AOF 发送通道
-    pub fn get_sender(&self) -> Sender<Frame> {
+    pub fn get_sender(&self) -> Sender<(usize, Frame)> {
         self.sender.clone()
     }
 
@@ -41,25 +41,20 @@ impl AofFile {
         // 遍历内容查找分隔符
         while let Some(pos) =&content[start..].windows(separator.len()).position(|window| window == separator) {
             let end = start + pos;
-            let frame_data = &content[start..end];
-        
+            let frame_data = &content[start..end + separator.len() / 2];
             if !frame_data.is_empty() {
-                let frame_str = String::from_utf8_lossy(frame_data);
-                println!("Raw frame data: {}", frame_str);
                 if let Ok(frame) = Frame::parse_from_bytes(frame_data) {
                     frames.push(frame);
                 }
-            }   
-        
+            }
             // 跳过分隔符（4字节）
             start = end + separator.len();
         }
-
         Ok(frames)
     }
     
     /// 后台 AOF 写入任务
-    pub async fn persist_loop(file_path: PathBuf, mut receiver: Receiver<Frame>) {
+    pub async fn persist_loop(file_path: PathBuf, mut receiver: Receiver<(usize, Frame)>) {
 
         // 确保目录存在
         if let Some(parent) = file_path.parent() {
@@ -82,15 +77,40 @@ impl AofFile {
             }
         };
 
-        while let Some(frame) = receiver.recv().await {
+        let mut current_db_index = 0; // 跟踪数据库索引
+
+        while let Some((idx, frame)) = receiver.recv().await {
+
+            if idx != current_db_index {
+
+                let select_frame = Frame::Array(vec![
+                    Frame::SimpleString("SELECT".to_string()),
+                    Frame::SimpleString(idx.to_string()),
+                ]);
+
+                if let Err(e) = file.write_all(&select_frame.as_bytes()).await {
+                    log::error!("Failed to write SELECT command to AOF file: {}", e);
+                    continue;
+                }
+
+                if let Err(e) = file.write_all(b"\r\n").await {
+                    log::error!("Failed to write newline after SELECT command: {}", e);
+                    continue;
+                }
+
+                current_db_index = idx;
+            }
+           
             if let Err(e) = file.write_all(&frame.as_bytes()).await {
                 log::error!("Failed to write command to AOF file: {}", e);
                 continue;
             }
+            
             if let Err(e) =  file.write_all(b"\r\n").await {
                 log::error!("Failed to write newline to AOF file: {}", e);
                 continue;
             };
+
             if let Err(e) = file.flush().await {
                 log::error!("Failed to flush AOF file: {}", e);
                 continue;

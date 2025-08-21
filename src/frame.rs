@@ -157,24 +157,27 @@ impl Frame {
      *
      * @param bytes 二进制
      */
-    fn parse_array(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+    fn  parse_array(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
         let mut frames = Vec::new();
         let mut start = 0;
+
         for (i, &item) in bytes.iter().enumerate() {
+
             if item == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+
                 let part = match std::str::from_utf8(&bytes[start..i]) {
                     Ok(v) => v,
                     Err(_) => return Err("Invalid UTF-8 sequence".into()),
                 };
 
-                // 处理 keys * 命令
                 if !((part.starts_with('*') && part.len()!= 1) || part.starts_with('$')) {
-                    frames.push(Frame::SimpleString(part.to_string()));
+                    frames.push(Frame::BulkString(part.to_string()));
                 }
 
                 start = i + 2;
             }
         }
+
         Ok(Frame::Array(frames))
     }
 

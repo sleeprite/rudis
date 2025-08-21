@@ -8,6 +8,12 @@ pub struct Select {
 
 impl Select {
 
+    pub fn new(idx: usize) -> Self {
+        return Select {
+            db: idx
+        }
+    }
+
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
 
         let db_string = frame.get_arg(1);

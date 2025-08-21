@@ -22,7 +22,7 @@ use crate::frame::Frame;
 pub struct Server {
     args: Arc<Args>,
     aof_file: Option<AofFile>,
-    aof_sender: Option<Sender<Frame>>,
+    aof_sender: Option<Sender<(usize, Frame)>>,
     db_manager: Arc<DatabaseManager>
 }
 
@@ -100,6 +100,7 @@ impl Server {
 
             let db_index = 0;
             let mut _db_sender = db_manager.get_sender(db_index);
+            
             let _command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
@@ -107,8 +108,6 @@ impl Server {
                     continue; 
                 }
             };
-
-            println!("执行命令")
         }
         Ok(())
     }
@@ -117,14 +116,14 @@ impl Server {
 pub struct Handler {
     session: Session,
     connection: Connection,
-    aof_sender: Option<Sender<Frame>>,
+    aof_sender: Option<Sender<(usize, Frame)>>,
     db_manager: Arc<DatabaseManager>,
     args: Arc<Args>
 }
 
 impl Handler {
 
-    pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>, aof_sender: Option<Sender<Frame>>) -> Self {
+    pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>, aof_sender: Option<Sender<(usize,Frame)>>) -> Self {
         let args_ref = args.as_ref();
         let certification = args_ref.requirepass.is_none();
         let sender = db_manager.as_ref().get_sender(0);
@@ -169,6 +168,7 @@ impl Handler {
         if self.args.databases - 1 < idx {
             return Err(Error::msg("ERR DB index is out of range"));
         }
+        self.session.set_current_db(idx);
         self.session.set_sender(self.db_manager.get_sender(idx));
         Ok(())
     }
@@ -185,7 +185,7 @@ impl Handler {
                     return;
                 }
             };
-
+            
             let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
             let frame_copy = frame.clone(); // 保留原始帧
             let command = match Command::parse_from_frame(frame) {
@@ -217,7 +217,7 @@ impl Handler {
                 Ok(frame) => {
                     if should_keep_aof_log {
                         if let Some(ref aof_sender) = self.aof_sender {
-                            let _ = aof_sender.send(frame_copy).await;
+                            let _ = aof_sender.send((self.session.get_current_db(), frame_copy)).await;
                         }
                     }
                     self.connection.write_bytes(frame.as_bytes()).await;

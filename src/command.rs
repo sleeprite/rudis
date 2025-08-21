@@ -189,9 +189,8 @@ impl Command {
         match self {
             Command::Set(_) | 
             Command::Del(_) |
-            Command::Select(_) |
-            Command::Flushdb(_) |
-            Command::Flushall(_)  => true,
+            Command::Flushall(_) |
+            Command::Flushdb(_)   => true,
             _ => false,
         }
     }
