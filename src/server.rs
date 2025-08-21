@@ -10,8 +10,9 @@ use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot;
 
 use crate::args::Args;
+use crate::network::session::Session;
 use crate::persistence::aof_file::AofFile;
-use crate::store::db::{DatabaseMessage};
+use crate::store::db::DatabaseMessage;
 use crate::store::db_manager::DatabaseManager;
 use crate::network::connection::Connection;
 use crate::replication::ReplicationManager;
@@ -93,21 +94,31 @@ impl Server {
         }
     }
 
-    async fn replay_aof_file(aof_file: &mut AofFile, _db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
+    async fn replay_aof_file(aof_file: &mut AofFile, db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
         let frames = aof_file.read_all_frames().await;
-        for _frame in frames.unwrap() {
-            println!("load command")
+        for frame in frames.unwrap() {
+
+            let db_index = 0;
+            let mut _db_sender = db_manager.get_sender(db_index);
+            let _command = match Command::parse_from_frame(frame) {
+                Ok(cmd) => cmd,
+                Err(e) => {
+                    log::warn!("Skipping invalid frame in AOF: {}", e);
+                    continue; 
+                }
+            };
+
+            println!("执行命令")
         }
         Ok(())
     }
 }
 
 pub struct Handler {
-    certification: bool,
     connection: Connection,
+    session: Session,
     aof_sender: Option<Sender<Frame>>,
     db_manager: Arc<DatabaseManager>,
-    sender: Sender<DatabaseMessage>,
     args: Arc<Args>
 }
 
@@ -118,12 +129,12 @@ impl Handler {
         let certification = args_ref.requirepass.is_none();
         let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
+        let session  = Session::new(certification, sender);
         Handler {
             aof_sender,
-            certification,
+            session,
             connection,
             db_manager,
-            sender,
             args,
         }
     }
@@ -138,7 +149,7 @@ impl Handler {
     pub fn login(&mut self, input_requirepass: &String) -> Result<(), Error> {
         if let Some(ref requirepass) = self.args.requirepass {
             if requirepass == input_requirepass {
-                self.certification = true;
+                self.session.set_certification(true);
                 return Ok(())
             } 
             return Err(Error::msg("ERR invalid password"));
@@ -158,7 +169,7 @@ impl Handler {
         if self.args.databases - 1 < idx {
             return Err(Error::msg("ERR DB index is out of range"));
         }
-        self.sender = self.db_manager.get_sender(idx);
+        self.session.set_sender(self.db_manager.get_sender(idx));
         Ok(())
     }
 
@@ -192,7 +203,7 @@ impl Handler {
                 Command::Auth(_) => {},
                 _ => { 
                     if self.args.requirepass.is_some() {
-                        if self.certification == false {
+                        if self.session.get_certification() == false {
                             let frame = Frame::Error("NOAUTH Authentication required.".to_string());
                             self.connection.write_bytes(frame.as_bytes()).await;
                             continue;
@@ -240,7 +251,8 @@ impl Handler {
         
         let (sender, receiver) = oneshot::channel();
         let message = DatabaseMessage::Command { sender, command };
-        if let Err(e) = self.sender.send(message).await {
+        let db_sender = self.session.get_sender();
+        if let Err(e) = db_sender.send(message).await {
             return Ok(Frame::Error(format!("Channel closed: {:?}", e)));
         }
         
