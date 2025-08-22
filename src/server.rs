@@ -229,6 +229,7 @@ impl Handler {
                     if should_propagate_aof {
                         if let Some(ref aof_sender) = self.aof_sender {
                             let _ = aof_sender.send((self.session.get_current_db(), frame_copy)).await;
+                            // TODO Master-slave propagation
                         }
                     }
                     self.connection.write_bytes(frame.as_bytes()).await;

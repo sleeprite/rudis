@@ -178,7 +178,7 @@ impl ReplicationManager {
             match Frame::parse_from_bytes(&buffer[..n]) {
                 Ok(frame) => {
                     log::error!("Received master node command:{}", frame.to_string());
-                    // command progress
+                    // TODO Processing commands
                 }
                 Err(e) => {
                     log::error!("Failed to parse master node command: {}", e);
