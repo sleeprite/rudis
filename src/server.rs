@@ -49,12 +49,10 @@ impl Server {
 
     pub async fn start(&mut self) {
 
-        // 如果 aof_file.is_some 执行加载的逻辑
         if let Some(af) = &mut self.aof_file {
-            match Self::replay_aof_file(af, self.db_manager.clone()).await {
-                Ok(_) => log::info!("Successfully loaded AOF file"),
-                Err(_) => log::info!("Failed to load AOF file")
-            };
+            if let Err(_) = Self::replay_aof_file(af, self.db_manager.clone()).await {
+                log::info!("Failed to load AOF file");
+            }
         }
 
         if self.args.is_slave() {
@@ -96,18 +94,31 @@ impl Server {
 
     async fn replay_aof_file(aof_file: &mut AofFile, db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
         let frames = aof_file.read_all_frames().await;
+        let mut current_db_index = 0;
         for frame in frames.unwrap() {
-
-            let db_index = 0;
-            let mut _db_sender = db_manager.get_sender(db_index);
             
-            let _command = match Command::parse_from_frame(frame) {
+            let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
                     log::warn!("Skipping invalid frame in AOF: {}", e);
                     continue; 
                 }
             };
+            match command {
+                Command::Select(select) => {
+                    current_db_index = select.get_db_index();
+                },
+                _ => {
+                    let db_sender = db_manager.get_sender(current_db_index);
+                    let (sender, receiver) = oneshot::channel();
+                    let message = DatabaseMessage::Command { sender, command };
+                    if let Err(e) = db_sender.send(message).await {
+                        log::warn!("Failed to send command to database during AOF replay: {}", e);
+                    } else {
+                        let _ = receiver.await;
+                    }
+                }
+            }
         }
         Ok(())
     }
@@ -248,19 +259,16 @@ impl Handler {
 
     /// Execute database commands
     async fn apply_db_command(&self, command: Command) -> Result<Frame, Error> {
-        
         let (sender, receiver) = oneshot::channel();
         let message = DatabaseMessage::Command { sender, command };
         let db_sender = self.session.get_sender();
         if let Err(e) = db_sender.send(message).await {
             return Ok(Frame::Error(format!("Channel closed: {:?}", e)));
         }
-        
         let result = match receiver.await {
             Ok(f) => f,
             Err(e) => Frame::Error(format!("{:?}", e))
         };
-
         Ok(result)
     }
 }

@@ -3,15 +3,13 @@ use anyhow::Error;
 use crate::{frame::Frame, server::Handler};
 
 pub struct Select {
-    db: usize,
+    db_index: usize,
 }
 
 impl Select {
 
-    pub fn new(idx: usize) -> Self {
-        return Select {
-            db: idx
-        }
+    pub fn get_db_index(&self) -> usize {
+        self.db_index
     }
 
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
@@ -24,18 +22,18 @@ impl Select {
             }
         };
         
-        let db: usize = match db_string.parse::<usize>() {
+        let db_index: usize = match db_string.parse::<usize>() {
             Ok(num) => num,
             Err(_) => {
                 return Err(Error::msg("ERR invalid DB index"));
             }
         };
         
-        Ok(Select { db: db })
+        Ok(Select { db_index })
     }
 
     pub fn apply(self, handler:&mut Handler) -> Result<Frame, Error> {
-        match handler.change_sender(self.db) {
+        match handler.change_sender(self.db_index) {
             Ok(_) => Ok(Frame::Ok),
             Err(e) => {
                 Ok(Frame::Error(e.to_string()))

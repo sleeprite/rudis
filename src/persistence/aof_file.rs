@@ -84,8 +84,8 @@ impl AofFile {
             if idx != current_db_index {
 
                 let select_frame = Frame::Array(vec![
-                    Frame::SimpleString("SELECT".to_string()),
-                    Frame::SimpleString(idx.to_string()),
+                    Frame::BulkString("SELECT".to_string()),
+                    Frame::BulkString(idx.to_string()),
                 ]);
 
                 if let Err(e) = file.write_all(&select_frame.as_bytes()).await {
