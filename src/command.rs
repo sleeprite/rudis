@@ -184,11 +184,18 @@ impl Command {
         Ok(command)
     }
 
-
-    pub fn is_write(&self) -> bool {
+    pub fn propagate_aof_if_needed(&self) -> bool {
         match self {
-            Command::Set(_) | 
             Command::Del(_) |
+            Command::Append(_) |
+            Command::Decr(_) |
+            Command::Decrby(_) |
+            Command::GetSet(_) |
+            Command::Incr(_) |
+            Command::Incrby(_) |
+            Command::IncrbyFloat(_) |
+            Command::Mset(_) |
+            Command::Set(_) | 
             Command::Flushall(_) |
             Command::Flushdb(_)   => true,
             _ => false,

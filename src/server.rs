@@ -221,12 +221,12 @@ impl Handler {
                 },
             };
 
-            let should_keep_aof_log = command.is_write();
+            let should_propagate_aof = command.propagate_aof_if_needed();
             let result = self.apply_command(command).await;
 
             match result {
                 Ok(frame) => {
-                    if should_keep_aof_log {
+                    if should_propagate_aof {
                         if let Some(ref aof_sender) = self.aof_sender {
                             let _ = aof_sender.send((self.session.get_current_db(), frame_copy)).await;
                         }
