@@ -13,4 +13,5 @@ bincode = "2.0.0-rc.3"
 clap = { version = "4.2.1", features = ["derive"] }
 tokio = { version = "1.47.1", features = ["full"] }
 redis = "0.32.4"
+tempfile = "3.3.0"
 log = "0.4"

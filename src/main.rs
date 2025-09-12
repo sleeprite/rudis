@@ -1,4 +1,3 @@
-use clap::Parser;
 use rudis_server::args::Args;
 use rudis_server::server::Server;
 use std::process::id;
@@ -7,7 +6,7 @@ use std::sync::Arc;
 #[tokio::main]
 async fn main() {
 
-    let args = Arc::new(Args::parse());
+    let args = Arc::new(Args::load());
     std::env::set_var("RUST_LOG", &args.loglevel);
     env_logger::init();
 
