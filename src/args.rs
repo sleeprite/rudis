@@ -8,13 +8,13 @@ use clap::Parser;
 #[command(version, author, about, long_about = None)]
 pub struct Args {
 
-    /// 认证密码
-    #[arg(long)] 
-    pub requirepass: Option<String>,
-
     /// 配置文件路径
     #[arg(short, long, default_value = "rudis.conf")]
     pub config: String,
+
+    /// 认证密码
+    #[arg(long)] 
+    pub requirepass: Option<String>,
 
     /// 绑定地址
     #[arg(short, long, default_value = "127.0.0.1")]
