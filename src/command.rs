@@ -187,6 +187,13 @@ impl Command {
     pub fn propagate_aof_if_needed(&self) -> bool {
         match self {
             Command::Del(_) |
+            Command::Expire(_) |
+            Command::ExpireAt(_) |
+            Command::Persist(_) |
+            Command::Pexpire(_) |
+            Command::PexpireAt(_) |
+            Command::Rename(_) |
+            Command::Renamenx(_) |
             Command::Append(_) |
             Command::Decr(_) |
             Command::Decrby(_) |
@@ -197,7 +204,25 @@ impl Command {
             Command::Mset(_) |
             Command::Set(_) | 
             Command::Flushall(_) |
-            Command::Flushdb(_)   => true,
+            Command::Flushdb(_) |
+            Command::Hdel(_) |
+            Command::Hmset(_) |
+            Command::Hset(_) |
+            Command::Hsetnx(_) |
+            Command::Lpop(_) |
+            Command::Lpush(_) |
+            Command::Lpushx(_) |
+            Command::Lset(_) |
+            Command::Rpop(_) |
+            Command::Rpush(_) |
+            Command::Rpushx(_) |
+            Command::Sadd(_) |
+            Command::Sinter(_) |
+            Command::Spop(_) |
+            Command::Srem(_) |
+            Command::Sunionstore(_) |
+            Command::Zadd(_) |
+            Command::Zrem(_) => true,
             _ => false,
         }
     }
