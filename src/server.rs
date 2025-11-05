@@ -1,5 +1,6 @@
 use anyhow::Error;
 
+use indicatif::{ProgressBar, ProgressStyle};
 use tokio::net::TcpStream;
 
 use std::path::PathBuf;
@@ -93,14 +94,21 @@ impl Server {
     }
 
     async fn replay_aof_file(aof_file: &mut AofFile, db_manager: Arc<DatabaseManager>) -> Result<(), Error>  {
-        let frames = aof_file.read_all_frames().await;
+        let frames = aof_file.read_all_frames().await.unwrap();
+        let pb = ProgressBar::new(frames.len() as u64);
+        pb.set_style(ProgressStyle::default_bar()
+            .template("{spinner:.green} [{bar:40.green/gray}] {pos}/{len} ({percent}%) {eta_precise} {msg}")
+            .tick_strings(&["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"])
+            .progress_chars("█▓▒░")
+        );
+        // pb.set_message("Replaying AOF");
         let mut current_db_index = 0;
-        for frame in frames.unwrap() {
-            
+        for frame in frames {
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
                     log::warn!("Skipping invalid frame in AOF: {}", e);
+                    pb.inc(1);
                     continue; 
                 }
             };
@@ -119,7 +127,9 @@ impl Server {
                     }
                 }
             }
+            pb.inc(1);
         }
+        pb.finish();
         Ok(())
     }
 }
