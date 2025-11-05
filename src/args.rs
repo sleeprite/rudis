@@ -55,7 +55,7 @@ pub struct Args {
     pub loglevel: String,
 
     /// 持久化配置 - 是否开启
-    #[arg(long, default_value = "yes")] 
+    #[arg(long, default_value = "no")] 
     pub appendonly: String,
 
     /// 持久化配置 - 数据文件名称
