@@ -97,11 +97,11 @@ impl Server {
         let frames = aof_file.read_all_frames().await.unwrap();
         let pb = ProgressBar::new(frames.len() as u64);
         pb.set_style(ProgressStyle::default_bar()
-            .template("{spinner:.green} [{bar:40.green/gray}] {pos}/{len} ({percent}%) {eta_precise} {msg}")
+            .template("{spinner:.green} [{bar:40.green/gray}] {pos}/{len} ({percent}%) {msg}")
             .tick_strings(&["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"])
             .progress_chars("█▓▒░")
         );
-        // pb.set_message("Replaying AOF");
+        pb.set_message("Status: In progress");
         let mut current_db_index = 0;
         for frame in frames {
             let command = match Command::parse_from_frame(frame) {
@@ -129,7 +129,9 @@ impl Server {
             }
             pb.inc(1);
         }
+        pb.set_message("Status: Completed");
         pb.finish();
+        println!();
         Ok(())
     }
 }
