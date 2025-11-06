@@ -226,7 +226,7 @@ cargo run -- --port 8848
 cargo run -- --save 20/1 60/2
 
 // 指定配置
-cargo run -- --config rudis.properties
+cargo run -- --config rudis.conf
 
 // 构建程序
 cargo build
