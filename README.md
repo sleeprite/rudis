@@ -65,7 +65,7 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 start rudis-server.exe
 
 // windows 配置文件启动
-start rudis-server.exe --config rudis.properties
+start rudis-server.exe --config ./config/rudis.conf
 
 // windows 指定参数启动
 start rudis-server.exe --port 6379
