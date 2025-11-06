@@ -171,7 +171,7 @@ impl Args {
         }
         
         // appendonly
-        if self.appendonly == "yes" { 
+        if self.appendonly == "no" { 
             if let Some(ao) = config_map.get("appendonly") {
                 self.appendonly = ao.clone();
             }
