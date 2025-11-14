@@ -102,26 +102,21 @@ docker run -p 6379:8848 ghcr.io/sleeprite/rudis:latest --port 8848
 
 ## 网络架构
 
-![alt text](./resources/image.png)
+![alt text](./images/image.png)
 
 ## 项目结构
 
-### command
+### cmds
 
-command 包是一个用 Rust 编写的模拟Rudis服务器的组件，主要负责实现Rudis协议的解析、数据库操作的执行以及相关结果的响应。该包内部包含了针对不同Rudis命令的实现，如SELECT、GET、SET等。其核心功能是根据Rudis协议规范，解析来自客户端的命令请求，并在模拟的Rudis数据库上执行相应的操作，再将结果返回给客户端。通过实现各个Rudis命令处理器，实现了对Rudis协议的完整支持，并提供了一个简单而有效的策略来处理不同类型的命令。
-
-### db
-
-db 包是一个基于内存的数据库管理系统。该模块提供了基础的数据结构约定，以及数据库操作功能，包括对数据的增、删、改、查等操作。
-
+Cmds 包是一个用 Rust 编写的模拟Rudis服务器的组件，主要负责实现Rudis协议的解析、数据库操作的执行以及相关结果的响应。该包内部包含了针对不同Rudis命令的实现，如SELECT、GET、SET等。其核心功能是根据Rudis协议规范，解析来自客户端的命令请求，并在模拟的Rudis数据库上执行相应的操作，再将结果返回给客户端。通过实现各个Rudis命令处理器，实现了对Rudis协议的完整支持，并提供了一个简单而有效的策略来处理不同类型的命令。
 
 ### persistence
 
-persistence 模块提供了 AOF（Append-Only File）和 RDB（Rudis Database） 两种持久化机制，它们共同确保了 Rudis 数据库的数据持久性和一致性。AOF 机制通过记录每个写操作并将它们追加到 AOF 文件中，实现了数据的持续更新和完整性。这种机制对于数据的准确性和可靠性至关重要，尤其是在系统故障或重启后能够确保数据的恢复。
+Persistence 模块提供了 AOF（Append-Only File）和 RDB（Rudis Database） 两种持久化机制，它们共同确保了 Rudis 数据库的数据持久性和一致性。AOF 机制通过记录每个写操作并将它们追加到 AOF 文件中，实现了数据的持续更新和完整性。这种机制对于数据的准确性和可靠性至关重要，尤其是在系统故障或重启后能够确保数据的恢复。
 
-### session
+### store
 
-session 模块的设计目的是提供一个简单的会话管理功能，用于跟踪用户的操作状态，例如用户所选的数据库索引以及用户是否已认证等信息。这对于需要进行用户认证或者跟踪用户操作状态的系统是非常有用的。
+Store 包是一个基于内存的数据库管理系统。该模块提供了基础的数据结构约定，以及数据库操作功能，包括对数据的增、删、改、查等操作。
 
 ## 常用命令
 
@@ -246,27 +241,6 @@ cargo clippy
 ## 开源共建
 
 Rudis 项目遵循 [GNU GENERAL PUBLIC LICENSE](https://github.com/sleeprite/rudis/blob/master/LICENSE) 开源协议，感谢这些优秀的 [Contributors](https://github.com/sleeprite/rudis/graphs/contributors)。
-
-<table>
-<tr>
-  <td>
-    <a href="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors?repo_id=788849401" target="_blank" style="display: block" align="center">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors/thumbnail.png?repo_id=788849401&image_size=auto&color_scheme=dark" width="373" height="auto">
-        <img alt="Top Contributors of sleeprite/rudis - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors/thumbnail.png?repo_id=788849401&image_size=auto&color_scheme=light" width="373" height="auto">
-      </picture>
-    </a>
-  </td>
-  <td>
-    <a href="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors?limit=30&repo_id=788849401" target="_blank" style="display: block" align="center">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?limit=30&repo_id=788849401&image_size=auto&color_scheme=dark" width="655" height="auto">
-        <img alt="Active Contributors of sleeprite/rudis - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?limit=30&repo_id=788849401&image_size=auto&color_scheme=light" width="655" height="auto">
-      </picture>
-    </a>
-  </td>
-</tr>
-</table>
 
 <a href="https://github.com/sleeprite/rudis/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=sleeprite/rudis" />

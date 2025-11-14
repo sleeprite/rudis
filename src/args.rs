@@ -17,7 +17,7 @@ pub struct Args {
     pub requirepass: Option<String>,
 
     /// 绑定地址
-    #[arg(short, long, default_value = "127.0.0.1")]
+    #[arg(short, long, default_value = "0.0.0.0")]
     pub bind: String,
 
     /// 文件路径
@@ -101,7 +101,7 @@ impl Args {
         }
         
         // bind
-        if self.bind == "127.0.0.1" { 
+        if self.bind == "0.0.0.0" { 
             if let Some(bind) = config_map.get("bind") {
                 self.bind = bind.clone();
             }
