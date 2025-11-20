@@ -1,19 +1,22 @@
 use tokio::sync::mpsc::Sender;
 
-use crate::store::db::DatabaseMessage;
+use crate::{ network::connection::Connection, store::db::DatabaseMessage };
+
 pub struct Session {
     certification: bool,
     sender: Sender<DatabaseMessage>,
+    pub connection: Connection,
     current_db: usize
 }
 
 impl Session {
 
-    pub fn new(certification: bool, sender: Sender<DatabaseMessage>) -> Self {
+    pub fn new(certification: bool, sender: Sender<DatabaseMessage>, connection: Connection) -> Self {
         Session {
             certification,
             sender,
-            current_db: 0
+            current_db: 0,
+            connection
         }
     }
     

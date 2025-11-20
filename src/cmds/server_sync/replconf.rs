@@ -49,6 +49,8 @@ impl Replconf {
     }
 
     pub fn apply(self) -> Result<Frame, Error> {
+
+        
         log::info!("Slave 节点信息 - {}:{}", self.addr.unwrap(), self.port.unwrap());
         Ok(Frame::Ok)
     }

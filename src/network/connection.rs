@@ -1,6 +1,7 @@
 use anyhow::Error;
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream};
 
+
 pub struct Connection {
     stream: TcpStream
 }
@@ -26,10 +27,8 @@ impl Connection {
 
             if n == 0 {
                 if bytes.is_empty() {
-                    // 连接关闭且未读取到任何数据
                     return Err(Error::msg("Connection closed by peer"));
                 } else {
-                    // 连接关闭但已读取部分数据
                     break;
                 }
             }

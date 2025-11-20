@@ -12,6 +12,7 @@ use tokio::sync::oneshot;
 
 use crate::args::Args;
 use crate::network::session::Session;
+use crate::network::session_manager::SessionManager;
 use crate::persistence::aof_file::AofFile;
 use crate::store::db::DatabaseMessage;
 use crate::store::db_manager::DatabaseManager;
@@ -24,12 +25,14 @@ pub struct Server {
     args: Arc<Args>,
     aof_file: Option<AofFile>,
     aof_sender: Option<Sender<(usize, Frame)>>,
+    session_manager: Arc<SessionManager>,
     db_manager: Arc<DatabaseManager>
 }
 
 impl Server {
 
     pub fn new(args: Arc<Args>) -> Self {
+        let session_manager = Arc::new(SessionManager::new());
         let db_manager = Arc::new(DatabaseManager::new(args.clone()));
         let (aof_file, aof_sender) = if args.appendonly == "yes" {
             let file_path = PathBuf::from(&args.dir).join(&args.appendfilename);
@@ -44,6 +47,7 @@ impl Server {
             args, 
             aof_file, 
             aof_sender,
+            session_manager,
             db_manager
         }
     }
@@ -65,7 +69,7 @@ impl Server {
                     log::error!("Failed to connect to master: {}", e);
                 }
             });
-        }
+        } 
 
         match TcpListener::bind(format!("{}:{}", self.args.bind, self.args.port)).await {
             Ok(listener) => {
@@ -75,7 +79,9 @@ impl Server {
                     match listener.accept().await {
                         Ok((stream, _address)) => {
                             let aof_sender = self.aof_sender.clone(); 
-                            let mut handler = Handler::new(self.db_manager.clone(), stream, self.args.clone(), aof_sender);
+                            let session_manager_clone = self.session_manager.clone();
+                            let db_manager_clone = self.db_manager.clone();
+                            let mut handler = Handler::new(db_manager_clone, session_manager_clone, stream, self.args.clone(), aof_sender);
                             tokio::spawn(async move {
                                 handler.handle().await;
                             });
@@ -138,24 +144,25 @@ impl Server {
 
 pub struct Handler {
     session: Session,
-    connection: Connection,
     aof_sender: Option<Sender<(usize, Frame)>>,
+    session_manager: Arc<SessionManager>,
     db_manager: Arc<DatabaseManager>,
     args: Arc<Args>
 }
 
 impl Handler {
 
-    pub fn new(db_manager: Arc<DatabaseManager>, stream: TcpStream, args: Arc<Args>, aof_sender: Option<Sender<(usize,Frame)>>) -> Self {
+    pub fn new(db_manager: Arc<DatabaseManager>, session_manager: Arc<SessionManager>, stream: TcpStream, args: Arc<Args>, aof_sender: Option<Sender<(usize,Frame)>>) -> Self {
         let args_ref = args.as_ref();
         let certification = args_ref.requirepass.is_none();
         let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
-        let session  = Session::new(certification, sender);
+        let session  = Session::new(certification, sender, connection);
+        // session_manager.create_session(session);
         Handler {
             session,
-            connection,
             aof_sender,
+            session_manager,
             db_manager,
             args,
         }
@@ -201,7 +208,7 @@ impl Handler {
 
         loop {
 
-            let bytes = match self.connection.read_bytes().await {
+            let bytes = match self.session.connection.read_bytes().await {
                 Ok(bytes) => bytes,
                 Err(e) => {
                     eprintln!("Failed to read from stream; err = {:?}", e);
@@ -215,7 +222,7 @@ impl Handler {
                 Ok(cmd) => cmd,
                 Err(e) => {
                     let frame = Frame::Error(e.to_string());
-                    self.connection.write_bytes(frame.as_bytes()).await;
+                    self.session.connection.write_bytes(frame.as_bytes()).await;
                     continue;
                 }
             };
@@ -226,7 +233,7 @@ impl Handler {
                     if self.args.requirepass.is_some() {
                         if self.session.get_certification() == false {
                             let frame = Frame::Error("NOAUTH Authentication required.".to_string());
-                            self.connection.write_bytes(frame.as_bytes()).await;
+                            self.session.connection.write_bytes(frame.as_bytes()).await;
                             continue;
                         }
                     } 
@@ -244,7 +251,7 @@ impl Handler {
                             // TODO Master-slave propagation
                         }
                     }
-                    self.connection.write_bytes(frame.as_bytes()).await;
+                    self.session.connection.write_bytes(frame.as_bytes()).await;
                 }
                 Err(e) => {
                     println!("Failed to receive; err = {:?}", e);
