@@ -266,7 +266,7 @@ impl Handler {
     async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
         match command {
             Command::Auth(auth) => auth.apply(self),
-            Command::Replconf(replconf) => replconf.apply(),
+            Command::Replconf(replconf) => replconf.apply(&mut self.session),
             Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,

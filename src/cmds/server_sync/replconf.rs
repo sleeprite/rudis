@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use crate::{frame::Frame};
+use crate::{frame::Frame, network::{session::Session, session_role::SessionRole}};
 
 pub struct Replconf {
     port: Option<String>,
@@ -48,10 +48,9 @@ impl Replconf {
         Ok(Replconf { port, addr })
     }
 
-    pub fn apply(self) -> Result<Frame, Error> {
-
-        
+    pub fn apply(self,session: &mut Session) -> Result<Frame, Error> {
         log::info!("Slave 节点信息 - {}:{}", self.addr.unwrap(), self.port.unwrap());
+        session.set_role(SessionRole::Slave);
         Ok(Frame::Ok)
     }
 }

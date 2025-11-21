@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use tokio::sync::mpsc::Sender;
-use crate::{network::connection::Connection, store::db::DatabaseMessage};
+use crate::{network::{connection::Connection, session_role::SessionRole}, store::db::DatabaseMessage};
 
 static SESSION_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -12,6 +12,7 @@ pub struct Session {
     sender: Sender<DatabaseMessage>,
     pub connection: Connection,
     current_db: usize,
+    role: SessionRole
 }
 
 impl Session {
@@ -23,7 +24,8 @@ impl Session {
             certification,
             sender,
             current_db,
-            connection
+            connection,
+            role: SessionRole::Other
         }
     }
     
@@ -51,8 +53,16 @@ impl Session {
         self.certification
     }
 
-    // 新增方法：获取 session ID
     pub fn get_id(&self) -> usize {
         self.id
     }
+
+    pub fn set_role(&mut self, role: SessionRole) {
+        self.role = role;
+    }
+
+    pub fn get_role(&self) -> &SessionRole {
+        &self.role
+    }
+
 }
