@@ -157,8 +157,11 @@ impl Handler {
         let certification = args_ref.requirepass.is_none();
         let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
-        let session  = Session::new(certification, sender, connection);
-        // session_manager.create_session(session);
+        let session = Session::new(certification, sender, connection);
+        
+        // 维护 Session 信息
+        session_manager.create_session(session.clone());
+
         Handler {
             session,
             aof_sender,
@@ -210,8 +213,7 @@ impl Handler {
 
             let bytes = match self.session.connection.read_bytes().await {
                 Ok(bytes) => bytes,
-                Err(e) => {
-                    eprintln!("Failed to read from stream; err = {:?}", e);
+                Err(_e) => {
                     return;
                 }
             };
@@ -290,5 +292,11 @@ impl Handler {
             Err(e) => Frame::Error(format!("{:?}", e))
         };
         Ok(result)
+    }
+}
+
+impl Drop for Handler {
+    fn drop(&mut self) {
+        self.session_manager.remove_session(self.session.get_id());
     }
 }

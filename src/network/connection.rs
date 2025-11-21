@@ -1,24 +1,28 @@
+// src/network/connection.rs
 use anyhow::Error;
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpStream};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
-
+#[derive(Clone)]
 pub struct Connection {
-    stream: TcpStream
+    stream: Arc<Mutex<TcpStream>>,
 }
 
 impl Connection {
-
-    pub fn new(stream: TcpStream) ->  Self {
-        return Connection {
-            stream
+    pub fn new(stream: TcpStream) -> Self {
+        Connection {
+            stream: Arc::new(Mutex::new(stream)),
         }
     }
 
-    pub async fn read_bytes(&mut self) -> Result<Vec<u8>, Error> {
+    pub async fn read_bytes(&self) -> Result<Vec<u8>, Error> {
+        let mut stream = self.stream.lock().await;
         let mut bytes: Vec<u8> = Vec::new();
         let mut temp_bytes: [u8; 1024] = [0; 1024]; 
+        
         loop {
-            let n = match self.stream.read(&mut temp_bytes).await {
+            let n = match stream.read(&mut temp_bytes).await {
                 Ok(n) => n,
                 Err(e) => {
                     return Err(Error::msg(format!("Failed to read from stream: {:?}", e)));
@@ -40,8 +44,9 @@ impl Connection {
         Ok(bytes)
     }
 
-    pub async fn write_bytes(&mut self, bytes: Vec<u8>) {
-        if let Err(e) = self.stream.write_all(&bytes).await {
+    pub async fn write_bytes(&self, bytes: Vec<u8>) {
+        let mut stream = self.stream.lock().await;
+        if let Err(e) = stream.write_all(&bytes).await {
             eprintln!("Failed to write to socket; err = {:?}", e);
         }
     }
