@@ -1,6 +1,6 @@
 use dashmap::DashMap;
 
-use crate::network::session::Session;
+use crate::network::{session::Session, session_role::SessionRole};
 
 /// 高性能会话管理器
 pub struct SessionManager {
@@ -26,4 +26,11 @@ impl SessionManager {
         self.sessions.remove(&session_id).is_some()
     }
 
+    /// 所有会话（Slave）
+    pub fn get_slave_sessions(&self) -> Vec<Session> {
+        self.sessions.iter()
+        .filter(|entry| entry.value().get_role() == &SessionRole::Slave)
+        .map(|entry| entry.value().clone())
+        .collect()
+    }
 }

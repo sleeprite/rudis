@@ -13,6 +13,7 @@ use tokio::sync::oneshot;
 use crate::args::Args;
 use crate::network::session::Session;
 use crate::network::session_manager::SessionManager;
+use crate::network::session_role::SessionRole;
 use crate::persistence::aof_file::AofFile;
 use crate::store::db::DatabaseMessage;
 use crate::store::db_manager::DatabaseManager;
@@ -63,11 +64,14 @@ impl Server {
         if self.args.is_slave() {
             let args = self.args.clone();
             let db_manager = self.db_manager.clone();
-            tokio::spawn(async move {
-                let mut rm = ReplicationManager::new(args,  db_manager);
-                if let Err(e) = rm.connect().await {
-                    log::error!("Failed to connect to master: {}", e);
-                }
+            std::thread::spawn(move || {
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                rt.block_on(async {
+                    let mut rm = ReplicationManager::new(args,  db_manager);
+                    if let Err(e) = rm.connect().await {
+                        log::error!("Failed to connect to master: {}", e);
+                    }
+                });
             });
         } 
 
@@ -206,6 +210,16 @@ impl Handler {
         Ok(())
     }
 
+    /**
+     * 设置 SessionRole 并同步到 SessionManager
+     * 
+     * @param role 会话角色
+     */
+    pub fn set_session_role(&mut self, role: SessionRole) {
+        self.session.set_role(role);
+        self.session_manager.create_session(self.session.clone());
+    }
+
     /// Handling client connections
     pub async fn handle(&mut self) {
 
@@ -214,12 +228,13 @@ impl Handler {
             let bytes = match self.session.connection.read_bytes().await {
                 Ok(bytes) => bytes,
                 Err(_e) => {
+                    self.session_manager.remove_session(self.session.get_id());
                     return;
                 }
             };
             
             let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
-            let frame_copy = frame.clone(); // 保留原始帧
+            let frame_copy = frame.clone();
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
@@ -242,18 +257,22 @@ impl Handler {
                 },
             };
 
-            let should_propagate_aof = command.propagate_aof_if_needed();
+            let is_psync_command = matches!(command, Command::Psync(_));
+            let should_propagate = command.propagate_aof_if_needed();
             let result = self.apply_command(command).await;
 
             match result {
                 Ok(frame) => {
-                    if should_propagate_aof {
+                    if should_propagate {
                         if let Some(ref aof_sender) = self.aof_sender {
-                            let _ = aof_sender.send((self.session.get_current_db(), frame_copy)).await;
-                            // TODO Master-slave propagation
+                            let _ = aof_sender.send((self.session.get_current_db(), frame_copy.clone())).await;
                         }
+                        self.propagate_to_slaves(frame_copy.clone()).await;
                     }
                     self.session.connection.write_bytes(frame.as_bytes()).await;
+                    if is_psync_command {
+                        return;
+                    }
                 }
                 Err(e) => {
                     println!("Failed to receive; err = {:?}", e);
@@ -262,11 +281,11 @@ impl Handler {
         }
     }
 
-    /// Execute server and database commands
+    /// 执行服务器命令
     async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
         match command {
             Command::Auth(auth) => auth.apply(self),
-            Command::Replconf(replconf) => replconf.apply(&mut self.session),
+            Command::Replconf(replconf) => replconf.apply(self),
             Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,
@@ -279,7 +298,7 @@ impl Handler {
         }
     }
 
-    /// Execute database commands
+    /// 执行数据库命令
     async fn apply_db_command(&self, command: Command) -> Result<Frame, Error> {
         let (sender, receiver) = oneshot::channel();
         let message = DatabaseMessage::Command { sender, command };
@@ -293,10 +312,21 @@ impl Handler {
         };
         Ok(result)
     }
-}
 
-impl Drop for Handler {
-    fn drop(&mut self) {
-        self.session_manager.remove_session(self.session.get_id());
+    /// 传播主节点命令
+    async fn propagate_to_slaves(&self, frame: Frame) {
+        let slave_sessions = self.session_manager.get_slave_sessions();
+        let current_db = self.session.get_current_db();
+        if slave_sessions.is_empty() {
+            return;
+        }
+        
+        for slave_session in slave_sessions {
+            let frame_clone = frame.clone();
+            let db = current_db;
+            
+            slave_session.connection.write_bytes(Frame::Array(vec![Frame::BulkString("SELECT".to_string()),Frame::BulkString(db.to_string())]).as_bytes()).await;
+            slave_session.connection.write_bytes(frame_clone.as_bytes()).await;
+        }
     }
 }

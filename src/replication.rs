@@ -98,7 +98,6 @@ impl ReplicationManager {
     async fn replconf(&mut self) -> Result<()> {
 
         let stream = self.stream.as_mut().unwrap();
-
         let port = self.args.port.to_string();
         let bind = self.args.bind.to_string();
         let replconf_str = String::from("REPLCONF");
@@ -170,20 +169,54 @@ impl ReplicationManager {
     async fn cmd_receiver(&mut self) -> Result<()> {
         let stream = self.stream.as_mut().unwrap();
         let mut buffer = [0; 4096];
+        let mut current_db_index = 0;
+        
+        log::info!("Connected to master, waiting for commands...");
+        
         loop {
             let n = stream.read(&mut buffer).await?;
             if n == 0 {
                 self.state = ReplicationState::Disconnected;
+                log::warn!("Master connection closed");
+                break;
             }
+            
             match Frame::parse_from_bytes(&buffer[..n]) {
                 Ok(frame) => {
-                    log::error!("Received master node command:{}", frame.to_string());
-                    // TODO Processing commands
+                    match crate::command::Command::parse_from_frame(frame) {
+                        Ok(command) => {
+                            if let crate::command::Command::Select(ref select_cmd) = command {
+                                current_db_index = select_cmd.get_db_index();
+                                continue;
+                            }
+                            
+                            let db_sender = self.db_manager.get_sender(current_db_index);
+                            let (sender, receiver) = tokio::sync::oneshot::channel();
+                            let message = DatabaseMessage::Command { sender, command };
+                            match db_sender.send(message).await {
+                                Ok(()) => {
+                                    match receiver.await {
+                                        Ok(_result) => {}
+                                        Err(e) => {
+                                            log::error!("Failed to receive command result: {}", e);
+                                        }
+                                    }
+                                }
+                                Err(e) => {
+                                    log::error!("Failed to send command to database: {}", e);
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            log::error!("Failed to parse master node command: {}", e);
+                        }
+                    }
                 }
                 Err(e) => {
-                    log::error!("Failed to parse master node command: {}", e);
+                    log::error!("Failed to parse frame from master: {}", e);
                 }
             }
         }
+        Ok(())
     }
 }

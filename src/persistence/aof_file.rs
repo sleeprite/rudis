@@ -78,7 +78,6 @@ impl AofFile {
         };
 
         let mut current_db_index = 0; // 跟踪数据库索引
-
         while let Some((idx, frame)) = receiver.recv().await {
 
             if idx != current_db_index {
