@@ -3,8 +3,7 @@ use anyhow::Error;
 use crate::frame::Frame;
 
 pub struct Client {
-    subcommand: String,
-    args: Vec<String>,
+    subcommand: String
 }
 
 impl Client {
@@ -16,13 +15,10 @@ impl Client {
         }
 
         let subcommand = args[1].to_uppercase();
-        let args: Vec<String> = args.iter().skip(2).map(|s| s.to_string()).collect();
-
-        println!("subcommand:{}", subcommand);
-
+        // let args: Vec<String> = args.iter().skip(2).map(|s| s.to_string()).collect();
         Ok(Client {
             subcommand,
-            args,
+            // args,
         })
     }
 

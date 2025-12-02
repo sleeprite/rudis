@@ -234,9 +234,6 @@ impl Handler {
             };
             
             let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
-
-            println!("frame: {}", frame.to_string());
-
             let frame_copy = frame.clone();
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
