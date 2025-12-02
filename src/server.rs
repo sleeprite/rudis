@@ -225,6 +225,7 @@ impl Handler {
 
         loop {
 
+            log::debug!("Waiting for bytes");
             let bytes = match self.session.connection.read_bytes().await {
                 Ok(bytes) => bytes,
                 Err(_e) => {
@@ -234,6 +235,8 @@ impl Handler {
             };
             
             let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
+            log::debug!("Received bytes: {:?}", String::from_utf8_lossy(bytes.as_slice()));
+            log::debug!("Received frame: {}", frame.to_string());
             let frame_copy = frame.clone();
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,

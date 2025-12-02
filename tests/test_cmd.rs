@@ -7,7 +7,13 @@ mod tests {
 
     fn setup() -> Connection {
         let client = Client::open("redis://127.0.0.1:6379/").unwrap();
-        client.get_connection().unwrap()
+        match client.get_connection() {
+            Ok(conn) => conn,
+            Err(e) => {
+                eprintln!("Failed to get connection: {}", e);
+                panic!("Failed to get connection: {}", e);
+            }
+        }
     }
 
     #[test]
