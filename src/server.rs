@@ -234,51 +234,65 @@ impl Handler {
                 }
             };
             
-            let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
-            log::debug!("Received bytes: {:?}", String::from_utf8_lossy(bytes.as_slice()));
-            log::debug!("Received frame: {}", frame.to_string());
-            let frame_copy = frame.clone();
-            let command = match Command::parse_from_frame(frame) {
-                Ok(cmd) => cmd,
+            // 解析可能的多个粘连命令帧
+            let frames = match Frame::parse_multiple_frames(bytes.as_slice()) {
+                Ok(frames) => frames,
                 Err(e) => {
-                    let frame = Frame::Error(e.to_string());
+                    log::error!("Failed to parse multiple frames: {:?}", e);
+                    let frame = Frame::Error(format!("Failed to parse frames: {:?}", e));
                     self.session.connection.write_bytes(frame.as_bytes()).await;
                     continue;
                 }
             };
             
-            match command {
-                Command::Auth(_) => {},
-                _ => { 
-                    if self.args.requirepass.is_some() {
-                        if self.session.get_certification() == false {
-                            let frame = Frame::Error("NOAUTH Authentication required.".to_string());
-                            self.session.connection.write_bytes(frame.as_bytes()).await;
-                            continue;
-                        }
-                    } 
-                },
-            };
-
-            let is_psync_command = matches!(command, Command::Psync(_));
-            let should_propagate = command.propagate_aof_if_needed();
-            let result = self.apply_command(command).await;
-
-            match result {
-                Ok(frame) => {
-                    if should_propagate {
-                        if let Some(ref aof_sender) = self.aof_sender {
-                            let _ = aof_sender.send((self.session.get_current_db(), frame_copy.clone())).await;
-                        }
-                        self.propagate_to_slaves(frame_copy.clone()).await;
+            log::debug!("Received bytes: {:?}", String::from_utf8_lossy(bytes.as_slice()));
+            
+            // 处理每个帧
+            for frame in frames {
+                log::debug!("Received frame: {}", frame.to_string());
+                let frame_copy = frame.clone();
+                let command = match Command::parse_from_frame(frame) {
+                    Ok(cmd) => cmd,
+                    Err(e) => {
+                        let frame = Frame::Error(e.to_string());
+                        self.session.connection.write_bytes(frame.as_bytes()).await;
+                        continue;
                     }
-                    self.session.connection.write_bytes(frame.as_bytes()).await;
-                    if is_psync_command {
-                        return;
+                };
+                
+                match command {
+                    Command::Auth(_) => {},
+                    _ => { 
+                        if self.args.requirepass.is_some() {
+                            if self.session.get_certification() == false {
+                                let frame = Frame::Error("NOAUTH Authentication required.".to_string());
+                                self.session.connection.write_bytes(frame.as_bytes()).await;
+                                continue;
+                            }
+                        } 
+                    },
+                };
+
+                let is_psync_command = matches!(command, Command::Psync(_));
+                let should_propagate = command.propagate_aof_if_needed();
+                let result = self.apply_command(command).await;
+
+                match result {
+                    Ok(frame) => {
+                        if should_propagate {
+                            if let Some(ref aof_sender) = self.aof_sender {
+                                let _ = aof_sender.send((self.session.get_current_db(), frame_copy.clone())).await;
+                            }
+                            self.propagate_to_slaves(frame_copy.clone()).await;
+                        }
+                        self.session.connection.write_bytes(frame.as_bytes()).await;
+                        if is_psync_command {
+                            return;
+                        }
                     }
-                }
-                Err(e) => {
-                    println!("Failed to receive; err = {:?}", e);
+                    Err(e) => {
+                        println!("Failed to receive; err = {:?}", e);
+                    }
                 }
             }
         }

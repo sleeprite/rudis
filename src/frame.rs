@@ -1,4 +1,5 @@
 use crate::persistence::rdb_file::RdbFile;
+use anyhow::Error;
 
 /*
  * 命令帧枚举
@@ -81,12 +82,213 @@ impl Frame {
      *
      * @param bytes 二进制
      */
-    pub fn parse_from_bytes(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+    pub fn parse_from_bytes(bytes: &[u8]) -> Result<Frame, Error> {
         match bytes[0] {
             b'+' => Frame::parse_simple_string(bytes),
             b'~' => Frame::parse_rdb_file(bytes),
             b'*' => Frame::parse_array(bytes),
-            _ => Err("Unknown frame type".into()),
+            _ => Err(Error::msg("Unknown frame type")),
+        }
+    }
+
+    /**
+     * 解析粘连的多个命令帧
+     *
+     * @param bytes 二进制数据
+     */
+    pub fn parse_multiple_frames(bytes: &[u8]) -> Result<Vec<Frame>, Error> {
+        let mut frames = Vec::new();
+        let mut position = 0;
+        
+        while position < bytes.len() {
+            // 查找下一个完整的命令帧
+            if let Some(frame_end) = Frame::find_frame_end(&bytes[position..]) {
+                let frame_bytes = &bytes[position..position + frame_end];
+                let frame = Frame::parse_from_bytes(frame_bytes)?;
+                frames.push(frame);
+                position += frame_end;
+            } else {
+                // 如果找不到完整的帧结束位置，将剩余的数据作为最后一个帧处理
+                let frame_bytes = &bytes[position..];
+                let frame = Frame::parse_from_bytes(frame_bytes)?;
+                frames.push(frame);
+                break;
+            }
+        }
+        
+        Ok(frames)
+    }
+    
+    /**
+     * 查找单个命令帧的结束位置
+     *
+     * @param bytes 二进制数据
+     */
+    fn find_frame_end(bytes: &[u8]) -> Option<usize> {
+       
+        if bytes.is_empty() {
+            return None;
+        }
+        
+        match bytes[0] {
+            b'*' => {
+                // 数组类型的帧
+                // 首先找到数组长度行的结束位置
+                let mut line_end = None;
+                for i in 1..bytes.len().min(20) { // 限制搜索范围，防止过长的第一行
+                    if bytes[i] == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                        line_end = Some(i + 2);
+                        break;
+                    }
+                }
+                
+                let line_end = line_end?;
+                if line_end >= bytes.len() {
+                    return None;
+                }
+                
+                // 解析数组长度
+                let line = std::str::from_utf8(&bytes[1..line_end - 2]).ok()?;
+                let array_len: usize = line.parse().ok()?;
+                
+                // 计算数组元素的结束位置
+                let mut current_pos = line_end;
+                for _ in 0..array_len {
+                    if current_pos >= bytes.len() {
+                        return None;
+                    }
+                    
+                    // 查找当前元素的结束位置
+                    if let Some(element_end) = Frame::find_element_end(&bytes[current_pos..]) {
+                        current_pos += element_end;
+                    } else {
+                        return None;
+                    }
+                }
+                
+                Some(current_pos)
+            },
+            b'+' | b'-' | b':' => {
+                // 简单字符串、错误、整数类型
+                for i in 1..bytes.len() {
+                    if bytes[i] == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                        return Some(i + 2);
+                    }
+                }
+                None
+            },
+            b'$' => {
+                // 批量字符串类型
+                // 找到长度行的结束
+                let mut line_end = None;
+                for i in 1..bytes.len().min(20) {
+                    if bytes[i] == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                        line_end = Some(i + 2);
+                        break;
+                    }
+                }
+                
+                let line_end = line_end?;
+                if line_end >= bytes.len() {
+                    return None;
+                }
+                
+                // 解析字符串长度
+                let line = std::str::from_utf8(&bytes[1..line_end - 2]).ok()?;
+                if line == "-1" {
+                    // NULL批量字符串
+                    return Some(line_end);
+                }
+                
+                let str_len: usize = line.parse().ok()?;
+                
+                // 字符串内容 + \r\n
+                if line_end + str_len + 2 <= bytes.len() {
+                    Some(line_end + str_len + 2)
+                } else {
+                    None
+                }
+            },
+            b'~' => {
+                // RDB文件类型
+                let mut len_end = None;
+                for i in 1..bytes.len().min(20) {
+                    if bytes[i] == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                        len_end = Some(i + 2);
+                        break;
+                    }
+                }
+                
+                let len_end = len_end?;
+                if len_end >= bytes.len() {
+                    return None;
+                }
+                
+                let len_str = std::str::from_utf8(&bytes[1..len_end - 2]).ok()?;
+                let data_len: usize = len_str.parse().ok()?;
+                
+                if len_end + data_len + 2 <= bytes.len() {
+                    Some(len_end + data_len + 2)
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
+    
+    /**
+     * 查找元素的结束位置
+     *
+     * @param bytes 二进制数据
+     */
+    fn find_element_end(bytes: &[u8]) -> Option<usize> {
+        if bytes.is_empty() {
+            return None;
+        }
+        
+        match bytes[0] {
+            b'*' => Frame::find_frame_end(bytes),
+            b'+' | b'-' | b':' => {
+                for i in 1..bytes.len() {
+                    if bytes[i] == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                        return Some(i + 2);
+                    }
+                }
+                None
+            },
+            b'$' => {
+                // 找到长度行的结束
+                let mut line_end = None;
+                for i in 1..bytes.len().min(20) {
+                    if bytes[i] == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+                        line_end = Some(i + 2);
+                        break;
+                    }
+                }
+                
+                let line_end = line_end?;
+                if line_end >= bytes.len() {
+                    return None;
+                }
+                
+                // 解析字符串长度
+                let line = std::str::from_utf8(&bytes[1..line_end - 2]).ok()?;
+                if line == "-1" {
+                    // NULL批量字符串
+                    return Some(line_end);
+                }
+                
+                let str_len: usize = line.parse().ok()?;
+                
+                // 字符串内容 + \r\n
+                if line_end + str_len + 2 <= bytes.len() {
+                    Some(line_end + str_len + 2)
+                } else {
+                    None
+                }
+            },
+            _ => None,
         }
     }
 
@@ -95,7 +297,7 @@ impl Frame {
      *
      * @param bytes 二进制
      */
-    fn parse_simple_string(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+    fn parse_simple_string(bytes: &[u8]) -> Result<Frame, Error> {
         let end = bytes.iter().position(|&x| x == b'\r').unwrap();
         let content = String::from_utf8(bytes[1..end].to_vec())?;
         Ok(Frame::SimpleString(content))
@@ -106,7 +308,7 @@ impl Frame {
      * 
      * @param bytes 二进制
      */
-    fn parse_rdb_file(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+    fn parse_rdb_file(bytes: &[u8]) -> Result<Frame, Error> {
 
         let mut len_end = None;
         for (i, &byte) in bytes.iter().enumerate() {
@@ -118,29 +320,29 @@ impl Frame {
 
         let len_end = match len_end {
             Some(pos) => pos,
-            None => return Err("Invalid RDB format: missing CR".into()),
+            None => return Err(Error::msg("Invalid RDB format: missing CR")),
         };
 
         let len_bytes = &bytes[1..len_end];
         let len_str = match std::str::from_utf8(len_bytes) {
             Ok(s) => s,
-            Err(e) => return Err(format!("Invalid UTF-8: {}", e).into()),
+            Err(e) => return Err(Error::msg(format!("Invalid UTF-8: {}", e))),
         };
 
         let data_len = match len_str.parse::<usize>() {
             Ok(n) => n,
-            Err(e) => return Err(format!("Invalid RDB length: {} ({})", len_str, e).into()),
+            Err(e) => return Err(Error::msg(format!("Invalid RDB length: {} ({})", len_str, e))),
         };
 
         let data_start = len_end + 2;
         let data_end = data_start + data_len;
 
         if bytes.len() < data_end + 2 {
-            return Err(format!("RDB data incomplete: expected {} bytes, got {}", data_end + 2, bytes.len()).into());
+            return Err(Error::msg(format!("RDB data incomplete: expected {} bytes, got {}", data_end + 2, bytes.len())));
         }
 
         if bytes[data_end] != b'\r' || bytes[data_end + 1] != b'\n' {
-            return Err("Invalid RDB terminator".into());
+            return Err(Error::msg("Invalid RDB terminator"));
         }
 
         let mut data = Vec::with_capacity(data_len);
@@ -157,7 +359,7 @@ impl Frame {
      *
      * @param bytes 二进制
      */
-    fn  parse_array(bytes: &[u8]) -> Result<Frame, Box<dyn std::error::Error>> {
+    fn  parse_array(bytes: &[u8]) -> Result<Frame, Error> {
         let mut frames = Vec::new();
         let mut start = 0;
 
@@ -167,7 +369,7 @@ impl Frame {
 
                 let part = match std::str::from_utf8(&bytes[start..i]) {
                     Ok(v) => v,
-                    Err(_) => return Err("Invalid UTF-8 sequence".into()),
+                    Err(_) => return Err(Error::msg("Invalid UTF-8 sequence")),
                 };
 
                 if !((part.starts_with('*') && part.len()!= 1) || part.starts_with('$')) {
@@ -237,14 +439,14 @@ impl Frame {
     /**
      * 将 RDBFile 帧转换为 RdbFile 对象
      * 
-     * @return Result<RdbFile, Box<dyn std::error::Error>> 转换结果
+     * @return Result<RdbFile, Error> 转换结果
      */
-    pub fn to_rdb_file(&self) -> Result<RdbFile, Box<dyn std::error::Error>> {
+    pub fn to_rdb_file(&self) -> Result<RdbFile, Error> {
         match self {
             Frame::RDBFile(data) => {
-                RdbFile::from_bytes(data).map_err(|e| format!("Failed to parse RDB file: {}", e).into())
+                RdbFile::from_bytes(data).map_err(|e| Error::msg(format!("Failed to parse RDB file: {}", e)))
             }
-            _ => Err("Frame is not an RDBFile".into()),
+            _ => Err(Error::msg("Frame is not an RDBFile")),
         }
     }
 }
