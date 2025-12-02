@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use crate::{
     cmds::{
-        connect::{auth::Auth, echo::Echo, ping::Ping, select::Select}, hash::{
+        connect::{auth::Auth, client::Client, echo::Echo, ping::Ping, select::Select}, hash::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
@@ -26,6 +26,7 @@ use crate::{
 pub enum Command {
     Auth(Auth),
     Append(Append),
+    Client(Client),
     Dbsize(Dbsize),
     Expire(Expire),
     Del(Del),
@@ -179,6 +180,7 @@ impl Command {
             "LRANGE" => Command::Lrange(Lrange::parse_from_frame(frame)?),
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
             "GETSET" => Command::GetSet(GetSet::parse_from_frame(frame)?),
+            "CLIENT" => Command::Client(Client::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)

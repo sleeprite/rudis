@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    
     use std::{thread::sleep, time::Duration};
 
     use redis::{Client, Commands, Connection};

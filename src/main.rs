@@ -7,7 +7,7 @@ use std::sync::Arc;
 async fn main() {
 
     let args = Arc::new(Args::load());
-    std::env::set_var("RUST_LOG", &args.loglevel);
+    unsafe { std::env::set_var("RUST_LOG", &args.loglevel); };
     env_logger::init();
 
     server_info(args.clone());

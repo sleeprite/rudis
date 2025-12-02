@@ -234,6 +234,9 @@ impl Handler {
             };
             
             let frame = Frame::parse_from_bytes(bytes.as_slice()).unwrap();
+
+            println!("frame: {}", frame.to_string());
+
             let frame_copy = frame.clone();
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
@@ -285,6 +288,7 @@ impl Handler {
     async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
         match command {
             Command::Auth(auth) => auth.apply(self),
+            Command::Client(client) => client.apply(),
             Command::Replconf(replconf) => replconf.apply(self),
             Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
