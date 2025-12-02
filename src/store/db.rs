@@ -213,6 +213,7 @@ impl Db {
             Command::Pexpire(pexpire) => pexpire.apply(self),
             Command::Lrange(lrange) => lrange.apply(self),
             Command::GetSet(getset) => getset.apply(self),
+            Command::Info(info) => info.apply(self),
             _ => Err(Error::msg("Unknown command")),
         }
     }

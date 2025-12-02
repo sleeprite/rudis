@@ -10,7 +10,7 @@ use crate::{
         }, listing::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange,
             lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
-        }, server::{bgsave::Bgsave, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, save::Save}, server_sync::{psync::Psync, replconf::Replconf}, set::{
+        }, server::{bgsave::Bgsave, dbsize::Dbsize, flushall::Flushall, flushdb::Flushdb, info::Info, save::Save}, server_sync::{psync::Psync, replconf::Replconf}, set::{
             sadd::Sadd, scard::Scard, sinter::Sinter, sismember::Sismember, smembers::Smembers,
             spop::Spop, srem::Srem, sunion::Sunion, sunionstore::Sunionstore,
         }, sorted_set::{
@@ -100,7 +100,8 @@ pub enum Command {
     Psync(Psync),
     Bgsave(Bgsave),
     Save(Save),
-    GetSet(GetSet)
+    GetSet(GetSet),
+    Info(Info)
 }
 
 impl Command {
@@ -181,6 +182,7 @@ impl Command {
             "PSYNC" => Command::Psync(Psync::parse_from_frame(frame)?),
             "GETSET" => Command::GetSet(GetSet::parse_from_frame(frame)?),
             "CLIENT" => Command::Client(Client::parse_from_frame(frame)?),
+            "INFO" => Command::Info(Info::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
