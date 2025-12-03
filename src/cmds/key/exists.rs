@@ -2,7 +2,7 @@ use anyhow::Error;
 use crate::{store::db::Db, frame::Frame};
 
 pub struct Exists {
-    key: String,
+    pub key: String,
 }
 
 impl Exists {
@@ -16,6 +16,10 @@ impl Exists {
         Ok(Exists {
             key: key_str,
         })
+    }
+
+    pub fn new(key: String) -> Self {
+        Exists { key }
     }
 
     pub fn apply(self, db: &Db) -> Result<Frame, Error> {

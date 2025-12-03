@@ -3,9 +3,9 @@ use anyhow::Error;
 use crate::{store::db::{Db, Structure}, frame::Frame};
 
 pub struct Set {
-    key: String,
-    val: String,
-    ttl: Option<u64>
+    pub key: String,
+    pub val: String,
+    pub ttl: Option<u64>
 }
 
 impl Set {
@@ -53,6 +53,10 @@ impl Set {
             val: final_val,
             ttl: ttl
         })
+    }
+
+    pub fn new(key: String, val: String, ttl: Option<u64>) -> Self {
+        Set { key, val, ttl }
     }
 
     pub fn apply(self,db: &mut Db) -> Result<Frame, Error> {

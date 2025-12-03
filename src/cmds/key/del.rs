@@ -3,7 +3,7 @@ use anyhow::Error;
 use crate::{store::db::Db, frame::Frame};
 
 pub struct Del {
-    keys: Vec<String>,
+    pub keys: Vec<String>,
 }
 
 impl Del {
@@ -21,6 +21,10 @@ impl Del {
         Ok(Del { 
             keys: keys 
         })
+    }
+
+    pub fn new(keys: Vec<String>) -> Self {
+        Del { keys }
     }
 
     /**

@@ -6,7 +6,7 @@ use crate::{
             hdel::Hdel, hexists::Hexists, hget::Hget, hgetall::Hgetall, hkeys::Hkeys, hlen::Hlen,
             hmget::Hmget, hmset::Hmset, hset::Hset, hsetnx::Hsetnx, hstrlen::Hstrlen, hvals::Hvals,
         }, key::{
-            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, ttl::Ttl, r#type::Type
+            del::Del, exists::Exists, expire::Expire, expireat::ExpireAt, keys::Keys, persist::Persist, pexpire::Pexpire, pexpireat::PexpireAt, pttl::Pttl, randomkey::RandomKey, rename::Rename, renamenx::Renamenx, r#move::Move, ttl::Ttl, r#type::Type
         }, listing::{
             lindex::Lindex, llen::Llen, lpop::Lpop, lpush::Lpush, lpushx::Lpushx, lrange::Lrange,
             lset::Lset, rpop::Rpop, rpush::Rpush, rpushx::Rpushx,
@@ -104,6 +104,7 @@ pub enum Command {
     Save(Save),
     GetSet(GetSet),
     Info(Info),
+    Move(Move),
     // 事务命令
     Multi(Multi),
     Exec(Exec),
@@ -189,7 +190,7 @@ impl Command {
             "GETSET" => Command::GetSet(GetSet::parse_from_frame(frame)?),
             "CLIENT" => Command::Client(Client::parse_from_frame(frame)?),
             "INFO" => Command::Info(Info::parse_from_frame(frame)?),
-            // 事务命令
+            "MOVE" => Command::Move(Move::parse_from_frame(frame)?),
             "MULTI" => Command::Multi(Multi::parse_from_frame(frame)?),
             "EXEC" => Command::Exec(Exec::parse_from_frame(frame)?),
             "DISCARD" => Command::Discard(Discard::parse_from_frame(frame)?),
@@ -236,7 +237,8 @@ impl Command {
             Command::Srem(_) |
             Command::Sunionstore(_) |
             Command::Zadd(_) |
-            Command::Zrem(_) => true,
+            Command::Zrem(_) |
+            Command::Move(_) => true,
             _ => false,
         }
     }

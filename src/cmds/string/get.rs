@@ -3,7 +3,7 @@ use anyhow::Error;
 use crate::{store::db::{Db, Structure}, frame::Frame};
 
 pub struct Get {
-    key: String,
+    pub key: String,
 }
 
 impl Get {
@@ -20,6 +20,10 @@ impl Get {
         Ok(Get { 
             key: fianl_key 
         })
+    }
+
+    pub fn new(key: String) -> Self {
+        Get { key }
     }
 
     pub fn apply(self, db: &mut Db) -> Result<Frame, Error> {

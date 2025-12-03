@@ -12,3 +12,4 @@ pub mod r#type;
 pub mod keys;
 pub mod pexpireat;
 pub mod pexpire;
+pub mod r#move;
