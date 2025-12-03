@@ -44,6 +44,7 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 - 升级线程模型，由 shared-everything 架构替换为 shared-nothing 架构。
 - 修复 redis-insight 可视化工具无法正常连接的问题。
 - 新增事务功能，支持 exec、multi、discard 命令。
+- 优化 loglevel=debug 模式下的日志打印。
 - 优化 RESP 解析器，解决命令粘包问题。
 - 新增 replication 主从复制模式。
 - 重构 RDB 持久化底层逻辑。
