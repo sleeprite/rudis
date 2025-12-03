@@ -13,7 +13,6 @@ pub struct Session {
     pub connection: Connection,
     current_db: usize,
     role: SessionRole,
-    // 事务相关字段
     in_transaction: bool,
     transaction_frames: Vec<Frame>
 }

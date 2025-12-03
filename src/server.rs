@@ -334,23 +334,21 @@ impl Handler {
             Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,
             Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
+            Command::Move(r#move) => r#move.apply(self).await,
+            Command::Exec(_) => Box::pin(self.execute_transaction()).await,
+            Command::Multi(multi) => multi.apply(self),
+            Command::Discard(discard) => discard.apply(self),
             Command::Select(select) => select.apply(self),
             Command::Unknown(unknown) => unknown.apply(),
             Command::Ping(ping) => ping.apply(),
             Command::Echo(echo) => echo.apply(),
-            // 特殊处理 MOVE 命令
-            Command::Move(r#move) => r#move.apply(self).await,
-            // 事务命令特殊处理
-            Command::Exec(_) => Box::pin(self.execute_transaction()).await,
-            Command::Multi(multi) => multi.apply(self),
-            Command::Discard(discard) => discard.apply(self),
             _ => self.apply_db_command(command).await,
         }
     }
 
     /// 执行事务中的所有命令
     async fn execute_transaction(&mut self) -> Result<Frame, Error> {
-        
+
         // 检查是否在事务模式中
         if !self.session.is_in_transaction() {
             return Ok(Frame::Error("ERR EXEC without MULTI".to_string()));
