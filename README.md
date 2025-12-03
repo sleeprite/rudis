@@ -54,18 +54,21 @@ Rudis 是一个采用 Rust 语言编写得高性能键值存储系统，旨在�
 
 
 ```
-     /\_____/\
-    /  o   o  \          Rudis 0.0.1
-   ( ==  ^  == )
-    )         (          Bind: 127.0.0.1:6379
-   (           )
-  ( (  )   (  ) )
- (__(__)___(__)__)
 
-[2024-04-30T02:00:55Z INFO  rudis_server] Start loading appendfile
-[=======================================] percent: 100% lines: 6/6
-[2024-04-30T02:00:55Z INFO  rudis_server] Server initialized
-[2024-04-30T02:00:55Z INFO  rudis_server] Ready to accept connections
+         /\_____/\
+        /  o   o  \          Rudis 0.1.0
+       ( ==  ^  == )
+        )         (          Bind: 6379 PID: 40252
+       (           )
+      ( (  )   (  ) )        Role: master
+     (__(__)___(__)__)
+
+    Rudis is a high-performance in memory database.
+    
+⣷ [████████████████████████████████████████] 200000/200000 (100%) Status: Completed
+
+[2025-12-03T03:49:43Z INFO  rudis_server::server] Server initialized
+[2025-12-03T03:49:43Z INFO  rudis_server::server] Ready to accept connections
 ```
 
 ### 普通安装
