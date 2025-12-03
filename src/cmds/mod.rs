@@ -8,3 +8,4 @@ pub mod server;
 pub mod server_sync;
 pub mod string;
 pub mod set;
+pub mod transaction;

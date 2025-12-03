@@ -222,9 +222,7 @@ impl Handler {
 
     /// Handling client connections
     pub async fn handle(&mut self) {
-
         loop {
-
             log::debug!("Waiting for bytes");
             let bytes = match self.session.connection.read_bytes().await {
                 Ok(bytes) => bytes,
@@ -251,6 +249,20 @@ impl Handler {
             for frame in frames {
                 log::debug!("Received frame: {}", frame.to_string());
                 let frame_copy = frame.clone();
+                
+                // 在事务模式下，除了EXEC和DISCARD命令外，其他命令都应该被排队而不是立即执行
+                if self.session.is_in_transaction() {
+                    let command_name = frame.get_arg(0).unwrap_or_default().to_uppercase();
+                    if command_name != "EXEC" && command_name != "DISCARD" {
+                        // 将命令帧添加到事务队列中
+                        self.session.add_transaction_frame(frame_copy);
+                        // 回复QUEUED
+                        self.session.connection.write_bytes(Frame::SimpleString("QUEUED".to_string()).as_bytes()).await;
+                        continue;
+                    }
+                    // 如果是EXEC或DISCARD，则正常处理
+                }
+                
                 let command = match Command::parse_from_frame(frame) {
                     Ok(cmd) => cmd,
                     Err(e) => {
@@ -297,7 +309,7 @@ impl Handler {
             }
         }
     }
-
+    
     /// 执行服务器命令
     async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
         match command {
@@ -312,8 +324,67 @@ impl Handler {
             Command::Unknown(unknown) => unknown.apply(),
             Command::Ping(ping) => ping.apply(),
             Command::Echo(echo) => echo.apply(),
+            // 事务命令特殊处理
+            Command::Exec(_) => Box::pin(self.execute_transaction()).await,
+            Command::Multi(multi) => multi.apply(self),
+            Command::Discard(discard) => discard.apply(self),
             _ => self.apply_db_command(command).await,
         }
+    }
+
+    /// 执行事务中的所有命令
+    async fn execute_transaction(&mut self) -> Result<Frame, Error> {
+        // 检查是否在事务模式中
+        if !self.session.is_in_transaction() {
+            return Ok(Frame::Error("ERR EXEC without MULTI".to_string()));
+        }
+
+        // 获取事务队列中的所有命令帧
+        let transaction_frames = self.session.get_transaction_frames().clone();
+        
+        // 执行所有事务命令
+        let mut results = Vec::new();
+        for frame in transaction_frames {
+            // 将帧解析为命令
+            let command = match Command::parse_from_frame(frame) {
+                Ok(cmd) => cmd,
+                Err(e) => {
+                    results.push(Frame::Error(e.to_string()));
+                    continue;
+                }
+            };
+            
+            // 应用命令并收集结果
+            // 注意：这里我们不处理EXEC、MULTI、DISCARD命令，避免递归
+            match command {
+                Command::Exec(_) | Command::Multi(_) | Command::Discard(_) => {
+                    results.push(Frame::Error("ERR nested transaction commands not allowed".to_string()));
+                },
+                _ => {
+                    // 为了避免递归（实际不会有）
+                    let result = match command {
+                        Command::Auth(auth) => auth.apply(self),
+                        Command::Client(client) => client.apply(),
+                        Command::Replconf(replconf) => replconf.apply(self),
+                        Command::Save(save) => save.apply(self.db_manager.clone(), self.args.clone()).await,
+                        Command::Bgsave(bgsave) => bgsave.apply(self.db_manager.clone(), self.args.clone()).await,
+                        Command::Psync(psync) => psync.apply(self.db_manager.clone(), self.args.clone()).await,
+                        Command::Flushall(flushall) => flushall.apply(self.db_manager.clone()).await,
+                        Command::Select(select) => select.apply(self),
+                        Command::Unknown(unknown) => unknown.apply(),
+                        Command::Ping(ping) => ping.apply(),
+                        Command::Echo(echo) => echo.apply(),
+                        _ => self.apply_db_command(command).await,
+                    };
+                    match result {
+                        Ok(frame) => results.push(frame),
+                        Err(e) => results.push(Frame::Error(e.to_string())),
+                    }
+                }
+            }
+        }
+        self.session.clear_transaction();
+        Ok(Frame::Array(results))
     }
 
     /// 执行数据库命令
@@ -346,5 +417,26 @@ impl Handler {
             slave_session.connection.write_bytes(Frame::Array(vec![Frame::BulkString("SELECT".to_string()),Frame::BulkString(db.to_string())]).as_bytes()).await;
             slave_session.connection.write_bytes(frame_clone.as_bytes()).await;
         }
+    }
+
+    // 事务相关方法
+    pub fn start_transaction(&mut self) {
+        self.session.start_transaction();
+    }
+
+    pub fn is_in_transaction(&self) -> bool {
+        self.session.is_in_transaction()
+    }
+
+    pub fn add_transaction_frame(&mut self, frame: Frame) {
+        self.session.add_transaction_frame(frame);
+    }
+
+    pub fn get_transaction_frames(&self) -> Vec<Frame> {
+        self.session.get_transaction_frames().clone()
+    }
+
+    pub fn clear_transaction(&mut self) {
+        self.session.clear_transaction();
     }
 }

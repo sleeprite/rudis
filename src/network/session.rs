@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use tokio::sync::mpsc::Sender;
-use crate::{network::{connection::Connection, session_role::SessionRole}, store::db::DatabaseMessage};
+use crate::{frame::Frame, network::{connection::Connection, session_role::SessionRole}, store::db::DatabaseMessage};
 
 static SESSION_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -12,7 +12,10 @@ pub struct Session {
     sender: Sender<DatabaseMessage>,
     pub connection: Connection,
     current_db: usize,
-    role: SessionRole
+    role: SessionRole,
+    // 事务相关字段
+    in_transaction: bool,
+    transaction_frames: Vec<Frame>
 }
 
 impl Session {
@@ -25,7 +28,9 @@ impl Session {
             sender,
             current_db,
             connection,
-            role: SessionRole::Other
+            role: SessionRole::Other,
+            in_transaction: false,
+            transaction_frames: Vec::new()
         }
     }
     
@@ -65,4 +70,30 @@ impl Session {
         &self.role
     }
 
+    // 事务相关方法
+    pub fn start_transaction(&mut self) {
+        self.in_transaction = true;
+        self.transaction_frames.clear();
+    }
+
+    pub fn is_in_transaction(&self) -> bool {
+        self.in_transaction
+    }
+
+    pub fn add_transaction_frame(&mut self, frame: Frame) {
+        self.transaction_frames.push(frame);
+    }
+
+    pub fn get_transaction_frames(&self) -> &Vec<Frame> {
+        &self.transaction_frames
+    }
+
+    pub fn clear_transaction(&mut self) {
+        self.in_transaction = false;
+        self.transaction_frames.clear();
+    }
+
+    pub fn get_transaction_frames_mut(&mut self) -> &mut Vec<Frame> {
+        &mut self.transaction_frames
+    }
 }

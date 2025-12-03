@@ -17,6 +17,8 @@ use crate::{
             zadd::Zadd, zcard::Zcard, zcount::Zcount, zrank::Zrank, zrem::Zrem, zscore::Zscore,
         }, string::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, getset::GetSet, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, set::Set, strlen::Strlen
+        }, transaction::{
+            multi::Multi, exec::Exec, discard::Discard
         }, unknown::Unknown
     },
     frame::Frame,
@@ -101,7 +103,11 @@ pub enum Command {
     Bgsave(Bgsave),
     Save(Save),
     GetSet(GetSet),
-    Info(Info)
+    Info(Info),
+    // 事务命令
+    Multi(Multi),
+    Exec(Exec),
+    Discard(Discard)
 }
 
 impl Command {
@@ -183,6 +189,10 @@ impl Command {
             "GETSET" => Command::GetSet(GetSet::parse_from_frame(frame)?),
             "CLIENT" => Command::Client(Client::parse_from_frame(frame)?),
             "INFO" => Command::Info(Info::parse_from_frame(frame)?),
+            // 事务命令
+            "MULTI" => Command::Multi(Multi::parse_from_frame(frame)?),
+            "EXEC" => Command::Exec(Exec::parse_from_frame(frame)?),
+            "DISCARD" => Command::Discard(Discard::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
         };
         Ok(command)
