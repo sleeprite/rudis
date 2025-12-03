@@ -176,8 +176,6 @@ impl Handler {
         let sender = db_manager.as_ref().get_sender(0);
         let connection = Connection::new(stream);
         let session = Session::new(certification, sender, connection);
-        
-        // 维护 Session 信息
         session_manager.create_session(session.clone());
 
         Handler {
@@ -259,22 +257,16 @@ impl Handler {
             
             log::debug!("Received bytes: {:?}", String::from_utf8_lossy(bytes.as_slice()));
             
-            // 处理每个帧
             for frame in frames {
                 log::debug!("Received frame: {}", frame.to_string());
                 let frame_copy = frame.clone();
-                
-                // 在事务模式下，除了EXEC和DISCARD命令外，其他命令都应该被排队而不是立即执行
                 if self.session.is_in_transaction() {
                     let command_name = frame.get_arg(0).unwrap_or_default().to_uppercase();
                     if command_name != "EXEC" && command_name != "DISCARD" {
-                        // 将命令帧添加到事务队列中
                         self.session.add_transaction_frame(frame_copy);
-                        // 回复QUEUED
                         self.session.connection.write_bytes(Frame::SimpleString("QUEUED".to_string()).as_bytes()).await;
                         continue;
                     }
-                    // 如果是EXEC或DISCARD，则正常处理
                 }
                 
                 let command = match Command::parse_from_frame(frame) {
@@ -349,18 +341,13 @@ impl Handler {
     /// 执行事务中的所有命令
     async fn execute_transaction(&mut self) -> Result<Frame, Error> {
 
-        // 检查是否在事务模式中
         if !self.session.is_in_transaction() {
             return Ok(Frame::Error("ERR EXEC without MULTI".to_string()));
         }
 
-        // 获取事务队列中的所有命令帧
         let transaction_frames = self.session.get_transaction_frames().clone();
-        
-        // 执行所有事务命令
         let mut results = Vec::new();
         for frame in transaction_frames {
-            // 将帧解析为命令
             let command = match Command::parse_from_frame(frame) {
                 Ok(cmd) => cmd,
                 Err(e) => {
