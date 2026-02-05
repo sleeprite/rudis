@@ -157,11 +157,10 @@ fn deinterleave64(interleaved: u64) -> u64 {
 }
 
 /// 初始化经纬度范围为地球极限值
-pub fn geohash_get_coord_range(long_range: &mut GeoHashRange, lat_range: &mut GeoHashRange) {
-    long_range.max = GEO_LONG_MAX;
-    long_range.min = GEO_LONG_MIN;
-    lat_range.max = GEO_LAT_MAX;
-    lat_range.min = GEO_LAT_MIN;
+pub fn geohash_get_coord_range() -> (GeoHashRange, GeoHashRange) {
+    let long_range = GeoHashRange { min: GEO_LONG_MIN, max: GEO_LONG_MAX };
+    let lat_range = GeoHashRange { min: GEO_LAT_MIN, max: GEO_LAT_MAX };
+    (long_range, lat_range)
 }
 
 /// 核心编码函数：经纬度 -> GeoHashBits
@@ -171,55 +170,46 @@ pub fn geohash_encode(
     longitude: f64,
     latitude: f64,
     step: u8,
-    hash: &mut GeoHashBits,
-) -> bool {
+) -> Option<GeoHashBits> {
     // 参数检查
     if step > 32 || step == 0 || lat_range.is_zero() || long_range.is_zero() {
-        return false;
+        return None;
     }
 
     // 检查经纬度是否超出地球范围
     if longitude > GEO_LONG_MAX || longitude < GEO_LONG_MIN ||
         latitude > GEO_LAT_MAX || latitude < GEO_LAT_MIN
     {
-        return false;
+        return None;
     }
-
-    hash.bits = 0;
-    hash.step = step;
 
     // 检查是否在指定范围内
     if latitude < lat_range.min || latitude > lat_range.max ||
         longitude < long_range.min || longitude > long_range.max
     {
-        return false;
+        return None;
     }
 
-    // 计算归一化偏移量 (0.0 到 1.0 之间)
+    // 计算归一化偏移量
     let mut lat_offset = (latitude - lat_range.min) / (lat_range.max - lat_range.min);
     let mut long_offset = (longitude - long_range.min) / (long_range.max - long_range.min);
 
-    // 将浮点数转换为整数 (定点数逻辑)
-    // C代码: lat_offset *= (1ULL << step);
-    // Rust中显式使用 u64 避免溢出
     let step_pow = (1u64 << step) as f64;
     lat_offset *= step_pow;
     long_offset *= step_pow;
 
-    // 调用位交错，生成最终 Hash
-    hash.bits = interleave64(lat_offset as u32, long_offset as u32);
-    true
+    Some(GeoHashBits {
+        bits: interleave64(lat_offset as u32, long_offset as u32),
+        step
+    })
 }
 
+
+
 /// 便捷函数：使用 WGS84 坐标系进行编码
-pub fn geohash_encode_wgs84(longitude: f64, latitude: f64, step: u8, hash: &mut GeoHashBits) -> bool {
-    let mut long_range = GeoHashRange::default();
-    let mut lat_range = GeoHashRange::default();
-
-    // 分别传入可变引用，Rust 编译器完全接受，因为它们是两个不同的变量
-    geohash_get_coord_range(&mut long_range, &mut lat_range);
-
-    geohash_encode(&long_range, &lat_range, longitude, latitude, step, hash)
+pub fn geohash_encode_wgs84(longitude: f64, latitude: f64, step: u8) -> Option<GeoHashBits> {
+    let (long_range, lat_range) = geohash_get_coord_range();
+    geohash_encode(&long_range, &lat_range, longitude, latitude, step)
 }
 
 /// 核心解码函数：GeoHashBits -> 经纬度范围
@@ -227,41 +217,36 @@ pub fn geohash_decode(
     long_range: GeoHashRange,
     lat_range: GeoHashRange,
     hash: GeoHashBits,
-    area: &mut GeoHashArea,
-) -> bool {
+) -> Option<GeoHashArea> {
     if hash.is_zero() || lat_range.is_zero() || long_range.is_zero() {
-        return false;
+        return None;
     }
 
-    area.hash = hash;
     let step = hash.step;
-    // 分离经纬度的整数部分
-    let hash_sep = deinterleave64(hash.bits); // hash = [LAT][LONG]
+    let hash_sep = deinterleave64(hash.bits);
 
     let lat_scale = lat_range.max - lat_range.min;
     let long_scale = long_range.max - long_range.min;
 
-    let ilato = hash_sep as u32;         // 提取纬度部分
-    let ilono = (hash_sep >> 32) as u32; // 提取经度部分
+    let ilato = hash_sep as u32;
+    let ilono = (hash_sep >> 32) as u32;
 
-    // 逆运算：将整数还原回经纬度坐标范围
-    // 算法：min + (value / 2^step) * scale
     let step_pow = (1u64 << step) as f64;
 
+    let mut area = GeoHashArea::default();
+    area.hash = hash;
     area.latitude.min = lat_range.min + (ilato as f64 * 1.0 / step_pow) * lat_scale;
     area.latitude.max = lat_range.min + ((ilato + 1) as f64 * 1.0 / step_pow) * lat_scale;
-
     area.longitude.min = long_range.min + (ilono as f64 * 1.0 / step_pow) * long_scale;
     area.longitude.max = long_range.min + ((ilono + 1) as f64 * 1.0 / step_pow) * long_scale;
 
-    true
+    Some(area)
 }
 
 /// 辅助函数：将解码后的区域转换为中心点坐标
-pub fn geohash_decode_area_to_long_lat(area: &GeoHashArea, xy: &mut [f64; 2]) -> bool {
-    // 取中心点
+pub fn geohash_decode_area_to_long_lat(area: &GeoHashArea) -> Option<[f64; 2]> {
+    let mut xy = [0.0; 2];
     xy[0] = (area.longitude.min + area.longitude.max) / 2.0;
-    // 修正边界
     if xy[0] > GEO_LONG_MAX { xy[0] = GEO_LONG_MAX; }
     if xy[0] < GEO_LONG_MIN { xy[0] = GEO_LONG_MIN; }
 
@@ -269,22 +254,15 @@ pub fn geohash_decode_area_to_long_lat(area: &GeoHashArea, xy: &mut [f64; 2]) ->
     if xy[1] > GEO_LAT_MAX { xy[1] = GEO_LAT_MAX; }
     if xy[1] < GEO_LAT_MIN { xy[1] = GEO_LAT_MIN; }
 
-    true
+    Some(xy)
 }
 
 /// 直接解码为 WGS84 坐标
-pub fn geohash_decode_to_long_lat_wgs84(hash: GeoHashBits, xy: &mut [f64; 2]) -> bool {
-    let mut long_range = GeoHashRange::default();
-    let mut lat_range = GeoHashRange::default();
-
-    geohash_get_coord_range(&mut long_range, &mut lat_range);
-
-    let mut area = GeoHashArea::default();
-    // 注意这里传入的是不可变引用，因为 decode 不需要修改 range
-    if !geohash_decode(long_range, lat_range, hash, &mut area) {
-        return false;
-    }
-    geohash_decode_area_to_long_lat(&area, xy)
+pub fn geohash_decode_to_long_lat_wgs84(hash: GeoHashBits) -> Option<[f64; 2]> {
+    let (long_range, lat_range) = geohash_get_coord_range();
+    // 使用 ? 操作符进行链式调用，非常 Rustacean！
+    let area = geohash_decode(long_range, lat_range, hash)?;
+    geohash_decode_area_to_long_lat(&area)
 }
 
 // --- 邻居计算算法 ---
@@ -476,13 +454,10 @@ pub fn geohash_bounding_box(shape: &mut GeoShape) -> bool {
 /// 计算覆盖指定形状的 Geohash 区域 (九宫格)
 /// 这是 GEORADIUS 命令最核心的逻辑
 pub fn geohash_calculate_areas_by_shape_wgs84(shape: &mut GeoShape) -> GeoHashRadius {
-    let mut long_range = GeoHashRange::default();
-    let mut lat_range = GeoHashRange::default();
-    let mut radius = GeoHashRadius::default();
-    let mut hash = GeoHashBits::default();
+    // 初始化返回结构
     let mut neighbors = GeoHashNeighbors::default();
-    let mut area = GeoHashArea::default();
 
+    // 计算 Bounding Box
     geohash_bounding_box(shape);
     let min_lon = shape.bounds[0];
     let min_lat = shape.bounds[1];
@@ -504,25 +479,27 @@ pub fn geohash_calculate_areas_by_shape_wgs84(shape: &mut GeoShape) -> GeoHashRa
     // 1. 估算精度 step
     let mut steps = geohash_estimate_steps_by_radius(radius_meters, latitude);
 
-    // 2. 初始编码和邻居计算
-    geohash_get_coord_range(&mut long_range, &mut lat_range);
-    geohash_encode(&long_range, &lat_range, longitude, latitude, steps, &mut hash);
+    // 获取坐标范围
+    let (long_range, lat_range) = geohash_get_coord_range();
+
+    // 现在返回 Option，失败则使用默认值
+    let mut hash = geohash_encode(&long_range, &lat_range, longitude, latitude, steps)
+        .unwrap_or_default();
+
+    // 计算邻居
     geohash_neighbors(&hash, &mut neighbors);
-    geohash_decode(long_range, lat_range, hash, &mut area);
+    
+    let mut area = geohash_decode(long_range, lat_range, hash)
+        .unwrap_or_default();
 
     // 3. 检查边界覆盖情况
-    // 如果估算的 step 不够好（导致搜索区域超出当前格子的邻居），则需要减小 step（扩大网格）
     let mut decrease_step = false;
     {
-        let mut north = GeoHashArea::default();
-        let mut south = GeoHashArea::default();
-        let mut east = GeoHashArea::default();
-        let mut west = GeoHashArea::default();
-
-        geohash_decode(long_range, lat_range, neighbors.north, &mut north);
-        geohash_decode(long_range, lat_range, neighbors.south, &mut south);
-        geohash_decode(long_range, lat_range, neighbors.east, &mut east);
-        geohash_decode(long_range, lat_range, neighbors.west, &mut west);
+        // 注意：decode 接收的是 Copy 类型的 Range，不需要引用
+        let north = geohash_decode(long_range, lat_range, neighbors.north).unwrap_or_default();
+        let south = geohash_decode(long_range, lat_range, neighbors.south).unwrap_or_default();
+        let east = geohash_decode(long_range, lat_range, neighbors.east).unwrap_or_default();
+        let west = geohash_decode(long_range, lat_range, neighbors.west).unwrap_or_default();
 
         if north.latitude.max < max_lat { decrease_step = true; }
         if south.latitude.min > min_lat { decrease_step = true; }
@@ -533,13 +510,17 @@ pub fn geohash_calculate_areas_by_shape_wgs84(shape: &mut GeoShape) -> GeoHashRa
     // 如果需要，降低精度并重新计算
     if steps > 1 && decrease_step {
         steps -= 1;
-        geohash_encode(&long_range, &lat_range, longitude, latitude, steps, &mut hash);
+        // 【改动6】重新赋值
+        hash = geohash_encode(&long_range, &lat_range, longitude, latitude, steps)
+            .unwrap_or_default();
+
         geohash_neighbors(&hash, &mut neighbors);
-        geohash_decode(long_range, lat_range, hash, &mut area);
+
+        area = geohash_decode(long_range, lat_range, hash)
+            .unwrap_or_default();
     }
 
-    // 4. 剔除无效区域
-    // 如果某个方向的邻居已经完全超出了搜索边界，就把它置零，避免无效查询
+    // 4. 剔除无效区域 (逻辑不变，只是操作对象变了)
     if steps >= 2 {
         if area.latitude.min < min_lat {
             neighbors.south.zero();
@@ -563,12 +544,13 @@ pub fn geohash_calculate_areas_by_shape_wgs84(shape: &mut GeoShape) -> GeoHashRa
         }
     }
 
-    radius.hash = hash;
-    radius.neighbors = neighbors;
-    radius.area = area;
-    radius
+    // 组装返回结果
+    GeoHashRadius {
+        hash,
+        neighbors,
+        area,
+    }
 }
-
 /// geohash_align_52bits 强制 52位对齐
 /// Redis 的 ZSet Score 是 double 类型，只有 52 位尾数精度。
 /// 不管当前的 hash.step 是多少（比如只用了 10 位），
@@ -657,53 +639,31 @@ mod tests {
 
     #[test]
     fn test_beijing_encoding_compatibility() {
-        // 测试坐标：北京 (116.40, 39.90)
         let lon = 116.40;
         let lat = 39.90;
 
         // 1. 编码
-        let mut hash = GeoHashBits::default();
-        let success = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX, &mut hash);
-        assert!(success);
+        let hash = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX).expect("Encoding failed");
 
-        // 2. 对齐到 52 位
+        // 2. 对齐
         let score_int = geohash_align_52bits(hash);
-
-        // Redis 官方算法算出的北京坐标的 52位整数 Score
-        // 来源：redis-cli geoadd key 116.40 39.90 beijing -> zscore key beijing -> 4069885360207904
-        // 注意：这是转换成 long long 后的值
         let redis_expected_score: u64 = 4069885360207904;
 
-        println!("Rudis Score: {}", score_int);
-        println!("Redis Score: {}", redis_expected_score);
-        
         assert_eq!(score_int, redis_expected_score);
     }
 
     #[test]
     fn test_decoding() {
-        // 测试反解
         let redis_score: u64 = 4069885360207904;
-
-        // 逆向对齐 (还原回 bits)
-        // 注意：decode 不需要这一步，因为 decode 内部会自动处理 interleave 的值
-        // 但这里我们需要把 52位整数还原回 GeoHashBits 结构用于传入 decode
         let hash = GeoHashBits {
-            bits: redis_score >> (52 - GEO_STEP_MAX * 2), // 还原位移
+            bits: redis_score >> (52 - GEO_STEP_MAX * 2),
             step: GEO_STEP_MAX,
         };
 
-        // Redis 的 decode 逻辑里，传入的就是那个原始的 interleave 结果
-        // geohash_align_52bits 做的是 bits << (52 - step*2)
-        // 这里我们要反向操作一下
+        // 解码
+        let xy = geohash_decode_to_long_lat_wgs84(hash).expect("Decoding failed");
 
-        let mut xy = [0.0; 2];
-        let success = geohash_decode_to_long_lat_wgs84(hash, &mut xy);
-
-        assert!(success);
         println!("Decoded: Lon {}, Lat {}", xy[0], xy[1]);
-
-        // 验证误差是否在允许范围内
         assert!((xy[0] - 116.40).abs() < 0.0001);
         assert!((xy[1] - 39.90).abs() < 0.0001);
     }
