@@ -24,3 +24,9 @@ skiplist = "0.5"
 
 [dev-dependencies]
 redis = "1.0.1"
+proptest = "1.4"
+criterion = "0.5"
+
+[[bench]]
+name = "geo_bench"
+harness = false

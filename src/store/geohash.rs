@@ -637,34 +637,195 @@ pub fn geohash_get_distance_if_in_rectangle(
 mod tests {
     use super::*;
 
+    // 1. 基础兼容性测试
     #[test]
     fn test_beijing_encoding_compatibility() {
         let lon = 116.40;
         let lat = 39.90;
-
-        // 1. 编码
         let hash = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX).expect("Encoding failed");
-
-        // 2. 对齐
         let score_int = geohash_align_52bits(hash);
         let redis_expected_score: u64 = 4069885360207904;
-
         assert_eq!(score_int, redis_expected_score);
     }
 
+    // 2. 边界值测试 (Boundary Testing)
     #[test]
-    fn test_decoding() {
-        let redis_score: u64 = 4069885360207904;
-        let hash = GeoHashBits {
-            bits: redis_score >> (52 - GEO_STEP_MAX * 2),
-            step: GEO_STEP_MAX,
+    fn test_boundaries() {
+        // 测试极限坐标
+        let valid_coords = vec![
+            (0.0, 0.0),                     // 赤道/本初子午线
+            (GEO_LONG_MAX, GEO_LAT_MAX),    // 东北极点
+            (GEO_LONG_MIN, GEO_LAT_MIN),    // 西南极点
+            (GEO_LONG_MAX, 0.0),            // 东经极限
+            (0.0, GEO_LAT_MAX),             // 北纬极限
+        ];
+
+        for (lon, lat) in valid_coords {
+            let hash = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX);
+            assert!(hash.is_some(), "Should encode valid coord: ({}, {})", lon, lat);
+        }
+
+        // 测试无效坐标 (Out of bounds)
+        let invalid_coords = vec![
+            (180.1, 0.0),                   // 经度超标
+            (-181.0, 0.0),                  // 经度超标
+            (0.0, 86.0),                    // 纬度超标 (WGS84 只有 85.05...)
+            (0.0, -90.0),                   // 纬度超标
+        ];
+
+        for (lon, lat) in invalid_coords {
+            let hash = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX);
+            assert!(hash.is_none(), "Should fail invalid coord: ({}, {})", lon, lat);
+        }
+    }
+
+    // 3. 距离计算准确性测试
+    #[test]
+    fn test_distance_calculation() {
+        // 北京 (116.40, 39.90) 到 上海 (121.47, 31.23)
+        // 实际大圆距离约为 1068 km
+        let bj_lon = 116.40;
+        let bj_lat = 39.90;
+        let sh_lon = 121.47;
+        let sh_lat = 31.23;
+
+        // 调用 helper 里的距离函数 (假设你在同一个文件或已引入)
+        // 如果 geohash_get_distance 不在当前作用域，请加上 use super::* 或者对应路径
+        let dist = geohash_get_distance(bj_lon, bj_lat, sh_lon, sh_lat);
+
+        println!("Distance BJ to SH: {} meters", dist);
+        // 允许一定的计算误差，只要在合理范围内即可
+        assert!(dist > 1_000_000.0 && dist < 1_100_000.0);
+    }
+}
+
+// 4. 模糊测试 (Property-based Testing)
+// 这部分代码会让机器自动生成测试用例
+#[cfg(test)]
+mod proptests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest! {
+        // 自动运行多次测试，生成随机经纬度
+        #[test]
+        fn test_random_coordinate_roundtrip(
+            lon in -180.0..180.0f64,
+            lat in -85.05..85.05f64
+        ) {
+            // 1. 尝试编码
+            let hash_opt = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX);
+
+            // 在有效范围内，编码必须成功
+            prop_assert!(hash_opt.is_some(), "Encode failed for valid coord: {}, {}", lon, lat);
+
+            let hash = hash_opt.unwrap();
+
+            // 2. 尝试解码
+            let decoded_opt = geohash_decode_to_long_lat_wgs84(hash);
+            prop_assert!(decoded_opt.is_some());
+            let [d_lon, d_lat] = decoded_opt.unwrap();
+
+            // 3. 验证往返误差 (Round-trip Error)
+            // Geohash 是有损压缩，但在 52-bit 下误差应极小
+            let lat_diff = (lat - d_lat).abs();
+            let lon_diff = (lon - d_lon).abs();
+
+            // 这里的阈值 0.0001 度大约对应地面 11 米
+            // 如果算法有 BUG，这里的随机数很容易触发断言失败
+            prop_assert!(lat_diff < 0.0001, "Lat diff too high: {} vs {}", lat, d_lat);
+            prop_assert!(lon_diff < 0.0001, "Lon diff too high: {} vs {}", lon, d_lon);
+        }
+    }
+
+    // 5. 九宫格方位测试
+    #[test]
+    fn test_neighbors_directions() {
+        // 选择一个非边缘的中心点 (0, 0)
+        let lon = 0.0;
+        let lat = 0.0;
+        let hash = geohash_encode_wgs84(lon, lat, GEO_STEP_MAX).unwrap();
+
+        let mut neighbors = GeoHashNeighbors::default();
+        geohash_neighbors(&hash, &mut neighbors);
+
+        // 辅助函数：解码并返回 Lat/Lon
+        let get_coord = |bits: GeoHashBits| -> [f64; 2] {
+            geohash_decode_to_long_lat_wgs84(bits).unwrap()
         };
 
-        // 解码
-        let xy = geohash_decode_to_long_lat_wgs84(hash).expect("Decoding failed");
+        let center_xy = get_coord(hash);
+        let north_xy = get_coord(neighbors.north);
+        let south_xy = get_coord(neighbors.south);
+        let east_xy = get_coord(neighbors.east);
+        let west_xy = get_coord(neighbors.west);
 
-        println!("Decoded: Lon {}, Lat {}", xy[0], xy[1]);
-        assert!((xy[0] - 116.40).abs() < 0.0001);
-        assert!((xy[1] - 39.90).abs() < 0.0001);
+        // 验证纬度逻辑
+        assert!(north_xy[1] > center_xy[1], "North should have higher Lat");
+        assert!(south_xy[1] < center_xy[1], "South should have lower Lat");
+
+        // 验证经度逻辑
+        assert!(east_xy[0] > center_xy[0], "East should have higher Lon");
+        assert!(west_xy[0] < center_xy[0], "West should have lower Lon");
+    }
+
+    // 6. 跨越日界线测试 (180度经线)
+    #[test]
+    fn test_date_line_distance() {
+        let lon1 = 179.9;
+        let lat = 10.0;
+        let lon2 = -179.9; // 实际上就在隔壁
+
+        // 计算距离
+        let dist = geohash_get_distance(lon1, lat, lon2, lat);
+
+        println!("Distance across Date Line: {} meters", dist);
+
+        // 0.2 度经度差，在赤道附近大约是 22km 左右
+        // 如果算法没处理环绕，会算出几万公里
+        assert!(dist < 30_000.0);
+    }
+
+    // 7. 搜索半径与 Step 的关系测试
+    #[test]
+    fn test_step_estimation() {
+        // 1. 搜索 1000km
+        // 预期：Step 4 (非常粗略的网格)
+        let step_large = geohash_estimate_steps_by_radius(1_000_000.0, 0.0);
+
+        // 2. 搜索 10m
+        // 预期：Step 20 (根据 Redis 算法推导，10m 半径对应的最优 step 是 20，约 38m 网格)
+        let step_mid = geohash_estimate_steps_by_radius(10.0, 0.0);
+
+        // 3. 搜索 5cm (极微小)
+        // 预期：Step 26 (这才是最大精度，对应 0.6m 网格)
+        let step_small = geohash_estimate_steps_by_radius(0.05, 0.0);
+
+        println!("1000km->{}, 10m->{}, 0.05m->{}", step_large, step_mid, step_small);
+
+        assert!(step_large < step_mid, "Large radius should have fewer bits");
+        assert!(step_mid < step_small, "Small radius should have more bits");
+
+        // 验证具体的 Redis 算法行为
+        assert_eq!(step_large, 4);  // 1000km -> step 4
+        assert_eq!(step_mid, 20);   // 10m -> step 20 (验证通过！)
+        assert_eq!(step_small, 26); // 极小半径 -> step 26
+    }
+
+    // 8. 极微小距离测试 (稳定性测试)
+    #[test]
+    fn test_micro_distance() {
+        let lon = 100.0;
+        let lat = 30.0;
+        // 偏移极小的值 (大约 1 厘米)
+        let lon_offset = lon + 0.0000001;
+
+        let dist = geohash_get_distance(lon, lat, lon_offset, lat);
+
+        println!("Micro distance: {} meters", dist);
+
+        assert!(dist > 0.0);
+        assert!(dist < 1.0);
+        assert!(!dist.is_nan()); // 确保不会算出 NaN
     }
 }
