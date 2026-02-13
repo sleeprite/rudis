@@ -336,6 +336,7 @@
         .key-type.list { color: var(--warning); }
         .key-type.set { color: #a371f7; }
         .key-type.zset { color: #f778ba; }
+        .key-type.geo { color: #2dd4bf; }
 
         /* 右侧预览区 */
         .preview-panel {
@@ -1409,6 +1410,21 @@
                             <table class="data-table">
                                 <thead><tr><th>排名</th><th>成员</th></tr></thead>
                                 <tbody>${items.map((v,i) => `<tr><td class="index-col">#${i+1}</td><td>${escapeHtml(v)}</td></tr>`).join('')}</tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            } else if (data.type === 'geo') {
+                const points = data.value || [];
+                valueHtml = `
+                    <div class="value-container">
+                        <div class="value-header">
+                            <span class="value-title">地理点 (Geo)</span>
+                            <span class="value-count">${points.length} 个点</span>
+                        </div>
+                        <div class="value-body">
+                            <table class="data-table">
+                                <thead><tr><th>#</th><th>成员</th><th>经度</th><th>纬度</th></tr></thead>
+                                <tbody>${points.map((p,i) => `<tr><td class="index-col">${i+1}</td><td>${escapeHtml(p.name)}</td><td>${p.longitude}</td><td>${p.latitude}</td></tr>`).join('')}</tbody>
                             </table>
                         </div>
                     </div>`;

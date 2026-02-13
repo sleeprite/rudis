@@ -10,3 +10,4 @@ pub mod string;
 pub mod set;
 pub mod transaction;
 pub mod hyperloglog;
+pub mod geo;

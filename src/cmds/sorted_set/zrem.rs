@@ -29,16 +29,22 @@ impl Zrem {
                             }
                         }
                         Ok(Frame::Integer(removed_count as i64))
-                    },
+                    }
+                    Structure::Geo(geo) => {
+                        // 命令兼容：ZREM 可用于删除 Geo 成员（与 Redis 行为一致）
+                        let mut removed_count = 0;
+                        for member in &self.members {
+                            removed_count += geo.rem(member);
+                        }
+                        Ok(Frame::Integer(removed_count as i64))
+                    }
                     _ => {
                         let f = "ERR Operation against a key holding the wrong kind of value";
                         Ok(Frame::Error(f.to_string()))
                     }
                 }
-            },
-            None => { // 如果键不存在，返回 0
-                Ok(Frame::Integer(0)) 
             }
+            None => Ok(Frame::Integer(0)),
         }
     }
 }

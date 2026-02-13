@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-use rudis_server::store::geohash::{geohash_encode_wgs84, GEO_STEP_MAX};
+use rudis_server::store::geo::geohash::{geohash_encode_wgs84, GEO_STEP_MAX};
 
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("geohash encode", |b| {
