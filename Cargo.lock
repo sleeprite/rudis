@@ -1477,6 +1477,7 @@ dependencies = [
  "indicatif",
  "log",
  "proptest",
+ "rand 0.8.5",
  "redis",
  "regex",
  "serde",
