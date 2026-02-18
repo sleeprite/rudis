@@ -9,10 +9,10 @@ impl Discard {
     }
 
     pub fn apply(&self, handler: &mut crate::server::Handler) -> Result<Frame, Error> {
-        if !handler.is_in_transaction() {
+        if !handler.get_session_mut().is_in_transaction() {
             return Ok(Frame::Error("ERR DISCARD without MULTI".to_string()));
         }
-        handler.clear_transaction();
+        handler.get_session_mut().clear_transaction();
         Ok(Frame::Ok)
     }
 }

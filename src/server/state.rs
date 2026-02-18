@@ -5,21 +5,19 @@ use crate::store::blocking::BlockingQueueManager;
 /// 全局状态容器
 /// 
 /// 用于持有和管理服务器的所有全局/异步状态资源，如：
+///
 /// - BlockingQueueManager (List BLPOP/BRPOP)
-/// - PubSubManager (SUBSCRIBE/PUBLISH) - 未来扩展
-/// - StreamManager (XREAD BLOCK) - 未来扩展
 /// 
-/// 好处：
+/// 设计理念：
+///
 /// 1. 解耦：Server 和 Handler 不需要直接持有具体的 Manager
-/// 2. 扩展性：添加新功能时只需修改此结构体，不破坏 Server 签名
+/// 2. 扩展：添加新功能时只需修改此结构体，不破坏 Server 签名
 #[derive(Clone)]
 pub struct ServerState {
     /// 列表阻塞管理器 (List BLPOP/BRPOP)
     pub blocking_list: Arc<Mutex<BlockingQueueManager>>,
-    
-    // 未来扩展：
-    // pub pubsub: Arc<Mutex<PubSubManager>>,
     // pub blocking_stream: Arc<Mutex<StreamManager>>,
+    // pub pubsub: Arc<Mutex<PubSubManager>>,
 }
 
 impl ServerState {
@@ -49,6 +47,7 @@ impl ServerState {
     /// - (未来) PubSubManager: 取消订阅
     /// - (未来) StreamManager: 清理消费者状态
     pub async fn cleanup_session(&self, session_id: usize) {
+        
         // 1. 清理 List 阻塞请求
         {
             let mut blocking_manager = self.blocking_list.lock().await;
