@@ -18,8 +18,11 @@ use crate::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, getset::GetSet, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, msetnx::Msetnx, set::Set, setrange::SetRange, strlen::Strlen, setex::Setex, psetex::Psetex, setnx::Setnx, setbit::Setbit, getbit::Getbit, bitcount::Bitcount, bitop::Bitop
         }, transaction::{
             discard::Discard, exec::Exec, multi::Multi
-        }, hyperloglog::{
+        },         hyperloglog::{
             pfadd::Pfadd, pfcount::Pfcount, pfmerge::Pfmerge
+        },         geo::{
+            geoadd::Geoadd, geoadd_json::GeoaddJson, geodist::Geodist, geohash::Geohash,
+            geopos::Geopos, georadius::Georadius, georadiusbymember::Georadiusbymember,
         }, unknown::Unknown
     },
     frame::Frame,
@@ -140,6 +143,14 @@ pub enum Command {
     Pfadd(Pfadd),
     Pfcount(Pfcount),
     Pfmerge(Pfmerge),
+    // GEO 命令
+    Geoadd(Geoadd),
+    GeoaddJson(GeoaddJson),
+    Geopos(Geopos),
+    Geodist(Geodist),
+    Geohash(Geohash),
+    Georadius(Georadius),
+    Georadiusbymember(Georadiusbymember),
 }
 impl Command {
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
@@ -251,6 +262,13 @@ impl Command {
             "PFADD" => Command::Pfadd(Pfadd::parse_from_frame(frame)?),
             "PFCOUNT" => Command::Pfcount(Pfcount::parse_from_frame(frame)?),
             "PFMERGE" => Command::Pfmerge(Pfmerge::parse_from_frame(frame)?),
+            "GEOADDJSON" => Command::GeoaddJson(GeoaddJson::parse_from_frame(frame)?),
+            "GEOADD" => Command::Geoadd(Geoadd::parse_from_frame(frame)?),
+            "GEOPOS" => Command::Geopos(Geopos::parse_from_frame(frame)?),
+            "GEODIST" => Command::Geodist(Geodist::parse_from_frame(frame)?),
+            "GEOHASH" => Command::Geohash(Geohash::parse_from_frame(frame)?),
+            "GEORADIUS" => Command::Georadius(Georadius::parse_from_frame(frame)?),
+            "GEORADIUSBYMEMBER" => Command::Georadiusbymember(Georadiusbymember::parse_from_frame(frame)?),
             "BLPOP" => Command::Blpop(Blpop::parse_from_frame(frame)?),
             "BRPOP" => Command::Brpop(Brpop::parse_from_frame(frame)?),
             _ => Command::Unknown(Unknown::parse_from_frame(frame)?),
@@ -311,10 +329,12 @@ impl Command {
             Command::Sunionstore(_) |
             Command::Zadd(_) |
             Command::Zincrby(_) |
-            Command::Zrem(_) |
+            Command::Zrem(_) |  // 命令兼容：ZREM 可删除 Geo 成员
             Command::Move(_) |
             Command::Pfadd(_) |
             Command::Pfmerge(_) |
+            Command::Geoadd(_) |
+            Command::GeoaddJson(_) |
             _ => false,
         }
     }

@@ -13,6 +13,7 @@ use tokio::sync::{
 use crate::{command::Command, frame::Frame, tools::pattern};
 use crate::store::hyperloglog::HyperLogLog;
 use crate::store::sorted_set::SortedSet;
+use crate::store::geo::Geo;
 
 // 数据库快照数据结构
 #[derive(Clone, Encode, Decode)]
@@ -57,6 +58,7 @@ pub enum Structure {
     List(Vec<String>),
     Json(String),  // 使用字符串存储JSON数据
     HyperLogLog(HyperLogLog),
+    Geo(Geo),
 }
 
 #[derive(Clone, Encode, Decode)]
@@ -251,6 +253,13 @@ impl Db {
             Command::Pfadd(pfadd) => pfadd.apply(self),
             Command::Pfcount(pfcount) => pfcount.apply(self),
             Command::Pfmerge(pfmerge) => pfmerge.apply(self),
+            Command::Geoadd(geoadd) => geoadd.apply(self),
+            Command::GeoaddJson(geoadd_json) => geoadd_json.apply(self),
+            Command::Geopos(geopos) => geopos.apply(self),
+            Command::Geodist(geodist) => geodist.apply(self),
+            Command::Geohash(geohash) => geohash.apply(self),
+            Command::Georadius(georadius) => georadius.apply(self),
+            Command::Georadiusbymember(georadiusbymember) => georadiusbymember.apply(self),
             _ => Err(Error::msg("Unknown command")),
         }
     }

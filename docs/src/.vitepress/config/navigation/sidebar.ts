@@ -433,6 +433,37 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
           ]
         },
         {
+          text: 'Geo',
+          link: '/zh/docs/commands/geo',
+          collapsed: true,
+          items: [
+            {
+              text: 'GEOADD',
+              link: '/zh/docs/commands/geo/geoadd',
+            },
+            {
+              text: 'GEOPOS',
+              link: '/zh/docs/commands/geo/geopos',
+            },
+            {
+              text: 'GEODIST',
+              link: '/zh/docs/commands/geo/geodist',
+            },
+            {
+              text: 'GEORADIUS',
+              link: '/zh/docs/commands/geo/georadius',
+            },
+            {
+              text: 'GEORADIUSBYMEMBER',
+              link: '/zh/docs/commands/geo/georadiusbymember',
+            },
+            {
+              text: 'GEOHASH',
+              link: '/zh/docs/commands/geo/geohash',
+            },
+          ]
+        },
+        {
           text: '通用',
           link: '/zh/docs/commands/generic',
           collapsed: true,
@@ -934,6 +965,37 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
             {
               text: 'PFMERGE',
               link: '/docs/commands/hyperloglog/pfmerge',
+            },
+          ]
+        },
+        {
+          text: 'Geo',
+          link: '/docs/commands/geo',
+          collapsed: true,
+          items: [
+            {
+              text: 'GEOADD',
+              link: '/docs/commands/geo/geoadd',
+            },
+            {
+              text: 'GEOPOS',
+              link: '/docs/commands/geo/geopos',
+            },
+            {
+              text: 'GEODIST',
+              link: '/docs/commands/geo/geodist',
+            },
+            {
+              text: 'GEORADIUS',
+              link: '/docs/commands/geo/georadius',
+            },
+            {
+              text: 'GEORADIUSBYMEMBER',
+              link: '/docs/commands/geo/georadiusbymember',
+            },
+            {
+              text: 'GEOHASH',
+              link: '/docs/commands/geo/geohash',
             },
           ]
         },

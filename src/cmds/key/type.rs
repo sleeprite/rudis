@@ -50,6 +50,10 @@ impl Type {
                     },
                     Structure::HyperLogLog(_) => {
                         Ok(Frame::SimpleString("string".to_string()))
+                    },
+                    Structure::Geo(_) => {
+                        // Rudis Geo 是独立数据结构（BTreeMap+HashMap），与 ZSet 不同
+                        Ok(Frame::SimpleString("geo".to_string()))
                     }
                 }
             },
