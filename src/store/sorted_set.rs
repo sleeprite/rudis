@@ -3,74 +3,17 @@ use bincode::{BorrowDecode, Decode, Encode};
 use skiplist::OrderedSkipList;
 
 /// SortedSet 结构，使用哈希表 + 跳表实现
-/// 
-/// 参考 Redis 的实现：
+///
 /// - member_map: 哈希表，提供 O(1) 的 member -> score 查找
 /// - score_list: 跳表，按 (score, member) 排序，提供 O(log n) 的范围查询和排名
 #[derive(Debug)]
 pub struct SortedSet {
-    // 哈希表：member -> score，O(1) 查找
     member_map: HashMap<String, f64>,
-    // 跳表：按 (score, member) 排序，O(log n) 范围查询
     score_list: OrderedSkipList<(f64, String)>,
 }
 
-// 手动实现 Clone
-impl Clone for SortedSet {
-    fn clone(&self) -> Self {
-        let mut new_set = SortedSet::new();
-        // 从现有的数据重建
-        for (member, score) in &self.member_map {
-            new_set.add(member.clone(), *score);
-        }
-        new_set
-    }
-}
-
-// 手动实现 Encode（序列化）
-impl Encode for SortedSet {
-    fn encode<E: bincode::enc::Encoder>(
-        &self,
-        encoder: &mut E,
-    ) -> Result<(), bincode::error::EncodeError> {
-        // 将跳表转换为 Vec 进行序列化
-        let items: Vec<(f64, String)> = self.score_list.iter().cloned().collect();
-        items.encode(encoder)
-    }
-}
-
-// 手动实现 Decode（反序列化）
-impl<Context> Decode<Context> for SortedSet {
-    fn decode<D: bincode::de::Decoder<Context = Context>>(
-        decoder: &mut D,
-    ) -> Result<Self, bincode::error::DecodeError> {
-        // 从 Vec<(f64, String)> 反序列化，然后重建跳表
-        let items: Vec<(f64, String)> = Vec::decode(decoder)?;
-        let mut set = SortedSet::new();
-        for (score, member) in items {
-            set.add(member, score);
-        }
-        Ok(set)
-    }
-}
-
-// 手动实现 BorrowDecode（借用反序列化）
-impl<'de, Context> BorrowDecode<'de, Context> for SortedSet {
-    fn borrow_decode<D: bincode::de::BorrowDecoder<'de, Context = Context>>(
-        decoder: &mut D,
-    ) -> Result<Self, bincode::error::DecodeError> {
-        // 从 Vec 反序列化，然后重建跳表
-        let items: Vec<(f64, String)> = Vec::borrow_decode(decoder)?;
-        let mut set = SortedSet::new();
-        for (score, member) in items {
-            set.add(member, score);
-        }
-        Ok(set)
-    }
-}
-
 impl SortedSet {
-    /// 创建新的空 SortedSet
+    
     pub fn new() -> Self {
         Self {
             member_map: HashMap::new(),
@@ -232,3 +175,42 @@ impl Default for SortedSet {
     }
 }
 
+
+impl Clone for SortedSet {
+    fn clone(&self) -> Self {
+        let mut new_set = SortedSet::new();
+        for (member, score) in &self.member_map {
+            new_set.add(member.clone(), *score);
+        }
+        new_set
+    }
+}
+
+impl Encode for SortedSet {
+    fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+        let items: Vec<(f64, String)> = self.score_list.iter().cloned().collect();
+        items.encode(encoder)
+    }
+}
+
+impl<Context> Decode<Context> for SortedSet {
+    fn decode<D: bincode::de::Decoder<Context = Context>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        let items: Vec<(f64, String)> = Vec::decode(decoder)?;
+        let mut set = SortedSet::new();
+        for (score, member) in items {
+            set.add(member, score);
+        }
+        Ok(set)
+    }
+}
+
+impl<'de, Context> BorrowDecode<'de, Context> for SortedSet {
+    fn borrow_decode<D: bincode::de::BorrowDecoder<'de, Context = Context>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+        let items: Vec<(f64, String)> = Vec::borrow_decode(decoder)?;
+        let mut set = SortedSet::new();
+        for (score, member) in items {
+            set.add(member, score);
+        }
+        Ok(set)
+    }
+}

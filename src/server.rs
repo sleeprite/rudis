@@ -180,6 +180,10 @@ impl Handler {
     pub fn get_session(&self) -> &Session {
         &self.session
     }
+
+    pub fn get_session_mut(&mut self) -> &mut Session {
+        &mut self.session
+    }
     
     pub fn get_db_manager(&self) -> &Arc<DatabaseManager> {
         &self.db_manager
@@ -189,16 +193,16 @@ impl Handler {
         &self.args
     }
 
-    /// 获取服务器状态容器
-    pub fn get_state(&self) -> &Arc<ServerState> {
-        &self.state
-    }
-
     /// 获取会话管理器
     /// 
     /// 提供对会话管理器的访问，用于管理客户端会话
     pub fn get_session_manager(&self) -> &Arc<SessionManager> {
         &self.session_manager
+    }
+
+    /// 获取服务器状态容器
+    pub fn get_state(&self) -> &Arc<ServerState> {
+        &self.state
     }
 }
 
@@ -269,6 +273,7 @@ impl Handler {
 
     /// Handling client connections
     pub async fn handle(&mut self) {
+
         loop {
 
             log::debug!("Waiting for bytes");
@@ -354,9 +359,8 @@ impl Handler {
         }
     }
     
-    /// 执行服务器命令
     async fn apply_command(&mut self, command: Command) -> Result<Frame, Error> {
-        // 尝试使用统一的命令处理入口（处理需要 Handler 上下文的命令）
+
         if let Some(result) = dispatch(self, &command).await {
             return result;
         }
@@ -381,7 +385,6 @@ impl Handler {
         }
     }
 
-    /// 执行事务中的所有命令
     async fn execute_transaction(&mut self) -> Result<Frame, Error> {
 
         if !self.session.is_in_transaction() {
@@ -398,17 +401,13 @@ impl Handler {
                     continue;
                 }
             };
-            
-            // 应用命令并收集结果
-            // 注意：这里我们不处理EXEC、MULTI、DISCARD命令，避免递归
+
             match command {
                 Command::Exec(_) | Command::Multi(_) | Command::Discard(_) => {
                     results.push(Frame::Error("ERR nested transaction commands not allowed".to_string()));
                 },
                 _ => {
-                    // 优先尝试通过 dispatch 执行命令
-                    // 这对于 LPUSH/RPUSH 等命令至关重要，因为它们需要检查并唤醒阻塞的客户端（BLPOP/BRPOP）
-                    // 如果在这里绕过 dispatch，事务中的 LPUSH 将直接写入数据库，而不会唤醒等待者
+    
                     if let Some(res) = dispatch(self, &command).await {
                         match res {
                             Ok(frame) => results.push(frame),
@@ -471,27 +470,6 @@ impl Handler {
             slave_session.connection.write_bytes(Frame::Array(vec![Frame::BulkString("SELECT".to_string()),Frame::BulkString(db.to_string())]).as_bytes()).await;
             slave_session.connection.write_bytes(frame_clone.as_bytes()).await;
         }
-    }
-
-    // 事务相关方法
-    pub fn start_transaction(&mut self) {
-        self.session.start_transaction();
-    }
-
-    pub fn is_in_transaction(&self) -> bool {
-        self.session.is_in_transaction()
-    }
-
-    pub fn add_transaction_frame(&mut self, frame: Frame) {
-        self.session.add_transaction_frame(frame);
-    }
-
-    pub fn get_transaction_frames(&self) -> Vec<Frame> {
-        self.session.get_transaction_frames().clone()
-    }
-
-    pub fn clear_transaction(&mut self) {
-        self.session.clear_transaction();
     }
 
 
