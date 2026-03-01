@@ -1,10 +1,13 @@
 use axum::{
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{header, StatusCode},
+    middleware::{self, Next},
     response::{IntoResponse, Json},
     routing::{delete, get, post, put},
     Router,
 };
+use chrono::{Duration, Utc};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::path::PathBuf;
@@ -20,6 +23,119 @@ use crate::command::Command;
 use crate::frame::Frame;
 use crate::store::db::DatabaseMessage;
 use crate::store::db_manager::DatabaseManager;
+
+// ==================== JWT 认证模块 ====================
+
+/// JWT Token claims
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct Claims {
+    pub sub: String, // 用户名
+    pub iat: i64,    // 签发时间
+    pub exp: i64,    // 过期时间
+}
+
+/// JWT 认证配置
+pub struct JwtAuth {
+    secret: String,
+    expiration_hours: i64,
+}
+
+impl JwtAuth {
+    /// 创建新的 JWT 认证实例
+    fn new(secret: String, expiration_hours: i64) -> Self {
+        Self {
+            secret,
+            expiration_hours,
+        }
+    }
+
+    /// 从用户名密码创建（使用 webuser:webpass 作为密钥）
+    fn from_credentials(webuser: &str, webpass: &str) -> Self {
+        let secret = format!("{}:{}", webuser, webpass);
+        Self::new(secret, 24) // 默认24小时过期
+    }
+
+    /// 签发 Token
+    fn generate_token(&self, username: &str) -> Result<String, jsonwebtoken::errors::Error> {
+        let now = Utc::now();
+        let claims = Claims {
+            sub: username.to_string(),
+            iat: now.timestamp(),
+            exp: (now + Duration::hours(self.expiration_hours)).timestamp(),
+        };
+
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(self.secret.as_bytes()),
+        )
+    }
+
+    /// 验证 Token
+    fn verify_token(&self, token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
+        let validation = Validation::default();
+        let token_data = decode::<Claims>(
+            token,
+            &DecodingKey::from_secret(self.secret.as_bytes()),
+            &validation,
+        )?;
+        Ok(token_data.claims)
+    }
+}
+
+/// 认证中间件
+async fn auth_middleware<B>(
+    State(state): State<Arc<WebState>>,
+    req: axum::http::Request<B>,
+    next: Next<B>,
+) -> impl IntoResponse {
+    // 从请求头中获取 Authorization
+    let auth_header = req
+        .headers()
+        .get(header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok());
+
+    let token = match auth_header {
+        Some(header) if header.starts_with("Bearer ") => &header[7..],
+        _ => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({
+                    "success": false,
+                    "error": "缺少认证 Token，请在请求头中提供 Authorization: Bearer <token>"
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    // 验证 Token
+    match state.jwt_auth.verify_token(token) {
+        Ok(claims) => {
+            // Token 有效，检查用户名是否匹配
+            if claims.sub == state.webuser {
+                next.run(req).await
+            } else {
+                (
+                    StatusCode::UNAUTHORIZED,
+                    Json(json!({
+                        "success": false,
+                        "error": "Token 用户无效"
+                    })),
+                )
+                    .into_response()
+            }
+        }
+        Err(_) => (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({
+                "success": false,
+                "error": "无效的 Token 或 Token 已过期"
+            })),
+        )
+            .into_response(),
+    }
+}
 
 /// Web服务器
 pub struct WebServer {
@@ -40,16 +156,21 @@ impl WebServer {
         let max_databases = self.args.databases;
         let bind_addr = format!("{}:{}", self.args.bind, port);
         let aof_path = PathBuf::from(&self.args.appendfilename);
+        let jwt_auth = JwtAuth::from_credentials(&self.args.webuser, &self.args.webpass);
         let web_state = Arc::new(WebState {
             db_manager: self.db_manager,
             max_databases,
             webuser: self.args.webuser.clone(),
             webpass: self.args.webpass.clone(),
             aof_path,
+            jwt_auth,
         });
-        
+
         let web_router = create_router(web_state);
-        axum::Server::bind(&bind_addr.parse().unwrap()).serve(web_router.into_make_service()).await.expect("Web server failed to start");
+        axum::Server::bind(&bind_addr.parse().unwrap())
+            .serve(web_router.into_make_service())
+            .await
+            .expect("Web server failed to start");
     }
 }
 
@@ -60,6 +181,7 @@ pub struct WebState {
     pub webuser: String,
     pub webpass: String,
     pub aof_path: PathBuf,
+    pub jwt_auth: JwtAuth,
 }
 
 /// 数据库信息
@@ -116,6 +238,17 @@ struct LoginRequest {
     password: String,
 }
 
+/// 登录响应
+#[derive(Serialize)]
+struct LoginResponse {
+    success: bool,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    expires_in: Option<i64>,
+}
+
 /// CLI命令请求
 #[derive(Deserialize)]
 struct CliRequest {
@@ -141,8 +274,8 @@ struct AofLogsQuery {
 
 /// 创建Web路由
 fn create_router(state: Arc<WebState>) -> Router {
-    Router::new()
-        .route("/api/login", post(login))
+    // 需要认证的路由
+    let protected_routes = Router::new()
         .route("/api/stats", get(get_stats))
         .route("/api/databases", get(list_databases))
         .route("/api/keys", get(list_keys))
@@ -152,28 +285,54 @@ fn create_router(state: Arc<WebState>) -> Router {
         .route("/api/keys/:key", post(set_key_value))
         .route("/api/cli", post(execute_cli))
         .route("/api/aof-logs", get(get_aof_logs))
-        
+        .route_layer(middleware::from_fn_with_state(state.clone(), auth_middleware));
+
+    // 公开路由（不需要认证）
+    let public_routes = Router::new().route("/api/login", post(login));
+
+    Router::new()
+        .merge(public_routes)
+        .merge(protected_routes)
         // 静态文件服务
         .nest_service("/", ServeDir::new("static"))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }
 
-/// 登录验证
+/// 登录验证 - 签发 JWT Token
 async fn login(
     State(state): State<Arc<WebState>>,
     Json(req): Json<LoginRequest>,
 ) -> impl IntoResponse {
     if req.username == state.webuser && req.password == state.webpass {
-        Json(json!({
-            "success": true,
-            "message": "登录成功"
-        }))
+        match state.jwt_auth.generate_token(&req.username) {
+            Ok(token) => {
+                let response = LoginResponse {
+                    success: true,
+                    message: "登录成功".to_string(),
+                    token: Some(token),
+                    expires_in: Some(24 * 3600), // 24小时，单位秒
+                };
+                (StatusCode::OK, Json(response))
+            }
+            Err(e) => {
+                let response = LoginResponse {
+                    success: false,
+                    message: format!("Token 生成失败: {}", e),
+                    token: None,
+                    expires_in: None,
+                };
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(response))
+            }
+        }
     } else {
-        Json(json!({
-            "success": false,
-            "message": "用户名或密码错误"
-        }))
+        let response = LoginResponse {
+            success: false,
+            message: "用户名或密码错误".to_string(),
+            token: None,
+            expires_in: None,
+        };
+        (StatusCode::UNAUTHORIZED, Json(response))
     }
 }
 

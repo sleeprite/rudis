@@ -977,8 +977,23 @@
 
     <script>
         // 登录状态检查
-        if (sessionStorage.getItem('rudis_logged') !== '1') {
+        const authToken = sessionStorage.getItem('rudis_token');
+        if (!authToken) {
             window.location.href = '/login.html';
+        }
+
+        // API 请求封装，自动添加认证头
+        async function apiFetch(url, options = {}) {
+            const headers = options.headers || {};
+            headers['Authorization'] = `Bearer ${authToken}`;
+            const res = await fetch(url, { ...options, headers });
+            // Token 过期或无效，跳转到登录页
+            if (res.status === 401) {
+                sessionStorage.removeItem('rudis_token');
+                window.location.href = '/login.html';
+                throw new Error('未授权');
+            }
+            return res;
         }
 
         let currentDb = 0;
@@ -1064,12 +1079,12 @@
         async function loadAofLogs(page = 1) {
             if (page < 1) page = 1;
             logsCurrentPage = page;
-            
+
             const container = document.getElementById('logsList');
             container.innerHTML = '<div class="logs-empty">加载中...</div>';
-            
+
             try {
-                const res = await fetch(`/api/aof-logs?page=${page}&size=1000`);
+                const res = await apiFetch(`/api/aof-logs?page=${page}&size=1000`);
                 const data = await res.json();
                 if (data.success) {
                     logsTotalCount = data.total;
@@ -1106,7 +1121,7 @@
         // 加载统计信息
         async function loadStats() {
             try {
-                const res = await fetch('/api/stats');
+                const res = await apiFetch('/api/stats');
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('statKeys').textContent = data.data.total_keys;
@@ -1121,7 +1136,7 @@
         let maxDbIndex = 0;
         async function loadDatabases() {
             try {
-                const res = await fetch('/api/databases');
+                const res = await apiFetch('/api/databases');
                 const data = await res.json();
                 if (data.success && data.data.length > 0) {
                     maxDbIndex = data.data.length - 1;
@@ -1164,7 +1179,7 @@
         // 加载键列表
         async function loadKeys(pattern = '*') {
             try {
-                const res = await fetch(`/api/keys?db=${currentDb}&pattern=${encodeURIComponent(pattern)}`);
+                const res = await apiFetch(`/api/keys?db=${currentDb}&pattern=${encodeURIComponent(pattern)}`);
                 const data = await res.json();
                 if (data.success) {
                     keys = data.data;
@@ -1331,7 +1346,7 @@
         // 加载键详情
         async function loadKeyDetail(key) {
             try {
-                const res = await fetch(`/api/keys/${encodeURIComponent(key)}?db=${currentDb}`);
+                const res = await apiFetch(`/api/keys/${encodeURIComponent(key)}?db=${currentDb}`);
                 const data = await res.json();
                 if (data.success) renderPreview(data.data);
             } catch (e) { console.error(e); }
@@ -1606,7 +1621,7 @@
             if (ttl) payload.ttl = parseInt(ttl);
             
             try {
-                const res = await fetch(`/api/keys/${encodeURIComponent(name)}?db=${currentDb}&type=${keyType}`, {
+                const res = await apiFetch(`/api/keys/${encodeURIComponent(name)}?db=${currentDb}&type=${keyType}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1651,7 +1666,7 @@
         async function deleteKey() {
             if (!selectedKey || !confirm(`确定删除 "${selectedKey}" ?`)) return;
             try {
-                const res = await fetch(`/api/keys/${encodeURIComponent(selectedKey)}?db=${currentDb}`, { method: 'DELETE' });
+                const res = await apiFetch(`/api/keys/${encodeURIComponent(selectedKey)}?db=${currentDb}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.success) {
                     selectedKey = null;
@@ -1666,7 +1681,7 @@
             const ttl = prompt('输入过期时间（秒）:');
             if (ttl === null) return;
             try {
-                const res = await fetch(`/api/keys/${encodeURIComponent(selectedKey)}/ttl?db=${currentDb}`, {
+                const res = await apiFetch(`/api/keys/${encodeURIComponent(selectedKey)}/ttl?db=${currentDb}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ttl: parseInt(ttl) })
@@ -1731,12 +1746,12 @@
 
         async function executeCli(cmd) {
             const output = document.getElementById('cliOutput');
-            
+
             // 显示输入的命令
             output.innerHTML += `<div class="cli-line"><span class="cli-prompt">127.0.0.1:6379&gt;</span> ${escapeHtml(cmd)}</div>`;
-            
+
             try {
-                const res = await fetch('/api/cli', {
+                const res = await apiFetch('/api/cli', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: cmd, db: currentDb })

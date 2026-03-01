@@ -71,7 +71,7 @@ pub struct Args {
     pub maxclients: usize,
 
     /// Web 管理界面端口
-    #[arg(long, default_value = "8080")]
+    #[arg(long, default_value = "7379")]
     pub webport: u16,
 
     /// Web 管理界面用户名
@@ -213,7 +213,7 @@ impl Args {
         }
 
         // webport
-        if self.webport == 8080 {
+        if self.webport == 7379 {
             if let Some(wp) = config_map.get("webport") {
                 if let Ok(port) = wp.parse() {
                     self.webport = port;
