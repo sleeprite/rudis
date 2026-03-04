@@ -9,7 +9,7 @@ impl Multi {
     }
 
     pub fn apply(&self, handler: &mut crate::server::Handler) -> Result<Frame, Error> {
-        handler.start_transaction();
+        handler.get_session_mut().start_transaction();
         Ok(Frame::Ok)
     }
 }

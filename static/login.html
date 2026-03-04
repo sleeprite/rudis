@@ -238,8 +238,8 @@
                     body: JSON.stringify({ username: user, password: pass })
                 });
                 const data = await res.json();
-                if (data.success) {
-                    sessionStorage.setItem('rudis_logged', '1');
+                if (data.success && data.token) {
+                    sessionStorage.setItem('rudis_token', data.token);
                     window.location.href = '/';
                 } else {
                     errorEl.textContent = data.message || '登录失败';
@@ -250,7 +250,7 @@
         }
 
         // 已登录则直接跳转
-        if (sessionStorage.getItem('rudis_logged') === '1') {
+        if (sessionStorage.getItem('rudis_token')) {
             window.location.href = '/';
         }
     </script>
