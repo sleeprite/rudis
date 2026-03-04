@@ -94,29 +94,55 @@ impl Frame {
     /**
      * 解析粘连的多个命令帧
      *
+     * 说明：
+     * - 假设传入的 bytes 是完整的数据（通常用于测试或一次性读取的场景）
+     * - 如果最后一部分数据不是一个完整的帧，将会被忽略，而不是强行解析
+     *
      * @param bytes 二进制数据
      */
     pub fn parse_multiple_frames(bytes: &[u8]) -> Result<Vec<Frame>, Error> {
         let mut frames = Vec::new();
         let mut position = 0;
-        
+
         while position < bytes.len() {
-            // 查找下一个完整的命令帧
-            if let Some(frame_end) = Frame::find_frame_end(&bytes[position..]) {
-                let frame_bytes = &bytes[position..position + frame_end];
-                let frame = Frame::parse_from_bytes(frame_bytes)?;
-                frames.push(frame);
-                position += frame_end;
-            } else {
-                // 如果找不到完整的帧结束位置，将剩余的数据作为最后一个帧处理
-                let frame_bytes = &bytes[position..];
-                let frame = Frame::parse_from_bytes(frame_bytes)?;
-                frames.push(frame);
-                break;
+            match Frame::parse_next_frame(&bytes[position..])? {
+                Some((frame, frame_len)) => {
+                    frames.push(frame);
+                    position += frame_len;
+                }
+                None => {
+                    // 没有足够的数据解析出下一个完整帧，直接结束循环
+                    break;
+                }
             }
         }
-        
+
         Ok(frames)
+    }
+
+    /**
+     * 从给定的字节切片中解析出第一个完整的命令帧
+     *
+     * 返回值：
+     * - Ok(Some((frame, used_len)))：成功解析出一个完整帧，其中 used_len 表示该帧占用的字节长度
+     * - Ok(None)：当前字节数据不足以构成一个完整帧，需要继续读取更多数据
+     * - Err(e)：数据格式有问题，无法解析
+     *
+     * @param bytes 二进制数据
+     */
+    pub fn parse_next_frame(bytes: &[u8]) -> Result<Option<(Frame, usize)>, Error> {
+        if bytes.is_empty() {
+            return Ok(None);
+        }
+
+        if let Some(frame_end) = Frame::find_frame_end(bytes) {
+            let frame_bytes = &bytes[..frame_end];
+            let frame = Frame::parse_from_bytes(frame_bytes)?;
+            Ok(Some((frame, frame_end)))
+        } else {
+            // 当前数据还不足以构成一个完整的帧
+            Ok(None)
+        }
     }
     
     /**
