@@ -269,6 +269,9 @@ impl Handler {
 
     /// Handling client connections
     pub async fn handle(&mut self) {
+        // 为每个连接维护一个读缓冲区，用于处理半包/粘包场景
+        let mut read_buffer: Vec<u8> = Vec::new();
+
         loop {
 
             log::debug!("Waiting for bytes");
@@ -281,21 +284,41 @@ impl Handler {
                     return;
                 }
             };
-            
-            // 解析可能的多个粘连命令帧
-            let frames = match Frame::parse_multiple_frames(bytes.as_slice()) {
-                Ok(frames) => frames,
-                Err(e) => {
-                    log::error!("Failed to parse multiple frames: {:?}", e);
-                    let frame = Frame::Error(format!("Failed to parse frames: {:?}", e));
-                    self.session.connection.write_bytes(frame.as_bytes()).await;
-                    continue;
-                }
-            };
-            
-            log::debug!("Received bytes: {:?}", String::from_utf8_lossy(bytes.as_slice()));
-            
-            for frame in frames {
+
+            // 将本次读取的数据追加到连接缓冲区中
+            read_buffer.extend_from_slice(bytes.as_slice());
+
+            log::debug!(
+                "Received bytes (buffer size {}): {:?}",
+                read_buffer.len(),
+                String::from_utf8_lossy(read_buffer.as_slice())
+            );
+
+            // 尝试从缓冲区中解析尽可能多的完整命令帧
+            loop {
+                let parse_result = Frame::parse_next_frame(read_buffer.as_slice());
+
+                let (frame, used_len) = match parse_result {
+                    Ok(Some((frame, used_len))) => (frame, used_len),
+                    Ok(None) => {
+                        // 当前缓冲区中的数据不足以构成一个完整的帧，等待下一次读取
+                        break;
+                    }
+                    Err(e) => {
+                        // 解析失败，记录错误并向客户端返回错误信息
+                        log::error!("Failed to parse frame from buffer: {:?}", e);
+                        let frame = Frame::Error(format!("Failed to parse frames: {:?}", e));
+                        self.session.connection.write_bytes(frame.as_bytes()).await;
+
+                        // 为避免死循环，丢弃当前缓冲区数据
+                        read_buffer.clear();
+                        break;
+                    }
+                };
+
+                // 从缓冲区移除已经被成功解析的那部分数据
+                read_buffer.drain(0..used_len);
+
                 log::debug!("Received frame: {}", frame.to_string());
                 let frame_copy = frame.clone();
                 if self.session.is_in_transaction() {
