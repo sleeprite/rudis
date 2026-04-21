@@ -14,6 +14,11 @@ use crate::{
             sadd::Sadd, scard::Scard, sdiff::Sdiff, sinter::Sinter, sismember::Sismember, smembers::Smembers, spop::Spop, srem::Srem, sscan::Sscan, sunion::Sunion, sunionstore::Sunionstore, srandmember::Srandmember, sdiffstore::Sdiffstore, sinterstore::Sinterstore, smove::Smove
         }, sorted_set::{
             zadd::Zadd, zcard::Zcard, zcount::Zcount, zincrby::Zincrby, zlexcount::Zlexcount, zrank::Zrank, zrem::Zrem, zscore::Zscore, zrange::Zrange,
+            zrevrange::Zrevrange, zrevrank::Zrevrank,
+            zrangebyscore::Zrangebyscore, zrevrangebyscore::Zrevrangebyscore,
+            zrangebylex::Zrangebylex, zrevrangebylex::Zrevrangebylex,
+            zremrangebyrank::Zremrangebyrank, zremrangebyscore::Zremrangebyscore, zremrangebylex::Zremrangebylex,
+            zpopmin::Zpopmin, zpopmax::Zpopmax,
         }, string::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, getset::GetSet, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, msetnx::Msetnx, set::Set, setrange::SetRange, strlen::Strlen, setex::Setex, psetex::Psetex, setnx::Setnx, setbit::Setbit, getbit::Getbit, bitcount::Bitcount, bitop::Bitop
         }, transaction::{
@@ -116,6 +121,17 @@ pub enum Command {
     Zrank(Zrank),
     Zrem(Zrem),
     Zrange(Zrange),
+    Zrevrange(Zrevrange),
+    Zrevrank(Zrevrank),
+    Zrangebyscore(Zrangebyscore),
+    Zrevrangebyscore(Zrevrangebyscore),
+    Zrangebylex(Zrangebylex),
+    Zrevrangebylex(Zrevrangebylex),
+    Zremrangebyrank(Zremrangebyrank),
+    Zremrangebyscore(Zremrangebyscore),
+    Zremrangebylex(Zremrangebylex),
+    Zpopmin(Zpopmin),
+    Zpopmax(Zpopmax),
     Incrby(Incrby),
     Decrby(Decrby),
     Echo(Echo),
@@ -241,6 +257,17 @@ impl Command {
             "ZRANK" => Command::Zrank(Zrank::parse_from_frame(frame)?),
             "ZLEXCOUNT" => Command::Zlexcount(Zlexcount::parse_from_frame(frame)?),
             "ZRANGE" => Command::Zrange(Zrange::parse_from_frame(frame)?),
+            "ZREVRANGE" => Command::Zrevrange(Zrevrange::parse_from_frame(frame)?),
+            "ZREVRANK" => Command::Zrevrank(Zrevrank::parse_from_frame(frame)?),
+            "ZRANGEBYSCORE" => Command::Zrangebyscore(Zrangebyscore::parse_from_frame(frame)?),
+            "ZREVRANGEBYSCORE" => Command::Zrevrangebyscore(Zrevrangebyscore::parse_from_frame(frame)?),
+            "ZRANGEBYLEX" => Command::Zrangebylex(Zrangebylex::parse_from_frame(frame)?),
+            "ZREVRANGEBYLEX" => Command::Zrevrangebylex(Zrevrangebylex::parse_from_frame(frame)?),
+            "ZREMRANGEBYRANK" => Command::Zremrangebyrank(Zremrangebyrank::parse_from_frame(frame)?),
+            "ZREMRANGEBYSCORE" => Command::Zremrangebyscore(Zremrangebyscore::parse_from_frame(frame)?),
+            "ZREMRANGEBYLEX" => Command::Zremrangebylex(Zremrangebylex::parse_from_frame(frame)?),
+            "ZPOPMIN" => Command::Zpopmin(Zpopmin::parse_from_frame(frame)?),
+            "ZPOPMAX" => Command::Zpopmax(Zpopmax::parse_from_frame(frame)?),
             "INCRBY" => Command::Incrby(Incrby::parse_from_frame(frame)?),
             "INCRBYFLOAT" => Command::IncrbyFloat(IncrbyFloat::parse_from_frame(frame)?),
             "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
@@ -330,6 +357,11 @@ impl Command {
             Command::Zadd(_) |
             Command::Zincrby(_) |
             Command::Zrem(_) |  // 命令兼容：ZREM 可删除 Geo 成员
+            Command::Zremrangebyrank(_) |
+            Command::Zremrangebyscore(_) |
+            Command::Zremrangebylex(_) |
+            Command::Zpopmin(_) |
+            Command::Zpopmax(_) |
             Command::Move(_) |
             Command::Pfadd(_) |
             Command::Pfmerge(_) |
