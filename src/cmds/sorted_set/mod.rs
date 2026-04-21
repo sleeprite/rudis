@@ -19,3 +19,7 @@ pub mod zremrangebyscore;
 pub mod zremrangebylex;
 pub mod zpopmin;
 pub mod zpopmax;
+pub mod zscan;
+pub mod aggregate_util;
+pub mod zunionstore;
+pub mod zinterstore;

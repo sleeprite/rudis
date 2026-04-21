@@ -19,6 +19,8 @@ use crate::{
             zrangebylex::Zrangebylex, zrevrangebylex::Zrevrangebylex,
             zremrangebyrank::Zremrangebyrank, zremrangebyscore::Zremrangebyscore, zremrangebylex::Zremrangebylex,
             zpopmin::Zpopmin, zpopmax::Zpopmax,
+            zscan::Zscan,
+            zunionstore::Zunionstore, zinterstore::Zinterstore,
         }, string::{
             append::Append, decr::Decr, decrby::Decrby, get::Get, getrange::GetRange, getset::GetSet, incr::Incr, incrby::Incrby, incrbyfloat::IncrbyFloat, mget::Mget, mset::Mset, msetnx::Msetnx, set::Set, setrange::SetRange, strlen::Strlen, setex::Setex, psetex::Psetex, setnx::Setnx, setbit::Setbit, getbit::Getbit, bitcount::Bitcount, bitop::Bitop
         }, transaction::{
@@ -132,6 +134,9 @@ pub enum Command {
     Zremrangebylex(Zremrangebylex),
     Zpopmin(Zpopmin),
     Zpopmax(Zpopmax),
+    Zscan(Zscan),
+    Zunionstore(Zunionstore),
+    Zinterstore(Zinterstore),
     Incrby(Incrby),
     Decrby(Decrby),
     Echo(Echo),
@@ -268,6 +273,9 @@ impl Command {
             "ZREMRANGEBYLEX" => Command::Zremrangebylex(Zremrangebylex::parse_from_frame(frame)?),
             "ZPOPMIN" => Command::Zpopmin(Zpopmin::parse_from_frame(frame)?),
             "ZPOPMAX" => Command::Zpopmax(Zpopmax::parse_from_frame(frame)?),
+            "ZSCAN" => Command::Zscan(Zscan::parse_from_frame(frame)?),
+            "ZUNIONSTORE" => Command::Zunionstore(Zunionstore::parse_from_frame(frame)?),
+            "ZINTERSTORE" => Command::Zinterstore(Zinterstore::parse_from_frame(frame)?),
             "INCRBY" => Command::Incrby(Incrby::parse_from_frame(frame)?),
             "INCRBYFLOAT" => Command::IncrbyFloat(IncrbyFloat::parse_from_frame(frame)?),
             "DECRBY" => Command::Decrby(Decrby::parse_from_frame(frame)?),
@@ -362,6 +370,8 @@ impl Command {
             Command::Zremrangebylex(_) |
             Command::Zpopmin(_) |
             Command::Zpopmax(_) |
+            Command::Zunionstore(_) |
+            Command::Zinterstore(_) |
             Command::Move(_) |
             Command::Pfadd(_) |
             Command::Pfmerge(_) |
