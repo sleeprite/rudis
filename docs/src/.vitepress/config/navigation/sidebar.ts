@@ -404,12 +404,68 @@ function zhSidebar(): DefaultTheme.SidebarItem[] {
               link: '/zh/docs/commands/sortedSet/zrank',
             },
             {
+              text: 'ZREVRANK',
+              link: '/zh/docs/commands/sortedSet/zrevrank',
+            },
+            {
               text: 'ZREM',
               link: '/zh/docs/commands/sortedSet/zrem',
             },
             {
               text: 'ZSCORE',
               link: '/zh/docs/commands/sortedSet/zscore',
+            },
+            {
+              text: 'ZREVRANGE',
+              link: '/zh/docs/commands/sortedSet/zrevrange',
+            },
+            {
+              text: 'ZRANGEBYSCORE',
+              link: '/zh/docs/commands/sortedSet/zrangebyscore',
+            },
+            {
+              text: 'ZREVRANGEBYSCORE',
+              link: '/zh/docs/commands/sortedSet/zrevrangebyscore',
+            },
+            {
+              text: 'ZRANGEBYLEX',
+              link: '/zh/docs/commands/sortedSet/zrangebylex',
+            },
+            {
+              text: 'ZREVRANGEBYLEX',
+              link: '/zh/docs/commands/sortedSet/zrevrangebylex',
+            },
+            {
+              text: 'ZREMRANGEBYRANK',
+              link: '/zh/docs/commands/sortedSet/zremrangebyrank',
+            },
+            {
+              text: 'ZREMRANGEBYSCORE',
+              link: '/zh/docs/commands/sortedSet/zremrangebyscore',
+            },
+            {
+              text: 'ZREMRANGEBYLEX',
+              link: '/zh/docs/commands/sortedSet/zremrangebylex',
+            },
+            {
+              text: 'ZPOPMIN',
+              link: '/zh/docs/commands/sortedSet/zpopmin',
+            },
+            {
+              text: 'ZPOPMAX',
+              link: '/zh/docs/commands/sortedSet/zpopmax',
+            },
+            {
+              text: 'ZSCAN',
+              link: '/zh/docs/commands/sortedSet/zscan',
+            },
+            {
+              text: 'ZUNIONSTORE',
+              link: '/zh/docs/commands/sortedSet/zunionstore',
+            },
+            {
+              text: 'ZINTERSTORE',
+              link: '/zh/docs/commands/sortedSet/zinterstore',
             },
           ]
         },
@@ -940,12 +996,68 @@ function enSidebar(): DefaultTheme.SidebarItem[] {
               link: '/docs/commands/sortedSet/zrank',
             },
             {
+              text: 'ZREVRANK',
+              link: '/docs/commands/sortedSet/zrevrank',
+            },
+            {
               text: 'ZREM',
               link: '/docs/commands/sortedSet/zrem',
             },
             {
               text: 'ZSCORE',
               link: '/docs/commands/sortedSet/zscore',
+            },
+            {
+              text: 'ZREVRANGE',
+              link: '/docs/commands/sortedSet/zrevrange',
+            },
+            {
+              text: 'ZRANGEBYSCORE',
+              link: '/docs/commands/sortedSet/zrangebyscore',
+            },
+            {
+              text: 'ZREVRANGEBYSCORE',
+              link: '/docs/commands/sortedSet/zrevrangebyscore',
+            },
+            {
+              text: 'ZRANGEBYLEX',
+              link: '/docs/commands/sortedSet/zrangebylex',
+            },
+            {
+              text: 'ZREVRANGEBYLEX',
+              link: '/docs/commands/sortedSet/zrevrangebylex',
+            },
+            {
+              text: 'ZREMRANGEBYRANK',
+              link: '/docs/commands/sortedSet/zremrangebyrank',
+            },
+            {
+              text: 'ZREMRANGEBYSCORE',
+              link: '/docs/commands/sortedSet/zremrangebyscore',
+            },
+            {
+              text: 'ZREMRANGEBYLEX',
+              link: '/docs/commands/sortedSet/zremrangebylex',
+            },
+            {
+              text: 'ZPOPMIN',
+              link: '/docs/commands/sortedSet/zpopmin',
+            },
+            {
+              text: 'ZPOPMAX',
+              link: '/docs/commands/sortedSet/zpopmax',
+            },
+            {
+              text: 'ZSCAN',
+              link: '/docs/commands/sortedSet/zscan',
+            },
+            {
+              text: 'ZUNIONSTORE',
+              link: '/docs/commands/sortedSet/zunionstore',
+            },
+            {
+              text: 'ZINTERSTORE',
+              link: '/docs/commands/sortedSet/zinterstore',
             },
           ]
         },
