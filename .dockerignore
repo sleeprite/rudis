@@ -1,0 +1,44 @@
+# Rust 构建产物
+target/
+debug/
+
+# 版本控制
+.git/
+.gitattributes
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+.vs/
+
+# 构建发布产物
+release/
+changelog/
+docs/
+
+# CI/GitHub
+.github/
+
+# Windows
+*.ps1
+*.psd1
+*.psm1
+*.bat
+*.cmd
+
+# 文档 / 杂项
+*.md
+*.html
+*.csv
+
+# 数据文件 (运行时生成)
+*.rdb
+*.aof
+
+# 证书 / 许可
+LICENSE
+
+# Docker 自身（避免循环）
+docker/
+docker-compose*.yml
