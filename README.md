@@ -81,10 +81,10 @@ start rudis-server.exe --port 6379
 
 ```sh 
 // docker 常规启动
-docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
+docker run --rm -p 6379:6379 -p 7379:7379 ghcr.io/lunar-landing/rudis:latest
 
 // docker 指定参数启动
-docker run -p 6379:8848 ghcr.io/sleeprite/rudis:latest --port 8848
+docker run --rm -p 6379:8848 ghcr.io/lunar-landing/rudis:latest --port 8848
 ```
 
 ## 配置说明

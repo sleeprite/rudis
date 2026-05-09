@@ -4,20 +4,20 @@ This is the Dockerfile of the Docker image for Rudis.
 
 ## Image Variants
 
-### `ghcr.io/sleeprite/rudis:latest`
+### `ghcr.io/lunar-landing/rudis:latest`
 
 This is the latest released rusdis Docker image.
 
-### `ghcr.io/sleeprite/rudis:<version>`
+### `ghcr.io/lunar-landing/rudis:<version>`
 
-Rudis Docker image will be builded on each release, [view the package page](https://github.com/sleeprite/rudis/pkgs/container/rudis).
+Rudis Docker image will be builded on each release, [view the package page](https://github.com/lunar-landing/rudis/pkgs/container/rudis).
 
 ## How to use this image
 
 ### Base
 
 ```sh
-docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
+docker run --rm -p 6379:6379 -p 7379:7379 ghcr.io/lunar-landing/rudis:latest
 ```
 
 ### With Args
@@ -25,7 +25,7 @@ docker run -p 6379:6379 ghcr.io/sleeprite/rudis:latest
 You can add all supported args at the end, like
 
 ```sh
-docker run -p 6379:8848 ghcr.io/sleeprite/rudis:latest --port 8848
+docker run --rm -p 6379:8848 -p 7379:7379 ghcr.io/lunar-landing/rudis:latest --port 8848
 ```
 
 ### Handle Data
@@ -35,12 +35,12 @@ Rudis Docker image's default `WORKDIR` is /rudis, but you can change it with arg
 So bind /rudis to handle data
 
 ```sh
-docker run -p 6379:6379 -v /some/path/to/save/data:/rudis ghcr.io/sleeprite/rudis:latest --save 60/1
+docker run --rm -p 6379:6379 -v /some/path/to/save/data:/rudis ghcr.io/lunar-landing/rudis:latest --save 60/1
 ```
 
 You can use a config file like this
 
 ```sh
 touch ./config.properties
-docker run -p 6379:6379 -v ./:/rudis ghcr.io/sleeprite/rudis:latest --config config.properties
+docker run --rm -p 6379:6379 -v ./:/rudis ghcr.io/lunar-landing/rudis:latest --config config.properties
 ```
