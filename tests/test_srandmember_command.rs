@@ -1,4 +1,3 @@
-use redis::Commands;
 use std::collections::HashSet;
 
 #[tokio::test]
