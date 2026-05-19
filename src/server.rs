@@ -23,6 +23,7 @@ use crate::command::Command;
 use crate::frame::Frame;
 
 mod async_dispatch;
+pub mod blocking;
 mod state;
 use async_dispatch::dispatch;
 use state::ServerState;

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::store::blocking::BlockingQueueManager;
+use crate::server::blocking::BlockingQueueManager;
 
 /// 全局状态容器
 /// 

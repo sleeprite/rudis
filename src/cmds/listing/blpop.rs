@@ -1,6 +1,6 @@
 use anyhow::Error;
 use crate::{frame::Frame, server::Handler};
-use crate::store::blocking::BlockDirection;
+use crate::server::blocking::BlockDirection;
 
 /// BLPOP 命令：阻塞式从列表左端弹出元素
 ///

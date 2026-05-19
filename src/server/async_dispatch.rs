@@ -2,7 +2,7 @@ use anyhow::Error;
 use crate::command::Command;
 use crate::frame::Frame;
 use crate::server::Handler;
-use crate::store::blocking::{BlockDirection, BlockingQueueManager};
+use crate::server::blocking::{BlockDirection, BlockingQueueManager};
 
 /// 统一的异步命令分发入口
 ///
