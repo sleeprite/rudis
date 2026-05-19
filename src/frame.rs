@@ -384,25 +384,61 @@ impl Frame {
      *
      * @param bytes 二进制
      */
-    fn  parse_array(bytes: &[u8]) -> Result<Frame, Error> {
-        let mut frames = Vec::new();
-        let mut start = 0;
+    fn parse_array(bytes: &[u8]) -> Result<Frame, Error> {
+        // 找到数组头 *N\r\n 的结束位置
+        let header_end = match bytes.iter().position(|&b| b == b'\r') {
+            Some(pos) if pos + 1 < bytes.len() && bytes[pos + 1] == b'\n' => pos + 2,
+            _ => return Err(Error::msg("Invalid array header: missing CRLF")),
+        };
 
-        for (i, &item) in bytes.iter().enumerate() {
+        // 解析数组元素个数 N
+        let count_str = std::str::from_utf8(&bytes[1..header_end - 2]).map_err(|_| Error::msg("Invalid UTF-8 in array header"))?;
+        let count: usize = count_str.parse().map_err(|_| Error::msg(format!("Invalid array length: {}", count_str)))?;
 
-            if item == b'\r' && i + 1 < bytes.len() && bytes[i + 1] == b'\n' {
+        let mut frames = Vec::with_capacity(count);
+        let mut pos = header_end;
 
-                let part = match std::str::from_utf8(&bytes[start..i]) {
-                    Ok(v) => v,
-                    Err(_) => return Err(Error::msg("Invalid UTF-8 sequence")),
-                };
-
-                if !((part.starts_with('*') && part.len()!= 1) || part.starts_with('$')) {
-                    frames.push(Frame::BulkString(part.to_string()));
-                }
-
-                start = i + 2;
+        // 逐个按 $L\r\n<content>\r\n 格式读取 N 个 bulk string 元素
+        for _ in 0..count {
+            // 每个元素必须以 '$' 开头
+            if pos >= bytes.len() || bytes[pos] != b'$' {
+                return Err(Error::msg("Expected bulk string prefix '$'"));
             }
+
+            // 找到长度行 $L\r\n 的结束位置
+            let len_end = match bytes[pos..].iter().position(|&b| b == b'\r') {
+                Some(offset) if pos + offset + 1 < bytes.len() && bytes[pos + offset + 1] == b'\n' => {
+                    pos + offset + 2
+                }
+                _ => return Err(Error::msg("Invalid bulk string header: missing CRLF")),
+            };
+
+            // 解析内容长度 L
+            let len_str = std::str::from_utf8(&bytes[pos + 1..len_end - 2])
+                .map_err(|_| Error::msg("Invalid UTF-8 in bulk string header"))?;
+
+            // 处理 null bulk string ($-1\r\n)
+            if len_str == "-1" {
+                frames.push(Frame::Null);
+                pos = len_end;
+                continue;
+            }
+
+            let content_len: usize = len_str.parse().map_err(|_| Error::msg(format!("Invalid bulk string length: {}", len_str)))?;
+            let content_start = len_end;
+            let content_end = content_start + content_len;
+
+            // 验证结尾的 \r\n
+            if content_end + 2 > bytes.len()
+                || bytes[content_end] != b'\r'
+                || bytes[content_end + 1] != b'\n'
+            {
+                return Err(Error::msg("Incomplete bulk string data or missing CRLF terminator"));
+            }
+
+            let content = std::str::from_utf8(&bytes[content_start..content_end]).map_err(|_| Error::msg("Invalid UTF-8 in bulk string content"))?;
+            frames.push(Frame::BulkString(content.to_string()));
+            pos = content_end + 2;
         }
 
         Ok(Frame::Array(frames))
