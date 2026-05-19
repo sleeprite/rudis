@@ -1,12 +1,58 @@
 #[cfg(test)]
 mod tests {
-    
+
+    use std::process::{Child, Command};
+    use std::sync::Mutex;
     use std::{thread::sleep, time::Duration};
 
     use redis::{Client, Commands, Connection};
 
+    const TEST_PORT: &str = "16379";
+    static SERVER: Mutex<Option<Child>> = Mutex::new(None);
+
+    /// 自动启动测试专用的 rudis-server 子进程（端口 16379），仅首次调用时启动
+    fn ensure_server_started() {
+        let mut guard = SERVER.lock().unwrap();
+        if guard.is_some() {
+            return;
+        }
+
+        // 优先通过 cargo 环境变量获取二进制路径，否则回退到默认路径
+        let server_path = std::env::var("CARGO_BIN_EXE_rudis-server").unwrap_or_else(|_| {
+                let mut p = std::env::current_dir().unwrap();
+                p.push("target");
+                p.push("debug");
+                p.push("rudis-server.exe");
+                p.to_string_lossy().to_string()
+            });
+
+        let mut child = Command::new(&server_path).arg("--port").arg(TEST_PORT).arg("--loglevel").arg("error")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .unwrap_or_else(|e| panic!("Failed to start test server at {}: {}", server_path, e));
+
+        // 轮询等待服务就绪（最多 5 秒）
+        let url = format!("redis://127.0.0.1:{}/", TEST_PORT);
+        for i in 0..50 {
+            sleep(Duration::from_millis(100));
+            if let Ok(client) = Client::open(url.as_str()) {
+                if client.get_connection().is_ok() {
+                    *guard = Some(child);
+                    return;
+                }
+            }
+            if i == 49 {
+                let _ = child.kill();
+                panic!("Test server failed to start within 5 seconds");
+            }
+        }
+    }
+
     fn setup() -> Connection {
-        let client = Client::open("redis://127.0.0.1:6379/").unwrap();
+        ensure_server_started();
+        let url = format!("redis://127.0.0.1:{}/", TEST_PORT);
+        let client = Client::open(url.as_str()).unwrap();
         match client.get_connection() {
             Ok(conn) => conn,
             Err(e) => {
@@ -97,16 +143,11 @@ mod tests {
 
     #[test]
     fn test_rename() {
-
         let mut con = setup();
-
         let _: () = con.set("rename-test", "Helloworld").unwrap();
         let _: () = con.rename("rename-test", "rename-new-test").unwrap();
-        
         let key_exists: bool = con.exists("rename-new-test").unwrap();
-
         println!("是否存在：{}", key_exists);
-
         assert_eq!(key_exists, true);
     }
 
