@@ -167,11 +167,11 @@ pub enum Command {
     // GEO 命令
     Geoadd(Geoadd),
     GeoaddJson(GeoaddJson),
-    Geopos(Geopos),
+    Georadiusbymember(Georadiusbymember),
     Geodist(Geodist),
     Geohash(Geohash),
     Georadius(Georadius),
-    Georadiusbymember(Georadiusbymember),
+    Geopos(Geopos),
 }
 impl Command {
     pub fn parse_from_frame(frame: Frame) -> Result<Self, Error> {
