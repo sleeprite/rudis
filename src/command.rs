@@ -376,7 +376,7 @@ impl Command {
             Command::Pfadd(_) |
             Command::Pfmerge(_) |
             Command::Geoadd(_) |
-            Command::GeoaddJson(_) |
+            Command::GeoaddJson(_) => true,
             _ => false,
         }
     }
