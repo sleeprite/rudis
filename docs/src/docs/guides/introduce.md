@@ -12,4 +12,4 @@ The goal of Rudis is to become a high-performance, reliable, and secure key valu
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sleeprite/rudis&type=Date)](https://star-history.com/#sleeprite/rudis&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=sleeprite/rudis&type=Date)](https://star-history.dera.page/#sleeprite/rudis&Date)
